@@ -1,0 +1,177 @@
+{
+ "label": "golfphys coefficients. status: calibrated = fitted to cited published rows (see golfphys_validation.json for fit vs held-out); assumption = my choice; published = value quoted from a source (fetched/snippet in 'source').",
+ "written": "2026-10-17",
+ "no_personal_clip_data": true,
+ "params": {
+  "m_head": {
+   "value": 0.2,
+   "status": "assumption",
+   "note": "typical 195-205 g driver head",
+   "source": "n/a"
+  },
+  "e0": {
+   "value": 0.8537983987042344,
+   "status": "calibrated",
+   "note": "fit to 30 TrackMan 2010 carry-optimizer rows (smash/launch/spin); effective value absorbs head mass/COR (exceeds 0.83 legal COR because m_head is nominal)",
+   "source": "fetched chart (wishongolf PDF)"
+  },
+  "e_slope": {
+   "value": 0.0,
+   "status": "assumption",
+   "note": "fitted slope was ~0 (-1e-4/(m/s)); fixed at 0",
+   "source": "fetched chart"
+  },
+  "e_ref_speed": {
+   "value": 50.0,
+   "status": "assumption",
+   "note": "reference normal speed",
+   "source": "n/a"
+  },
+  "s_t": {
+   "value": 0.8657392003543648,
+   "status": "calibrated",
+   "note": "tangential-impulse efficiency vs full rolling contact (uniform sphere M*vt/3.5); fit to the same rows",
+   "source": "fetched chart; mechanism Cochran & Stobbs / Tutelman (snippet)"
+  },
+  "s_t_slope": {
+   "value": 0.0,
+   "status": "assumption",
+   "note": "fitted slope ~ -0.002/deg, not significant on held-out rows; fixed at 0",
+   "source": "fetched chart"
+  },
+  "I_head_h": {
+   "value": 0.0005,
+   "status": "published",
+   "note": "Tutelman gear-effect 3: Ih 4000-5900 g cm^2",
+   "source": "fetched tutelman.com/golf/ballflight/gearEffect3.php"
+  },
+  "I_head_v": {
+   "value": 0.0003,
+   "status": "published",
+   "note": "Iv = 1/2 - 2/3 of Ih (Tutelman GE3)",
+   "source": "fetched tutelman.com/golf/ballflight/gearEffect3.php"
+  },
+  "gear_h_rpm_per_mph_in": {
+   "value": 16.4,
+   "status": "published",
+   "note": "16.4 rpm per mph ball speed per inch of horizontal offset",
+   "source": "fetched Tutelman GE3"
+  },
+  "gear_v_rpm_per_mph_in": {
+   "value": 25.0,
+   "status": "published",
+   "note": "25 rpm per mph per inch vertical offset",
+   "source": "fetched Tutelman GE3"
+  },
+  "gear_mode": {
+   "value": "tutelman",
+   "status": "assumption",
+   "note": "'tutelman' empirical add-on; not validated against launch-monitor off-centre data (none collected)",
+   "source": "n/a"
+  },
+  "bulge_radius": {
+   "value": 0.254,
+   "status": "assumption",
+   "note": "10 in standard driver bulge (common spec, not verified in this session)",
+   "source": "unverified"
+  },
+  "roll_radius": {
+   "value": 0.305,
+   "status": "assumption",
+   "note": "12 in standard roll (common spec, not verified)",
+   "source": "unverified"
+  },
+  "aero_model": {
+   "value": "bh_fit",
+   "status": "assumption",
+   "note": "Cl form 0.54 S^0.4 (curve-fit to Bearman & Harvey 1976 Fig. 9 as quoted; snippet) with scale calibration",
+   "source": "snippet (Bearman 1976 scribd/COMSOL blog)"
+  },
+  "cd_scale": {
+   "value": 0.7357183005424207,
+   "status": "calibrated",
+   "note": "fit: TM carry-opt carry + 3 landing-angle anchors; scales no-spin and spin Cd",
+   "source": "fetched chart + snippet anchors"
+  },
+  "cl_scale": {
+   "value": 0.7730992270760599,
+   "status": "calibrated",
+   "note": "same fit",
+   "source": "fetched chart + snippet anchors"
+  },
+  "cd_plateau": {
+   "value": 0.235,
+   "status": "assumption",
+   "note": "no-spin Cd after drag crisis (B&H qualitative)",
+   "source": "snippet"
+  },
+  "cd_re_slope": {
+   "value": 0.012,
+   "status": "assumption",
+   "note": "slow Cd rise with Re after crisis (B&H qualitative)",
+   "source": "snippet"
+  },
+  "cd_spin_slope": {
+   "value": 0.5902245329431178,
+   "status": "calibrated",
+   "note": "dCd/dS (induced-drag term) fit jointly; a 2-parameter fit could not match carry and 38 deg descent together",
+   "source": "fetched chart + snippet anchors"
+  },
+  "re_crit": {
+   "value": 60000.0,
+   "status": "assumption",
+   "note": "drag-crisis Re 4-6e4 for dimpled ball",
+   "source": "snippet (IJIMT 2013 citing B&H)"
+  },
+  "cd_sub": {
+   "value": 0.45,
+   "status": "assumption",
+   "note": "subcritical Cd",
+   "source": "unverified"
+  },
+  "cl_cap": {
+   "value": 0.32,
+   "status": "assumption",
+   "note": "Cl saturation cap (never binds at driver S<0.15 after scaling)",
+   "source": "unverified"
+  },
+  "spin_decay": {
+   "value": 0.04,
+   "status": "published",
+   "note": "3.3-4 %/s spin loss (Tutelman spin-decay page); 0.04 used. Constant-rate; Smits&Smith have velocity dependence",
+   "source": "snippet (Tutelman)"
+  }
+ },
+ "turf": {
+  "normal": {
+   "e_a": 0.20962620431320383,
+   "v_ref": 20.0,
+   "mu": 0.7484933240257778,
+   "beta": 0.10283666745468316,
+   "plow": 0.20252849485655997,
+   "a_roll": 2.954719298897463,
+   "status": "calibrated (absolute: carry-opt+Foresight totals)",
+   "source": "data/references/roll_aoa_validation.json (TrackMan/Foresight rows), USGA 'Golf Course Effects on Hitting Distance' (fetched)"
+  },
+  "soft": {
+   "e_a": 0.20962620431320383,
+   "v_ref": 20.0,
+   "mu": 0.7484933240257778,
+   "beta": 0.10283666745468316,
+   "plow": 0.20252849485655997,
+   "a_roll": 3.6865495750665107,
+   "status": "calibrated ONLY on one relative statistic: Broadie/ShotLink soft -5.31 / firm +4.49 yd of total vs medium (fetched USGA PDF); changes a_roll only",
+   "source": "data/references/roll_aoa_validation.json (TrackMan/Foresight rows), USGA 'Golf Course Effects on Hitting Distance' (fetched)"
+  },
+  "firm": {
+   "e_a": 0.20962620431320383,
+   "v_ref": 20.0,
+   "mu": 0.7484933240257778,
+   "beta": 0.10283666745468316,
+   "plow": 0.20252849485655997,
+   "a_roll": 2.530032958427091,
+   "status": "calibrated ONLY on one relative statistic: Broadie/ShotLink soft -5.31 / firm +4.49 yd of total vs medium (fetched USGA PDF); changes a_roll only",
+   "source": "data/references/roll_aoa_validation.json (TrackMan/Foresight rows), USGA 'Golf Course Effects on Hitting Distance' (fetched)"
+  }
+ }
+}
