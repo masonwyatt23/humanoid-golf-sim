@@ -45,7 +45,8 @@ class V5GolfEnv(gym.Env):
     metadata = {"render_modes": []}
 
     def __init__(self, handed="LH", club_len=0.87, dt=0.0005, force_scale=1.0, ball_tol_m=0.0, max_s=2.0, post_contact_s=0.10, seed=0,
-                 fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False):
+                 fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False, detail_info=False):
+        self.detail_info = detail_info   # opt-in per-shot landing/impact logging (ENV_LANDING_LOGGING_SPEC); default off = info dict unchanged
         self.handed, self.club_len, self.force_scale = handed, club_len, force_scale
         self._dt_arg = dt
         self.tether_strength = tether_strength   # SOFT pelvis tether strength in [0,1] (curriculum aid, annealed to 0 = free). 0 at evaluation.
@@ -248,4 +249,12 @@ class V5GolfEnv(gym.Env):
             info.update(carry_m_noroll=sh.carry_m, total_m_model=sh.total_m, lateral_carry_m=sh.lateral_carry_m, launch_deg=self.shot["launch_deg"],
                         spin_rpm=sh.spin_rpm, smash=self.shot["smash"], ball_speed_mph=self.shot["ball_speed"] / 0.44704,
                         club_speed_mph=self.ball_hit_info["club_speed"] / 0.44704, **{k: self.ball_hit_info[k] for k in ("dy", "dz")})
+        if self.contact and self.detail_info:
+            hs = 1.0 if self.handed.upper().startswith("R") else -1.0       # golfer frame: y-derived angles x hand_sign (+ = left of target)
+            n = np.asarray(self.ball_hit_info["face_normal"]); v = self.prev_v
+            info.update(landing_time_s=sh.hang_s, landing_y_m=sh.lateral_carry_m, landing_spin_rpm=sh.landing_spin_rpm, landing_speed_mps=sh.land_speed_ms,
+                        descent_deg=sh.descent_deg, apex_m=sh.apex_m, spin_axis_deg=sh.spin_axis_deg, backspin_rpm=sh.backspin_rpm, sidespin_rpm=sh.sidespin_rpm,
+                        face_yaw_deg=math.degrees(math.atan2(n[1], n[0])) * hs, dynamic_loft_deg=math.degrees(math.asin(float(np.clip(n[2], -1, 1)))),
+                        club_path_deg=math.degrees(math.atan2(v[1], v[0])) * hs, aoa_deg=math.degrees(math.atan2(v[2], math.hypot(v[0], v[1]))),
+                        carry_frame="golfphys relative to ball start (NOT absolute x), no roll")
         return self._obs(), 0.0, bool(term), bool(trunc and not term), info
