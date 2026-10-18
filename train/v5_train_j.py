@@ -21,7 +21,7 @@ class JEnv(HEnv):
     res_scale = 1.0; track_w = 1.0; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
     def __init__(self, dt=0.002, seed=0, keys=None, res_scale=1.0, t_down=0.27):
         super().__init__(dt=dt, seed=seed, planar=False); self.ref_keys = keys; self.res_scale = res_scale; self.t_down = t_down; self.ref = None
-        self.target_len = 1.15; self.target_tether = 0.0; self.prior_w = 0.0; self.rng2 = np.random.default_rng(seed + 12345)
+        self.target_len = 1.15; self.target_tether = 0.0; self.prior_w = 0.0; self.env.friction_rand = False; self.rng2 = np.random.default_rng(seed + 12345)
         n = self.env.observation_space.shape[0] + EXTRA; self.observation_space = spaces.Box(-np.inf, np.inf, (n,), np.float32)
     def _ensure_ref(self):
         e = self.env

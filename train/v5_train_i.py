@@ -50,7 +50,7 @@ class HEnv(F.EEnv):
         da = 0.0 if self.prev_a is None else float(np.mean((a - self.prev_a) ** 2)); self.prev_a = a.copy()
         o, _, term, trunc, info = e.step(a)
         hs = e.head_site; v = e._vel_site(hs)[3:]
-        unstable = (not np.all(np.isfinite(v))) or float(np.linalg.norm(v)) > 62.0 or float(np.max(np.abs(e.d.qvel))) > 60.0
+        unstable = (not np.all(np.isfinite(v))) or float(np.linalg.norm(v)) > 62.0 or float(np.max(np.abs(e.d.qvel[:e.m.nv - 12]))) > 60.0
         if unstable: v = np.zeros(3); term = True
         r = -self.rate_w * da
         rel = e.tee - e.d.site_xpos[hs]; dist = float(np.linalg.norm(rel))
