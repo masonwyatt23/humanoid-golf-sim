@@ -46,3 +46,11 @@ render_blender/*.npz
 render_blender/swing_v3.json
 render_blender/*.blend
 golf_render/
+
+# Untracked at tip 2026-10-18 (still in git history); keep local copies only
+data/references/cmu_64_*.npz
+data/references/multisense_*
+data/references/mason*.npz
+data/references/caddieset_driver_event_features.json
+data/convert_caddieset.py
+results/imit_private/
