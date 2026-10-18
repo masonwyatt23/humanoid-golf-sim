@@ -40,14 +40,14 @@ def card(name, lines, secs):
         vf.append(f"drawtext=fontfile={FONT}:textfile={tf(txt)}:x=64:y={y}:fontsize={size}:fontcolor={c}"); y += int(size * 1.9)
     p = tmp / f"{name}.mp4"
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", f"color=c=0x0d1117:s={W}x{H}:r={a.out_fps}:d={secs}", "-vf", ",".join(vf), "-c:v", "libx264", "-pix_fmt", "yuv420p", str(p)], check=True); return p
-title = card("title", [("Humanoid golf: " + card_head, 36, "white"), ("MuJoCo physics, left-handed, generic humanoid (not an official robot model). Simulation only.", 22, "0xcccccc"),
+title = card("title", [("Humanoid golf: " + card_head, 36 if a.kind == "stock" else 28, "white"), ("MuJoCo physics, left-handed, generic humanoid (not an official robot model). Simulation only.", 22, "0xcccccc"),
     (f"Policy: {model} (behaviour-cloned from the scripted v3 swing)", 24, col), ("Stock motors, force_scale 1" if a.kind == "stock" else "HYPOTHETICAL power tier: impact gain 1.2, no spin model", 26, col),
     (f"Seed {seed}: club {mph:.1f} mph, launch {launch:.1f} deg, carry {carry_yd:.0f} yd / {carry_m:.0f} m (this one swing)", 22, "white")], 3)
 end = card("end", [("What you just saw", 36, "white"), ("- Body motion, club and ball launch: from the MuJoCo simulation (deterministic policy rollout).", 16, "white"),
     ("- Policy = behaviour-cloned imitation of the scripted swing; it reproduces the script, not a new swing.", 16, "white"),
     (f"- This clip is ONE swing (seed {seed}), the median of 8 seeds; gate means are quoted separately on screen.", 16, "white"),
     ("- Ball flight after the sim episode ends: analytic drag+Magnus; spin is ASSUMED.", 16, "white"),
-    ("- Stock motors (force_scale 1). Simulation only." if a.kind == "stock" else "- HYPOTHETICAL power tier (boosted actuators, impact gain 1.2, no spin model): not evidence of human- or robot-attainable performance.", 16, "0xff6060" if a.kind == "power" else "white"),
+    ("- Stock motors (force_scale 1). Simulation only." if a.kind == "stock" else "- HYPOTHETICAL power tier (boosted actuators, impact gain 1.2, no spin model): not evidence of human/robot performance.", 16, "0xff6060" if a.kind == "power" else "white"),
     (f"- Rendered with Blender (EEVEE) at {W}x{H}, {a.fps} fps source (duplicated to {a.out_fps}).", 16, "0xcccccc")], 5)
 lst = tmp / "l.txt"; lst.write_text("".join(f"file '{p}'\n" for p in (title, body, end)))
 subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", a.out], check=True); print("wrote", a.out)
