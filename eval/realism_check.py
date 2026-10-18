@@ -31,15 +31,20 @@ def run_v1(a):
     spec = _v1_spec(a.target)
     return SR.evaluate([spec], a.eps_per_seed, a.workers)[spec["key"]]
 
+def resolve_arm_dist(target, arm_dist=None):
+    """Stage A -> 0 (TrainEnv); Stage B/C and anything else -> 0.6 (BEnv). Explicit value wins."""
+    if arm_dist is not None: return float(arm_dist)
+    return 0.0 if "stageA" in str(target) else 0.6
+
 def run_v5(a):
     from eval import swing_realism as SR
     repo = Path(a.v5_repo); ck = str(Path(a.target).with_suffix("")) if a.target.endswith(".zip") else a.target
     if not (repo / "env" / "v5_golf_env.py").exists(): sys.exit(f"v5 env not found in {repo} (it is a Trainer-local commit, not on origin/main)")
     if not Path(ck + "_vecnorm.pkl").exists(): sys.exit(f"missing {ck}_vecnorm.pkl (PPO checkpoints need VecNormalize stats)")
-    seeds = [int(s) for s in a.seeds.split(",")]; eps = []; bw = None; env = dict(os.environ, OMP_NUM_THREADS="2", MKL_NUM_THREADS="2", OPENBLAS_NUM_THREADS="2", NUMEXPR_NUM_THREADS="2")
+    arm = resolve_arm_dist(a.target, a.arm_dist); seeds = [int(s) for s in a.seeds.split(",")]; eps = []; bw = None; env = dict(os.environ, OMP_NUM_THREADS="2", MKL_NUM_THREADS="2", OPENBLAS_NUM_THREADS="2", NUMEXPR_NUM_THREADS="2")
     for sd in seeds:
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
-        subprocess.run([sys.executable, str(ROOT / "eval" / "_v5_worker.py"), str(repo), os.path.abspath(ck), str(a.club_len), str(sd), str(a.eps_per_seed), outp], check=True, cwd=str(repo), env=env)
+        subprocess.run([sys.executable, str(ROOT / "eval" / "_v5_worker.py"), str(repo), os.path.abspath(ck), str(a.club_len), str(sd), str(a.eps_per_seed), outp, str(arm)], check=True, cwd=str(repo), env=env)
         J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]; eps += J["eps"]
     out = []
     for r in eps:
@@ -60,13 +65,13 @@ def run_v5(a):
     for nm in ("ground_contact_weight_shift", "joint_limits", "torque_saturation_smoothness", "tempo", "carry_vs_trackman_band"):
         C[f"mine/{nm}"] = dict(status="skip", passed=False, values=None, why=["not implemented for the v5 recorder (v1 recorder only)"], ref=None, tag="derived")
     S = SR.summarize(C)
-    return dict(key=Path(ck).parent.name + "/" + Path(ck).name, env=f"v5 (G1, club_len {a.club_len}, tether 0)", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], verdict=S["verdict"],
+    return dict(key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, env=f"v5 (G1, club_len {a.club_len}, tether 0, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], verdict=S["verdict"],
                 club_mph_median=SR.med([e["club_mph"] for e in ok]))
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter); ap.add_argument("target"); ap.add_argument("--env", default="v1", choices=["v1", "v5"])
     ap.add_argument("--eps-per-seed", type=int, default=8); ap.add_argument("--seeds", default="4000,8000,9000"); ap.add_argument("--workers", type=int, default=2); ap.add_argument("--club-len", type=float, default=1.05)
-    ap.add_argument("--v5-repo", default=DEFAULT_V5); ap.add_argument("--json", default="")
+    ap.add_argument("--arm-dist", type=float, default=None, help="v5 only: 0.6 (default, BEnv) for Stage B/C; 0 (TrainEnv) auto for paths containing stageA"); ap.add_argument("--v5-repo", default=DEFAULT_V5); ap.add_argument("--json", default="")
     a = ap.parse_args(); r = run_v5(a) if a.env == "v5" else run_v1(a)
     print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}")
     for n, c in r["checks"].items():
