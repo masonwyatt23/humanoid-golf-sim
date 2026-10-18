@@ -40,7 +40,7 @@ def hypo_html():
 
 def side_by_side(lb):
     out = []
-    for nm, why in (("imit9_w000_s51", "best lateral spread (script-free imitation of the scripted v3 swing; passes 3-seed gate; noise-fragile)"), ("imit3_w050_s51", "best under noise (50% learned / 50% scripted)")):
+    for nm, why in (("imit9_w000_s51", "best lateral spread (script-free imitation of the scripted v3 swing; passes 3-seed gate; noise-fragile)"), ("imit3_w050_s51", "best under noise (50% script-distilled policy / 50% scripted)")):
         m = next((m for m in lb["models"] if nm in m["names"] and "modes" in m), None)
         if not m: continue
         d = m["modes"]["deterministic"]; nr = {k: v for k, v in (m.get("noise_robust") or {}).items() if v and "mean_carry" in v}
