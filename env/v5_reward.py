@@ -13,7 +13,7 @@ TARGET_120 = dict(pelvis=519.0, thorax=803.0, lead_arm=1097.0, club=2500.0)   # 
 PEAK_W, PEAK_SCALE, OVERSHOOT, PEAK_CLIP = 0.5, 0.15, 0.25, (-4.0, 0.0)
 PRE_IMPACT_S = dict(pelvis=0.087, thorax=0.068, lead_arm=0.065, club=0.0)       # pros peak this long before impact (spec)
 MIN_GAP_S = 0.005
-XFACTOR_WINDOW_DEG = (35.0, 55.0)                                              # [guess], plan section 5.4
+XFACTOR_WINDOW_DEG = (54.0, 62.0)                                              # kseq-v2 (public: Madrid 61, Meister 56, Kwon 59; 54-62 at 100-110 mph)
 PRIOR_CAP_START, PRIOR_CAP_END = 0.20, 0.05
 
 
@@ -49,6 +49,11 @@ def xfactor_term(xf_deg_max, thorax_speed_rises_after):
     return max(0.0, 1.0 - d / 20.0)
 
 
+def lag_term(t_peak, t_impact, sigma=0.04):
+    """SOFT: Gaussian (sigma 40 ms, so a 20 ms control step does not matter) on the pre-impact peak lags pelvis/thorax/lead_arm vs kseq-v2 targets 87/68/65 ms. Mean in [0,1]."""
+    return float(np.mean([math.exp(-0.5 * (((t_impact - t_peak[k]) - v) / sigma) ** 2) for k, v in PRE_IMPACT_S.items() if k != "club"]))
+
+
 def weight_shift_term(lead_share_top, lead_share_impact):
     """Lead-foot share of vertical GRF should rise from the top of the backswing to impact. [guess: ~60-80% lead at impact, not sourced]"""
     return float(np.clip((lead_share_impact - lead_share_top) / 0.4, 0.0, 1.0))
@@ -81,10 +86,10 @@ def episode_terms(log, shot=None, progress=0.0, stage="A", targets=TARGET_100):
     rises = bool(len(th) and th[i_xf:].max() > 1.2 * th[i_xf]) if len(xf) else False
     ls = np.asarray(log["lead_share"])[pre]
     raw = dict(peak=peak_speed_term(peaks, targets), sequence=sequence_term(tp, ti, slows),
-               xfactor=xfactor_term(float(np.abs(xf).max()) if len(xf) else 0.0, rises),
+               lag=lag_term(tp, ti), xfactor=xfactor_term(float(np.abs(xf).max()) if len(xf) else 0.0, rises),
                weight_shift=weight_shift_term(float(ls[i_xf]) if len(ls) else 0.0, float(ls[-1]) if len(ls) else 0.0))
     out["raw_prior_terms"] = raw; out["peaks_degs"] = peaks; out["t_peak_before_impact_s"] = {k: ti - v for k, v in tp.items()}
-    scale = {"peak": 1.0 / 4.0, "sequence": 1.0 / 1.5, "xfactor": 1.0, "weight_shift": 1.0}   # normalise each to <= 1 in magnitude
+    scale = {"lag": 1.0, "peak": 1.0 / 4.0, "sequence": 1.0 / 1.5, "xfactor": 1.0, "weight_shift": 1.0}   # normalise each to <= 1 in magnitude
     active = stage.upper() in ("C", "D")
     tot = sum(raw[k] * scale[k] for k in raw) / len(raw) if active else 0.0
     out["prior_total"] = float(np.clip(tot, -prior_cap(progress), prior_cap(progress)))
