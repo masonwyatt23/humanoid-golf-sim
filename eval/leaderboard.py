@@ -272,6 +272,14 @@ def main():
             except Exception: continue
             if J.get("selected") == "init" and J.get("diff_before") == J.get("diff_after"):
                 return f"= init, not learned (PPO fine-tune from {J.get('init')}: selected checkpoint = init, policy-vs-script diff unchanged)"
+            if J.get("selected") not in (None, "init"):
+                dj = RES / f"{n}_departure.json"
+                try: D = json.loads(dj.read_text()) if dj.exists() else None
+                except Exception: D = None
+                if D and "klres_vs_init_rms_rad" in D:
+                    a = (J.get("diff_before") or {}).get("rms_rad_all"); b = (J.get("diff_after") or {}).get("rms_rad_all")
+                    return (f"weakly changed from init, no demonstrated gain (PPO soft-selection from {J.get('init')}: selected checkpoint {J.get('selected')} != init, but RMS departure from init is only {D['klres_vs_init_rms_rad']:.2g} rad; "
+                            f"policy-vs-script RMS {a:.3g} -> {b:.3g} rad, i.e. moved TOWARD the script, not away from it)")
         return None
     for c in cur:
         if "modes" in c:

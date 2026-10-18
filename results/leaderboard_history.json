@@ -7791,6 +7791,44 @@
      "mean_distance": 139.3196937477257
     }
    }
+  },
+  {
+   "md5": "11f9f24cf58faf924709a754ae53ba9f",
+   "names": [
+    "ppo20_soft_s121"
+   ],
+   "steps": 0,
+   "order": 1792281889.044458,
+   "env_fingerprint": "c66fd89099c7",
+   "modes": {
+    "deterministic": {
+     "contact_rate": 1.0,
+     "mean_distance": 139.8229620695148
+    },
+    "stochastic": {
+     "contact_rate": 1.0,
+     "mean_distance": 139.53011024582634
+    }
+   }
+  },
+  {
+   "md5": "87f057205116a62c3efc036078c04304",
+   "names": [
+    "ppo15_soft_s122"
+   ],
+   "steps": 0,
+   "order": 1792281889.0484579,
+   "env_fingerprint": "c66fd89099c7",
+   "modes": {
+    "deterministic": {
+     "contact_rate": 1.0,
+     "mean_distance": 112.86426978142103
+    },
+    "stochastic": {
+     "contact_rate": 0.98,
+     "mean_distance": 115.8660523069544
+    }
+   }
   }
  ]
 }
