@@ -1,0 +1,126 @@
+"""Stage J: REFERENCE-GUIDED RESIDUAL RL (not pure from-scratch). Local only, public references only (no Instagram/Mason data).
+Action = PD target q_ref(t) (env/v5_ref.py: joint keyframes from the public joint trajectories / G1 mapping, ~100 mph-class downswing 0.27 s, optionally open-loop-tuned keyframes
+from scripts/v5_ref_fit.py) + res_scale*0.2 rad * a, a in [-1,1] learned by PPO. Obs = Stage I obs (joint offsets are relative to the CURRENT reference pose) + [u, downswing phase, pre-top flag, time-to-impact].
+Reference-state init: after reset the open-loop reference is rolled out (zero residual) to a sampled start point: full swing (address), top of backswing, or mid-downswing (p 0.4/0.3/0.3), so downswing credit is short.
+Reward = Stage I/H reward (strike gate nx 0.25, additive speed bonus only for legal forward strikes with automatic promotion curriculum, carry bonus, GRF penalty, caps, order prior, fall/unstable)
+ + tracking 0.1*track_w*exp(-(rmse/0.25)^2) per step. track_w anneals 1 -> track_end ONLY after tracking works (det eval fell<=0.25 & rmse<0.3 & steps>=track_hold), over --track_len steps.
+Det eval every 100k (16 eps, full swing, arm 0.6, gate on, tether 0). Stall = 1M steps since training START (counted by step, persisted in curriculum.json; not the resume point) without promotion/best-score gain."""
+import argparse, json, os, sys, time, numpy as np
+import torch; torch.set_num_threads(1)
+from gymnasium import spaces
+from stable_baselines3 import PPO
+from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
+import train.v5_train_i as I
+from train.v5_train_i import HEnv, CurrH, atomic_save, lock_at
+from train.v5_train_b import newest
+from env.v5_ref import SwingRef
+
+EXTRA = 4
+
+class JEnv(HEnv):
+    res_scale = 1.0; track_w = 1.0; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
+    def __init__(self, dt=0.002, seed=0, keys=None, res_scale=1.0, t_down=0.27):
+        super().__init__(dt=dt, seed=seed, planar=False); self.ref_keys = keys; self.res_scale = res_scale; self.t_down = t_down; self.ref = None
+        self.target_len = 1.15; self.target_tether = 0.0; self.prior_w = 0.0; self.rng2 = np.random.default_rng(seed + 12345)
+        n = self.env.observation_space.shape[0] + EXTRA; self.observation_space = spaces.Box(-np.inf, np.inf, (n,), np.float32)
+    def _ensure_ref(self):
+        e = self.env
+        if self.ref is None or self.ref_len != e.club_len:
+            self.ref = SwingRef(e.names, e.q_addr, e.lead, e.jlo, e.jhi, keys=self.ref_keys, t_down=self.t_down); self.ref_len = e.club_len; self.home = e.q_addr.copy()
+    def _xobs(self, o):
+        t = self.env.d.time; r = self.ref
+        return np.concatenate([o, [r.u(t), r.downswing_phase(t), 1.0 if t < r.t_dstart else 0.0, float(np.clip((r.t_imp - t) / 0.3, -1.0, 1.0))]]).astype(np.float32)
+    def reset(self, **kw):
+        out = super().reset(**kw); e = self.env; self._ensure_ref(); e.q_addr = self.home.copy(); r = self.ref
+        u = self.rng2.random(); mode = 0 if u < self.rsi[0] else 1 if u < self.rsi[0] + self.rsi[1] else 2
+        t_start = 0.0 if mode == 0 else r.t_dstart if mode == 1 else r.t_dstart + self.rng2.uniform(0.3, 0.7) * r.t_down
+        e.act_scale[:] = 0.0; self.mode = mode; ok = True
+        while e.d.time < t_start - 1e-6:
+            e.q_addr = r.q(e.d.time); _, _, term, tr, _i = e.step(np.zeros(len(self.home)))
+            if term or tr or e.contact or e.foul: ok = False; break
+        if not ok:
+            out = super().reset(**kw); e.q_addr = self.home.copy(); self.mode = 0
+        e.q_addr = r.q(e.d.time); self.nstep = 6; self.trk_sum = 0.0; self.trk_n = 0; self.prev_a = None
+        return self._xobs(e._obs()), {}
+    def step(self, a):
+        e = self.env; r = self.ref; e.q_addr = r.q(e.d.time); e.act_scale[:] = 0.2 * self.res_scale
+        o, rew, term, trunc, info = super().step(a)
+        err = e.d.qpos[e.qa] - r.q(e.d.time); rmse = float(np.sqrt(np.mean(err ** 2))); self.trk_sum += rmse; self.trk_n += 1
+        rew += 0.1 * self.track_w * float(np.exp(-(rmse / 0.25) ** 2))
+        if "ep" in info: info["ep"].update(track_rmse=self.trk_sum / max(self.trk_n, 1), mode=self.mode)
+        e.q_addr = r.q(e.d.time)
+        return self._xobs(e._obs()), rew, term, trunc, info
+
+class CurrJ(CurrH):
+    def _apply(self):
+        p = min(self.num_timesteps / self.total_all, 1.0)
+        tw = 1.0 if self.anneal_start is None else float(1.0 - (1.0 - self.track_end) * np.clip((self.num_timesteps - self.anneal_start) / self.track_len, 0, 1))
+        cur = (1.15, 0.0, round(0.03 - 0.01 * p, 3), self.T, round(tw, 3))
+        if cur != self.cur:
+            self.cur = cur
+            for k, val in (("target_len", 1.15), ("target_tether", 0.0), ("hit_tol", cur[2]), ("progress", p), ("speed_T", float(self.T)), ("track_w", cur[4])):
+                self.training_env.env_method("__setattr__", k, val)
+    def det_eval(self, n=16):
+        vn = self.training_env; env = JEnv(seed=999, keys=self.keys, res_scale=self.res_scale, t_down=self.t_down); env.rsi = (1.0, 0.0, 0.0)
+        env.prior_w, env.rate_w = 0.0, self.rate_w; env.env.arm_dist = 0.6; env.hit_tol = self.cur[2]; env.target_len = 1.15; env.target_tether = 0.0; env.env.friction_rand = False
+        env.progress = self.num_timesteps / self.total_all; env.speed_T = self.T; env.track_w = self.cur[4]
+        res = []
+        for _ in range(n):
+            o, _i = env.reset(seed=4000 + len(res)); done = False; info = {}
+            while not done:
+                act, _s = self.model.predict(vn.normalize_obs(o[None]), deterministic=True); o, r, te, tr, info = env.step(act[0]); done = te or tr
+            res.append(info["ep"])
+        c = [x for x in res if x["contact"]]; med = lambda k: float(np.median([x[k] for x in c])) if c else 0.0
+        fwdc = [x for x in c if x["fwd"] > 0.5 and x["carry"] > 0]
+        row = dict(step=self.num_timesteps, T=self.T, track_w=self.cur[4], contact=len(c) / n, foul=float(np.mean([x["foul"] for x in res])), fell=float(np.mean([x["fell"] or x["unstable"] for x in res])),
+                   impact_mph_med=med("club_mph"), impact_mph_max=float(max([x["club_mph"] for x in c])) if c else 0.0, carry_med=med("carry"), carry_max=float(max([x["carry"] for x in c])) if c else 0.0,
+                   launch_med=med("launch"), lat_abs=float(np.mean([abs(x["lat"]) for x in c])) if c else 0.0, fwd_strike_frac=len(fwdc) / n, lead_grf_bw=float(np.mean([x["lead_grf_peak_bw"] for x in res])),
+                   flail=float(np.mean([x["flail_ratio"] for x in res])), track_rmse=float(np.mean([x.get("track_rmse", 0.0) for x in res])), hpeak_mph=float(np.mean([x.get("hpeak_mph", 0.0) for x in res])),
+                   xf_deg=med("xf_deg") if c and "xf_deg" in c[0] else None, seq=float(np.mean([x.get("seq", 0.0) for x in c])) if c else 0.0)
+        sc = row["contact"] * (float(np.median([x["carry"] for x in fwdc])) if fwdc else 0.0) * min(1.0, row["impact_mph_med"] / 60.0) + 0.001 * row["contact"] * row["impact_mph_med"]; row["best_score"] = sc
+        if row["contact"] >= 0.9 and row["fwd_strike_frac"] >= 0.9 and row["impact_mph_med"] >= 0.8 * self.T:
+            self.T += 5; self.last_promo = self.num_timesteps; row["promoted_to"] = self.T
+        if self.anneal_start is None and self.num_timesteps >= self.track_hold and row["fell"] <= 0.25 and row["track_rmse"] < 0.3:
+            self.anneal_start = self.num_timesteps; row["anneal_started"] = True
+        if sc > getattr(self, "best_sc", 0.0) + 1e-3:
+            self.best_sc = sc; self.last_promo = self.num_timesteps; atomic_save(self.model, self.training_env, self.out, "best_det"); open(os.path.join(self.out, "best_det.json"), "w").write(json.dumps(row))
+        open(os.path.join(self.out, "eval.jsonl"), "a").write(json.dumps(row) + "\n")
+        json.dump(dict(T=self.T, last_promo=self.last_promo, anneal_start=self.anneal_start, best_sc=getattr(self, "best_sc", 0.0)), open(os.path.join(self.out, "curriculum.json"), "w"))
+        if row["contact"] >= 0.9 and row["carry_med"] > 30.0 and self.num_timesteps >= 200_000:
+            self.stop = True; open(os.path.join(self.out, "STOP_REACHED"), "w").write(json.dumps(row))
+        if self.num_timesteps - self.last_promo >= 1_000_000:      # steps since training START (num_timesteps is persisted across resumes); last_promo = last promotion/best-score gain
+            self.stop = True; open(os.path.join(self.out, "STALLED"), "w").write(json.dumps(row))
+
+def make(rank, seed, dt, keys, rs, td):
+    def f(): return JEnv(dt=dt, seed=seed * 100 + rank + 191, keys=keys, res_scale=rs, t_down=td)
+    return f
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser(); ap.add_argument("--seed", type=int, default=0); ap.add_argument("--steps", type=int, default=3_000_000); ap.add_argument("--workers", type=int, default=2)
+    ap.add_argument("--dt", type=float, default=0.002); ap.add_argument("--tag", default="stageJ"); ap.add_argument("--keys", default="results/v5_runs/stageJ_ref/tuned_keys.json")
+    ap.add_argument("--res_scale", type=float, default=1.0); ap.add_argument("--t_down", type=float, default=0.27); ap.add_argument("--T0", type=float, default=30.0)
+    ap.add_argument("--track_hold", type=int, default=400_000); ap.add_argument("--track_len", type=int, default=1_200_000); ap.add_argument("--track_end", type=float, default=0.2)
+    ap.add_argument("--ent", type=float, default=0.003); ap.add_argument("--log_std", type=float, default=-1.0); ap.add_argument("--log_std_end", type=float, default=-1.6); ap.add_argument("--std_end", type=float, default=0.7)
+    ap.add_argument("--rate_w", type=float, default=0.05); ap.add_argument("--resume", action="store_true")
+    a = ap.parse_args()
+    keys = {tuple(k.split("|")): v for k, v in json.load(open(a.keys)).items()} if a.keys and a.keys != "none" else None
+    out = f"results/v5_runs/{a.tag}_s{a.seed}"; os.makedirs(out, exist_ok=True)
+    venv = SubprocVecEnv([make(i, a.seed, a.dt, keys, a.res_scale, a.t_down) for i in range(a.workers)])
+    step0, ck = newest(out) if a.resume else (0, None)
+    if ck:
+        venv = VecNormalize.load(ck.replace(".zip", "_vecnorm.pkl"), venv); venv.training = True; model = PPO.load(ck, env=venv, device="cpu")
+    else:
+        venv = VecNormalize(venv, norm_obs=True, norm_reward=True, clip_obs=10.0)
+        model = PPO("MlpPolicy", venv, n_steps=1024, batch_size=512, n_epochs=8, learning_rate=3e-4, gamma=0.99, gae_lambda=0.95, ent_coef=a.ent, seed=a.seed,
+                    policy_kwargs=dict(net_arch=[256, 256], log_std_init=a.log_std), device="cpu", verbose=0)
+    json.dump(vars(a), open(os.path.join(out, "args.json"), "w"))
+    cb = CurrJ(a.steps, out, 10**12, a.tag); cb.base = 0; cb.total_all = a.steps; cb.stop = False; cb.planar = False; cb.act_end, cb.prior_w, cb.rate_w = 1.0, 0.0, a.rate_w; cb.h_every = 100_000; cb.h_last = step0
+    cb.keys, cb.res_scale, cb.t_down = keys, a.res_scale, a.t_down; cb.track_hold, cb.track_len, cb.track_end = a.track_hold, a.track_len, a.track_end
+    cb.T, cb.last_promo, cb.anneal_start, cb.best_sc = a.T0, 0, None, 0.0
+    cj = os.path.join(out, "curriculum.json")
+    if ck and os.path.exists(cj): d_ = json.load(open(cj)); cb.T, cb.last_promo, cb.anneal_start, cb.best_sc = d_["T"], d_["last_promo"], d_.get("anneal_start"), d_.get("best_sc", 0.0)
+    cb.ls0, cb.ls1, cb.std_end, cb.ent0 = a.log_std, a.log_std_end, a.std_end, a.ent
+    try: model.learn(a.steps - (model.num_timesteps if ck else 0), callback=cb, reset_num_timesteps=not ck)
+    finally:
+        try: atomic_save(model, venv, out, "final")
+        except Exception as ex_: print("final save failed", ex_, file=sys.stderr)

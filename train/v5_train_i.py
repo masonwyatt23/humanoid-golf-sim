@@ -36,7 +36,7 @@ LOCK_NAMES = ("hip_roll", "ankle_roll", "waist_roll", "wrist_roll", "wrist_yaw",
 def lock_at(p):  return float(np.interp(p, [0.0, 0.2, 0.6, 1.0], [0.25, 0.25, 1.0, 1.0]))
 
 class HEnv(F.EEnv):
-    planar = False; act_mult = 1.0; prior_w = 0.04; rate_w = 0.1; xf_top = -1e9; xf_tt = 0.0; in_dn = False
+    grf_term = 3.5; planar = False; act_mult = 1.0; prior_w = 0.04; rate_w = 0.1; xf_top = -1e9; xf_tt = 0.0; in_dn = False
     def __init__(self, dt=0.002, seed=0, planar=False):
         super().__init__(dt=dt, seed=seed); self.env.strike_gate_nx = GATE_NX; self.speed_T = 20.0; self.lock_scale = 1.0; self.planar = planar; self.prev_lead = 0.0; self.nstep = 0
         self.lock_idx = [i for i, n in enumerate(self.env.names) if any(k in n for k in LOCK_NAMES)]
@@ -76,7 +76,7 @@ class HEnv(F.EEnv):
         if self.nstep > 5:
             self.lgpeak = max(self.lgpeak, lead); self.gpeak = max(self.gpeak, (fl + fr) / self.bw)
             r -= 0.08 * min(max(lead - 2.0, 0.0), 4.0) + 0.02 * min(max(abs(lead - self.prev_lead) - 1.0, 0.0), 4.0)
-            if lead > 3.5 and not e.contact and e.armed: r -= 3.0; term = True
+            if lead > self.grf_term and not e.contact and e.armed: r -= 3.0; term = True
         self.prev_lead = lead
         if e.d.qpos[2] > 0.8 * self.z0 and float(e.d.xmat[e.pel].reshape(3, 3)[2, 2]) > 0.85: r += 0.01
         L = e.log; ff, ex = 1.0, 0.0
