@@ -1,0 +1,52 @@
+{
+ "schema": "landing_shot_row_v1",
+ "shot_id": "EXAMPLE-ILLUSTRATIVE-0001",
+ "env": "humanoid_golf_v4_power",
+ "handed": "LH",
+ "frame": "golfer",
+ "seed": 6000,
+ "label": "ILLUSTRATIVE EXAMPLE with made-up round numbers (not a measurement); env flight model, no roll",
+ "true_contact": true,
+ "landed": true,
+ "impact": {
+  "t_s": 0.612,
+  "club_speed_mps": 57.0,
+  "face_yaw_deg": -0.8,
+  "club_path_deg": 0.5,
+  "dynamic_loft_deg": 13.0,
+  "aoa_deg": 3.0,
+  "contact_dy_m": 0.004,
+  "contact_dz_m": 0.017,
+  "ball_speed_sep_mps": 78.0,
+  "launch_deg": 11.1,
+  "launch_azimuth_deg": -0.3,
+  "backspin_rpm": 2580.0,
+  "sidespin_rpm": -120.0,
+  "spin_axis_deg": -2.7
+ },
+ "flight": {
+  "apex_m": 38.0,
+  "flight_time_s": 6.4
+ },
+ "landing": {
+  "t_s": 7.01,
+  "x_m": 289.0,
+  "y_m": -3.2,
+  "descent_angle_deg": 40.0,
+  "speed_mps": 29.0,
+  "v_world_mps": [
+   22.2,
+   -0.2,
+   -18.6
+  ],
+  "spin_rpm": 2300.0,
+  "spin_world_rad_s": [
+   0.0,
+   -240.0,
+   -8.0
+  ]
+ },
+ "carry_m": 289.0,
+ "total_m": 289.0,
+ "model_only": {}
+}

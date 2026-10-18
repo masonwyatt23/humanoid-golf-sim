@@ -1,0 +1,258 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "title": "landing_shot_row_v1",
+ "description": "One row per episode/shot logged by the env tracker. World frame: +x target line, +y LEFT of target, +z up, metres, m/s, degrees, rpm. Left-handed env rows must be converted to golfer frame (see docs/ENV_LANDING_LOGGING_SPEC.md). null = not measured (never 0, never NaN).",
+ "type": "object",
+ "required": [
+  "schema",
+  "shot_id",
+  "env",
+  "handed",
+  "frame",
+  "true_contact",
+  "landed",
+  "carry_m",
+  "label",
+  "impact",
+  "landing"
+ ],
+ "properties": {
+  "schema": {
+   "const": "landing_shot_row_v1"
+  },
+  "shot_id": {
+   "type": "string"
+  },
+  "env": {
+   "type": "string",
+   "description": "env class / xml name, e.g. humanoid_golf_v4_power"
+  },
+  "handed": {
+   "enum": [
+    "RH",
+    "LH"
+   ]
+  },
+  "frame": {
+   "enum": [
+    "golfer",
+    "world_raw"
+   ],
+   "description": "golfer = LH rows mirrored so +y is left of the golfer's target line for both hands; world_raw = unmodified MuJoCo world (LH env is mirrored about x-z)."
+  },
+  "seed": {
+   "type": [
+    "integer",
+    "null"
+   ]
+  },
+  "label": {
+   "type": "string",
+   "description": "honest label, e.g. 'hypothetical power tier, env flight model, no roll, model-only'"
+  },
+  "true_contact": {
+   "type": "boolean"
+  },
+  "landed": {
+   "type": "boolean"
+  },
+  "impact": {
+   "type": "object",
+   "properties": {
+    "t_s": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "club_speed_mps": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "face_yaw_deg": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "face normal azimuth in the x-y plane, + = left of target (open for LH golfer is +)"
+    },
+    "club_path_deg": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "club-head velocity azimuth, + = left (in-to-out for RH)"
+    },
+    "dynamic_loft_deg": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "face normal elevation above horizontal, deg (positive = lofted)"
+    },
+    "aoa_deg": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "club velocity elevation, + = ascending"
+    },
+    "contact_dy_m": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "env._face_off[0], club-geom local y; toe/heel sign needs toe_sign"
+    },
+    "contact_dz_m": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "env._face_off[1], club-geom local z; + = above face centre"
+    },
+    "ball_speed_sep_mps": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "launch_deg": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "launch_azimuth_deg": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "+ = left"
+    },
+    "backspin_rpm": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "sidespin_rpm": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "+ = about +z (curves left for RH)"
+    },
+    "spin_axis_deg": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "atan2(sidespin, backspin); + = draw/left"
+    }
+   }
+  },
+  "flight": {
+   "type": "object",
+   "properties": {
+    "apex_m": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "flight_time_s": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "first contact separation to first touchdown"
+    }
+   }
+  },
+  "landing": {
+   "type": "object",
+   "properties": {
+    "t_s": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "x_m": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "y_m": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "lateral offset from target line, + = left"
+    },
+    "descent_angle_deg": {
+     "type": [
+      "number",
+      "null"
+     ],
+     "description": "angle below horizontal of velocity at first touchdown (positive number)"
+    },
+    "speed_mps": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "v_world_mps": {
+     "type": [
+      "array",
+      "null"
+     ],
+     "items": {
+      "type": "number"
+     },
+     "minItems": 3,
+     "maxItems": 3
+    },
+    "spin_rpm": {
+     "type": [
+      "number",
+      "null"
+     ]
+    },
+    "spin_world_rad_s": {
+     "type": [
+      "array",
+      "null"
+     ],
+     "items": {
+      "type": "number"
+     },
+     "minItems": 3,
+     "maxItems": 3
+    }
+   }
+  },
+  "carry_m": {
+   "type": "number",
+   "description": "ball x at first touchdown minus ball start x; 0.0 only if never landed (then landed=false)"
+  },
+  "total_m": {
+   "type": [
+    "number",
+    "null"
+   ],
+   "description": "env final ball x minus start x (no roll model in env => ~carry)"
+  },
+  "model_only": {
+   "type": "object",
+   "description": "OPTIONAL outputs of post-hoc models, kept separate from measured env fields",
+   "additionalProperties": true
+  }
+ },
+ "additionalProperties": true
+}
