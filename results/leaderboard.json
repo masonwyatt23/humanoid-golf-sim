@@ -601,7 +601,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9879550226981451,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "bba2ad3eee917dfa02ed5f66f6af816b",
@@ -1194,7 +1200,13 @@
    "verdict": null,
    "smash_ratio_det": 1.321986965963694,
    "smash_flag": null,
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "89d71c894dde72bec1d6309cbefe1580",
@@ -1690,7 +1702,13 @@
    "verdict": null,
    "smash_ratio_det": null,
    "smash_flag": "n/m smash (no ball/impact speed)",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "a909af5e2bef360579192d32409e7e5b",
@@ -2290,7 +2308,13 @@
    "verdict": null,
    "smash_ratio_det": 5.089678912456711,
    "smash_flag": "FAIL smash>1.50",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "90b069adbd3d5c4693692032d49806a3",
@@ -2886,7 +2910,13 @@
    "verdict": null,
    "smash_ratio_det": 4.128372697132563,
    "smash_flag": "FAIL smash>1.50",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "8aad82b4a3dba6fe5c26e17b6f66745b",
@@ -3523,7 +3553,21 @@
    "verdict": null,
    "smash_ratio_det": 0.6580974372945781,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 1,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "ppo_resid_v3_s0"
+   }
   },
   {
    "md5": "8c313a425e6dcab51793dd8155905432",
@@ -4160,7 +4204,13 @@
    "verdict": null,
    "smash_ratio_det": 0.673243424306036,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "08e06d0a1a706b026f83a7f34884b744",
@@ -4797,7 +4847,13 @@
    "verdict": null,
    "smash_ratio_det": 0.7536915343312173,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "scripted-ppo_resid_v3_ladder_s0",
@@ -5411,7 +5467,22 @@
    "verdict": null,
    "smash_ratio_det": 0.8772521189111492,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "scripted_v3"
+   }
   },
   {
    "md5": "scripted-bx0422",
@@ -6027,7 +6098,22 @@
    "verdict": null,
    "smash_ratio_det": 0.9041121221406853,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "scripted_v3"
+   }
   },
   {
    "md5": "268fbad22c68a07b5b9c139a616bea61",
@@ -6664,7 +6750,13 @@
    "verdict": null,
    "smash_ratio_det": 0.7184747037608483,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "scripted-lofted",
@@ -7284,7 +7376,22 @@
    "verdict": null,
    "smash_ratio_det": 0.9870270872587833,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "scripted_v3"
+   }
   },
   {
    "md5": "scripted-v3",
@@ -7920,7 +8027,22 @@
    "verdict": null,
    "smash_ratio_det": 1.0054074988201924,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "scripted_v3"
+   }
   },
   {
    "md5": "scripted-fs1",
@@ -8540,7 +8662,22 @@
    "verdict": null,
    "smash_ratio_det": 1.0051052707198191,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "scripted_v3"
+   }
   },
   {
    "md5": "b77e8ed8bebfff099482615658fa51d8",
@@ -9177,7 +9314,13 @@
    "verdict": null,
    "smash_ratio_det": 0.7438645604034374,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "f579a192e507cd6a508dfdc1e0d3c213",
@@ -9814,7 +9957,13 @@
    "verdict": null,
    "smash_ratio_det": 0.7649382447702336,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "d029dd4b4a6a13adbd960be9107ca818",
@@ -10451,7 +10600,13 @@
    "verdict": null,
    "smash_ratio_det": 0.6944369607022188,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "0e199901d76131f91cfda571dade4eca",
@@ -11072,7 +11227,13 @@
    "verdict": null,
    "smash_ratio_det": 0.8748552523342145,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "46709f427f88ef8f56b25e1c846fa7e7",
@@ -11710,7 +11871,13 @@
    "verdict": null,
    "smash_ratio_det": 0.7623419345318463,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "349d77986570c2bd4e0c057cefa8f1b5",
@@ -12347,7 +12514,13 @@
    "verdict": null,
    "smash_ratio_det": 0.7785756764739626,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "0228935d56cd54487fbd5753b4409638",
@@ -12970,7 +13143,13 @@
    "verdict": null,
    "smash_ratio_det": 0.8511633704044617,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "3ef54b33032f174de23d49127db97ef7",
@@ -13591,7 +13770,13 @@
    "verdict": null,
    "smash_ratio_det": 0.8873162125429142,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "c29f64e9ae47d948ecb856e87d5ccf87",
@@ -14230,7 +14415,13 @@
    "verdict": null,
    "smash_ratio_det": 0.7366668170421632,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "b15b48bd8e6d773c63697116344702e4",
@@ -14869,7 +15060,13 @@
    "verdict": null,
    "smash_ratio_det": 0.8830578398924309,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "41c212556a50b4b75ea951004fc32bfe",
@@ -15492,7 +15689,13 @@
    "verdict": null,
    "smash_ratio_det": 0.8926157285284315,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "0fbd364c4ad9d411c2e72e98d55f55fb",
@@ -16116,7 +16319,13 @@
    "verdict": null,
    "smash_ratio_det": 0.8894831304977987,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "79fc92e3c710672f47a6f85b48b9cd03",
@@ -16759,7 +16968,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9945278301092144,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "dbd3e51e63312e66db998c4687866a31",
@@ -17402,7 +17617,13 @@
    "verdict": null,
    "smash_ratio_det": 0.960896009101569,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "c32c9eaf474a386916282ae0e533fa6d",
@@ -18045,7 +18266,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9405726543214724,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "ab39fc8e02b6d91152f3cc8facc2a68c",
@@ -18689,7 +18916,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9605602162540884,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "2335b7e3f14ff3fc174c25f89be4048d",
@@ -19334,7 +19567,13 @@
    "verdict": null,
    "smash_ratio_det": 1.0050302786589609,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "095b811d8f57af1831544e887a6a8dcb",
@@ -19979,7 +20218,13 @@
    "verdict": null,
    "smash_ratio_det": 1.0050474501651752,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "2c7e9e5609622b5e3e087d3a750c515d",
@@ -20631,7 +20876,21 @@
    "verdict": null,
    "smash_ratio_det": 1.4398948715130988,
    "smash_flag": null,
-   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy"
+   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy",
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 1,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables"
+    ],
+    "harness_row": "ppo_v4yaw_s43"
+   }
   },
   {
    "md5": "7d522907ffad0d37b2a133fb633505c4",
@@ -21283,7 +21542,13 @@
    "verdict": null,
    "smash_ratio_det": 1.4400786781681418,
    "smash_flag": null,
-   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy"
+   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy",
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "20d862fcdbad72086b1be04c455d11ee",
@@ -21936,7 +22201,13 @@
    "verdict": null,
    "smash_ratio_det": 1.439867086134532,
    "smash_flag": null,
-   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy"
+   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy",
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "5dc17924f75259c2ee2c1e1cfb140d0b",
@@ -22604,7 +22875,13 @@
    "verdict": null,
    "smash_ratio_det": 0.8581187542008468,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "47e89c705fb9db4efbf0f9433bd974ac",
@@ -23272,7 +23549,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9985981838850788,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "af01f266c97bf883a3f4329aafcf1207",
@@ -23940,7 +24223,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9974792070605578,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "cedc664344bea6983a013747a2e6a91e",
@@ -24608,7 +24897,13 @@
    "verdict": null,
    "smash_ratio_det": 1.0033821717264624,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "9c455ef7c68224717b93f92989276ee4",
@@ -25276,7 +25571,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9975867957761193,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "78dd09bdf8e984b727e55561f0460d6c",
@@ -25944,7 +26245,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9962852448623971,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "1e3489ef0f675839afc56a05612a5805",
@@ -26612,7 +26919,13 @@
    "verdict": null,
    "smash_ratio_det": 1.0075118210823677,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "c79eb529a76ef7007f078275cc66ef7e",
@@ -27272,7 +27585,13 @@
    "verdict": null,
    "smash_ratio_det": 1.0026446609161224,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "44b11dd6f6c74afd6a85bc4772f508a3",
@@ -27940,7 +28259,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9990389559348172,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "8e3f2fbffdfa5e195228e7bb35acab13",
@@ -28608,7 +28933,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9106033009854766,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "52b6e46c98fb9a7305ae2b45496b11ab",
@@ -29276,7 +29607,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9926704959385875,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "840f2d11224304bda42f3aa8df1c01dd",
@@ -29936,7 +30273,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9952757181662817,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "89250341cf631278ffa292a3085803da",
@@ -30605,7 +30948,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9600634536820684,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "5e83e89fcfa18a56767b25fa920da6c3",
@@ -31274,7 +31623,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9730460221609328,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "c6a3dd341a78ce62ccba1385c7f35493",
@@ -31943,7 +32298,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9880757490241429,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "69114de0edf50d391d929fa0115d88c4",
@@ -32604,7 +32965,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9708348399344807,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "0da5f6b02783dc253f312af7c384d5de",
@@ -33257,7 +33624,13 @@
    "verdict": null,
    "smash_ratio_det": 1.4992070211249824,
    "smash_flag": "WARN smash>1.49",
-   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy"
+   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy",
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "944c7450217694214a31afb7b1bfc097",
@@ -33910,7 +34283,13 @@
    "verdict": null,
    "smash_ratio_det": 1.4999022277629803,
    "smash_flag": "WARN smash>1.49",
-   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy"
+   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy",
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "ea7b82b952d36153c04b624af23f64c0",
@@ -34579,7 +34958,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9383757416915836,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "3574ac9fd33158bdd8b4b900364d5032",
@@ -35233,7 +35618,13 @@
    "verdict": null,
    "smash_ratio_det": 1.5850330697246984,
    "smash_flag": "FAIL smash>1.50",
-   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy"
+   "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy",
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "e11e389cfa6f8ea49788c9bca94a134a",
@@ -35903,7 +36294,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9480116275744581,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "79350def21604b728f21c2cb792edb90",
@@ -36573,7 +36970,13 @@
    "verdict": null,
    "smash_ratio_det": 1.006370106460786,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "2e0bb190121c7bfae7264744e33974bf",
@@ -37230,7 +37633,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9148983142053425,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "7ffd4bb316c91938851e040a224f3693",
@@ -37892,7 +38301,13 @@
    "verdict": null,
    "smash_ratio_det": 1.006955281316779,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "dd5192c3c24a94863c013cb956d5de62",
@@ -38562,7 +38977,13 @@
    "verdict": null,
    "smash_ratio_det": 1.0072229945407978,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "aa779d37bc4e98ac2150fe064eee8616",
@@ -39219,7 +39640,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9653105732082274,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "1b426432680391dc8e4423db80952a4f",
@@ -39892,7 +40319,13 @@
    "verdict": null,
    "smash_ratio_det": 1.0025676328151818,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "288ac24a94bbd37c281a16860e371d08",
@@ -40552,7 +40985,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9676091382347135,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "73a87babf4e636c5a161b3eefb8fb65e",
@@ -41225,7 +41664,13 @@
    "verdict": null,
    "smash_ratio_det": 1.0063363848379534,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "5ff6d7d6669a8e712591c02cf220c7ba",
@@ -41898,7 +42343,22 @@
    "verdict": null,
    "smash_ratio_det": 0.9915632051867599,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "imit16_fs1_dart_s51"
+   }
   },
   {
    "md5": "1e840f2f094019a1bf42a5138f8e4f03",
@@ -42555,7 +43015,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9852200495289039,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "0f85ce1ababaed6513325d762ff32734",
@@ -43228,7 +43694,13 @@
    "verdict": null,
    "smash_ratio_det": 1.0043926617718841,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "67e566327880206041a28cf835c92660",
@@ -43907,7 +44379,13 @@
    "verdict": null,
    "smash_ratio_det": 0.8972960903523306,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "24a7644ff9053d7ea6996b43a5c1663c",
@@ -44589,7 +45067,22 @@
    "verdict": null,
    "smash_ratio_det": 1.6027799310333952,
    "smash_flag": "FAIL smash>1.50",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "imit18_power_dart_s51"
+   }
   },
   {
    "md5": "dba3ab467ebf69c549a9a940cef16695",
@@ -45271,7 +45764,13 @@
    "verdict": null,
    "smash_ratio_det": 1.6028749788104555,
    "smash_flag": "FAIL smash>1.50",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "63bb89763eb9eb9757ced24d14954d99",
@@ -45928,7 +46427,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9646079162222341,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "81d556a9d4309ac3188057e8e6e9f215",
@@ -46601,7 +47106,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9992141254488838,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "e5b30a0ea03920dc00eebc7c53004351",
@@ -47258,7 +47769,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9460806260687671,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "4e38e71f9d108e6e3e954bf8608320b6",
@@ -47915,7 +48432,13 @@
    "verdict": null,
    "smash_ratio_det": 0.9637749628833564,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "894886bbf5b6ac632f19540718cbd1c2",
@@ -48588,7 +49111,22 @@
    "verdict": null,
    "smash_ratio_det": 1.0023309164581886,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "imit20_fs1_q23_dart_s51"
+   }
   },
   {
    "md5": "1b1558bb92215727a87f136d0ecb70bc",
@@ -49261,7 +49799,22 @@
    "verdict": "= init, not learned (PPO fine-tune from imit15_dart_s53: selected checkpoint = init, policy-vs-script diff unchanged)",
    "smash_ratio_det": 1.0043926617718841,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "ppo15_klres_s101"
+   }
   },
   {
    "md5": "2a9bcc59422a05205ace247647a80d34",
@@ -49934,7 +50487,22 @@
    "verdict": "= init, not learned (PPO fine-tune from imit20_fs1_q23_dart_s51: selected checkpoint = init, policy-vs-script diff unchanged)",
    "smash_ratio_det": 1.0023309164581886,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "FAIL",
+    "checks_passed": 0,
+    "failed": [
+     "1_kinematic_sequence",
+     "2_x_factor",
+     "3_joint_limits",
+     "4_torque_power",
+     "5_ground_reaction",
+     "6_tempo",
+     "7_ball_flight_tables",
+     "8_smash_spin_flags"
+    ],
+    "harness_row": "ppo20_klres_s111"
+   }
   },
   {
    "md5": "11f9f24cf58faf924709a754ae53ba9f",
@@ -50607,7 +51175,13 @@
    "verdict": "weakly changed from init, no demonstrated gain (PPO soft-selection from imit20_fs1_q23_dart_s51: selected checkpoint 24 != init, but RMS departure from init is only 0.00038 rad; policy-vs-script RMS 0.0815 -> 0.0374 rad, i.e. moved TOWARD the script, not away from it)",
    "smash_ratio_det": 1.001451075969435,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   },
   {
    "md5": "87f057205116a62c3efc036078c04304",
@@ -51280,7 +51854,13 @@
    "verdict": "= init, not learned (PPO fine-tune from imit15_dart_s53: selected checkpoint = init, policy-vs-script diff unchanged)",
    "smash_ratio_det": 1.0043926617718841,
    "smash_flag": "WARN smash<1.30",
-   "hypo_demoted": null
+   "hypo_demoted": null,
+   "realism": {
+    "verdict": "NOT EVALUATED",
+    "checks_passed": null,
+    "failed": [],
+    "harness_row": null
+   }
   }
  ],
  "contact_regressions": [
@@ -51307,12 +51887,8 @@
   "ppo15_anneal_s91 [deterministic]: contact 98% < best previous 100% (ppo_v4yaw_s43)",
   "ppo15_soft_s122 [stochastic]: contact 98% < best previous 100% (ppo_v4yaw_s43)"
  ],
- "best_model": [
-  "ppo_scott_curr"
- ],
- "best_overall": [
-  "ppo_scott_curr"
- ],
+ "best_model": null,
+ "best_overall": null,
  "smash_gate": {
   "fail_above": 1.5,
   "warn_above": 1.49,
@@ -51410,9 +51986,7 @@
   "ppo20_soft_s121: WARN smash<1.30",
   "ppo15_soft_s122: WARN smash<1.30"
  ],
- "ranking_unflagged": [
-  "ppo_scott_curr"
- ],
+ "ranking_unflagged": [],
  "best_left": null,
  "qualifying": [],
  "best_qualifying": null,

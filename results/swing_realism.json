@@ -1,0 +1,2358 @@
+{
+ "protocol": "deterministic rollouts, gate seeds [4000, 8000, 9000] x 8 episodes (seed+i), gate env kwargs; medians over true-contact episodes",
+ "derived_note": "every band marked DERIVED is built from published mean+-SD, not a published threshold",
+ "models": {
+  "imit20_fs1_q23_dart_s51": {
+   "tier": "stock (force_scale 1)",
+   "label": "script-distilled policy",
+   "kind": "policy",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     250.0,
+     150.0,
+     120.0,
+     60.0,
+     150.0,
+     250.0,
+     199.98000000000002,
+     80.00999999999999,
+     250.0,
+     199.98000000000002,
+     80.00999999999999,
+     120.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": -145.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 0.30410637067983926,
+       "t_ms": 0.0,
+       "at_impact": 0.30410637067983926
+      },
+      "arm": {
+       "peak_dps": 1941.0769188442957,
+       "t_ms": -5.0,
+       "at_impact": 1752.7656705809407
+      },
+      "club": {
+       "peak_dps": 2202.6690939988175,
+       "t_ms": -5.0,
+       "at_impact": 1945.2733604488144
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)",
+      "thorax does not rotate (peak 0.3 deg/s < 20): structural"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.0015127740951422805,
+      "at_top_deg": 2.11694671873527e-05,
+      "stretch_deg": 3.887289388569225e-05
+     },
+     "why": [
+      "peak X-factor 0.0 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": 0.0,
+      "right_shoulder_roll": 0.0,
+      "right_elbow": 0.0,
+      "right_wrist": 0.0,
+      "left_shoulder_pitch": 0.0,
+      "right_hip_pitch": 0.0,
+      "right_knee": 1.0,
+      "right_ankle": 0.0,
+      "left_hip_pitch": 0.0,
+      "left_knee": 1.0,
+      "left_ankle": 0.0,
+      "chest_yaw": 0.0
+     },
+     "why": [
+      "right_knee within 5% of a limit 100% of the swing (> 10%, DERIVED)"
+     ],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": false,
+     "values": {
+      "peak_power_W": 7068.22940972919,
+      "max_sat_frac": 0.7,
+      "max_jerk_frac": 0.0056179775280898875,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 1.0,
+       "right_shoulder_roll": 0.003711605627025186,
+       "right_elbow": 1.0,
+       "right_wrist": 1.0,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.28470831125857354,
+       "right_knee": 0.0016217941158426289,
+       "right_ankle": 0.007403675073141502,
+       "left_hip_pitch": 0.2754675147686045,
+       "left_knee": 0.0015909334503630699,
+       "left_ankle": 0.006469805417963249,
+       "chest_yaw": 0.0011404052723990128
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 250.0,
+       "right_shoulder_roll": 150.0,
+       "right_elbow": 120.0,
+       "right_wrist": 60.0,
+       "left_shoulder_pitch": 150.0,
+       "right_hip_pitch": 250.0,
+       "right_knee": 199.98000000000002,
+       "right_ankle": 80.00999999999999,
+       "left_hip_pitch": 250.0,
+       "left_knee": 199.98000000000002,
+       "left_ankle": 80.00999999999999,
+       "chest_yaw": 120.0
+      }
+     },
+     "why": [
+      "right_shoulder_pitch at its actuator cap 70% of the downswing (> 5%, DERIVED)"
+     ],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.269679678535065,
+       0.26461552033235947
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.7175,
+      "downswing_s": 0.145,
+      "ratio": 5.051724137931035
+     },
+     "why": [
+      "backswing:downswing 5.05:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 145 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 100.94165150882125,
+      "carry_yd": 155.37408394938353,
+      "launch_deg": 17.806143934566812,
+      "smash": 1.0158918959629892,
+      "ref_band": {
+       "carry_yd": [
+        224.7778719510227,
+        249.96620225278696
+       ],
+       "launch_deg": [
+        9.43521098595628,
+        14.791710076485556
+       ],
+       "extrapolated": false
+      }
+     },
+     "why": [
+      "carry 155 yd outside the TrackMan AoA -5..+5 optimizer band 225-250 yd at 101 mph",
+      "launch 17.8 deg outside the same band 9.4-14.8 deg"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": false,
+     "values": {
+      "smash": 1.0158918959629892,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": [
+       "WARN smash<1.30 (poor/non-physical contact?)"
+      ]
+     },
+     "why": [
+      "WARN smash<1.30 (poor/non-physical contact?)",
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 0,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  },
+  "imit16_fs1_dart_s51": {
+   "tier": "stock (force_scale 1)",
+   "label": "script-distilled policy",
+   "kind": "policy",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     250.0,
+     150.0,
+     120.0,
+     60.0,
+     150.0,
+     250.0,
+     199.98000000000002,
+     80.00999999999999,
+     250.0,
+     199.98000000000002,
+     80.00999999999999,
+     120.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": -140.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 0.2697498813032876,
+       "t_ms": 5.0,
+       "at_impact": 0.16203368686221353
+      },
+      "arm": {
+       "peak_dps": 1911.7270292440978,
+       "t_ms": -5.0,
+       "at_impact": 1831.5243918684118
+      },
+      "club": {
+       "peak_dps": 2128.9796621290134,
+       "t_ms": -5.0,
+       "at_impact": 2040.1732076712271
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)",
+      "thorax does not rotate (peak 0.3 deg/s < 20): structural"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.0010346806928875532,
+      "at_top_deg": 4.91787638442498e-06,
+      "stretch_deg": 1.003444202334183e-05
+     },
+     "why": [
+      "peak X-factor 0.0 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": 0.0,
+      "right_shoulder_roll": 0.0,
+      "right_elbow": 0.0,
+      "right_wrist": 0.0,
+      "left_shoulder_pitch": 0.0,
+      "right_hip_pitch": 0.0,
+      "right_knee": 1.0,
+      "right_ankle": 0.0,
+      "left_hip_pitch": 0.0,
+      "left_knee": 1.0,
+      "left_ankle": 0.0,
+      "chest_yaw": 0.0
+     },
+     "why": [
+      "right_knee within 5% of a limit 100% of the swing (> 10%, DERIVED)"
+     ],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": false,
+     "values": {
+      "peak_power_W": 6898.616514371773,
+      "max_sat_frac": 0.6896551724137931,
+      "max_jerk_frac": 0.005682001614205004,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 1.0,
+       "right_shoulder_roll": 0.0016546258291909467,
+       "right_elbow": 1.0,
+       "right_wrist": 1.0,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.27957140044905904,
+       "right_knee": 0.0015922554584207188,
+       "right_ankle": 0.007212163569617463,
+       "left_hip_pitch": 0.271114037308081,
+       "left_knee": 0.0015579939967246164,
+       "left_ankle": 0.006223403000207602,
+       "chest_yaw": 0.0007349542581648275
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 250.0,
+       "right_shoulder_roll": 150.0,
+       "right_elbow": 120.0,
+       "right_wrist": 60.0,
+       "left_shoulder_pitch": 150.0,
+       "right_hip_pitch": 250.0,
+       "right_knee": 199.98000000000002,
+       "right_ankle": 80.00999999999999,
+       "left_hip_pitch": 250.0,
+       "left_knee": 199.98000000000002,
+       "left_ankle": 80.00999999999999,
+       "chest_yaw": 120.0
+      }
+     },
+     "why": [
+      "right_shoulder_pitch at its actuator cap 69% of the downswing (> 5%, DERIVED)"
+     ],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.25746527191311386,
+       0.25289293556928627
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.7175,
+      "downswing_s": 0.14,
+      "ratio": 5.2142857142857135
+     },
+     "why": [
+      "backswing:downswing 5.21:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 140 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 98.52806689589377,
+      "carry_yd": 79.86608814261706,
+      "launch_deg": 13.589609876701864,
+      "smash": 1.00271605268779,
+      "ref_band": {
+       "carry_yd": [
+        217.65779734288662,
+        242.3634107220654
+       ],
+       "launch_deg": [
+        9.857588293218589,
+        15.069272306972216
+       ],
+       "extrapolated": true
+      }
+     },
+     "why": [
+      "carry 80 yd outside the TrackMan AoA -5..+5 optimizer band 218-242 yd at 99 mph (band extrapolated outside 100-120 mph, DERIVED)"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": false,
+     "values": {
+      "smash": 1.00271605268779,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": [
+       "WARN smash<1.30 (poor/non-physical contact?)"
+      ]
+     },
+     "why": [
+      "WARN smash<1.30 (poor/non-physical contact?)",
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 0,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  },
+  "imit18_power_dart_s51": {
+   "tier": "hypothetical power tier (impact gain 1.28 inflated)",
+   "label": "script-distilled policy",
+   "kind": "policy",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     500.0,
+     300.0,
+     240.0,
+     240.0,
+     300.0,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     240.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": -105.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 0.6348511728731578,
+       "t_ms": 0.0,
+       "at_impact": 0.6348511728731578
+      },
+      "arm": {
+       "peak_dps": 2519.3908613431017,
+       "t_ms": -10.0,
+       "at_impact": 2095.2991011353342
+      },
+      "club": {
+       "peak_dps": 2939.718488395488,
+       "t_ms": -5.0,
+       "at_impact": 2387.5578265491395
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)",
+      "thorax does not rotate (peak 0.6 deg/s < 20): structural"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.0017693788551987192,
+      "at_top_deg": 0.00011031288323297899,
+      "stretch_deg": 1.5223879342387073e-05
+     },
+     "why": [
+      "peak X-factor 0.0 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": 0.0,
+      "right_shoulder_roll": 0.0,
+      "right_elbow": 0.0,
+      "right_wrist": 0.0,
+      "left_shoulder_pitch": 0.0,
+      "right_hip_pitch": 0.0,
+      "right_knee": 1.0,
+      "right_ankle": 0.0,
+      "left_hip_pitch": 0.0,
+      "left_knee": 1.0,
+      "left_ankle": 0.0,
+      "chest_yaw": 0.0
+     },
+     "why": [
+      "right_knee within 5% of a limit 100% of the swing (> 10%, DERIVED)"
+     ],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": false,
+     "values": {
+      "peak_power_W": 18111.603365051196,
+      "max_sat_frac": 0.45454545454545453,
+      "max_jerk_frac": 0.00597020245223838,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 1.0,
+       "right_shoulder_roll": 0.001939257431469413,
+       "right_elbow": 0.8405562862663278,
+       "right_wrist": 0.7813662952190776,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.21188213067147593,
+       "right_knee": 0.0012751888863817443,
+       "right_ankle": 0.004424431611996707,
+       "left_hip_pitch": 0.20585341551832453,
+       "left_knee": 0.0012533275797864786,
+       "left_ankle": 0.003972590456344655,
+       "chest_yaw": 0.0011586410190690586
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 500.0,
+       "right_shoulder_roll": 300.0,
+       "right_elbow": 240.0,
+       "right_wrist": 240.0,
+       "left_shoulder_pitch": 300.0,
+       "right_hip_pitch": 500.0,
+       "right_knee": 399.96000000000004,
+       "right_ankle": 160.01999999999998,
+       "left_hip_pitch": 500.0,
+       "left_knee": 399.96000000000004,
+       "left_ankle": 160.01999999999998,
+       "chest_yaw": 240.0
+      }
+     },
+     "why": [
+      "right_shoulder_pitch at its actuator cap 45% of the downswing (> 5%, DERIVED)"
+     ],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.3325795178625155,
+       0.3262376501743586
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.725,
+      "downswing_s": 0.105,
+      "ratio": 6.904761904761905
+     },
+     "why": [
+      "backswing:downswing 6.90:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 105 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 132.39822849024483,
+      "carry_yd": 338.25578181339284,
+      "launch_deg": 12.58218182697323,
+      "smash": 1.5643684758755372,
+      "ref_band": {
+       "carry_yd": [
+        317.5747740462223,
+        349.05441974427123
+       ],
+       "launch_deg": [
+        3.930310014207154,
+        11.174203723621844
+       ],
+       "extrapolated": true
+      }
+     },
+     "why": [
+      "launch 12.6 deg outside the same band 3.9-11.2 deg"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": false,
+     "values": {
+      "smash": 1.5643684758755372,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": [
+       "FAIL smash>1.50"
+      ]
+     },
+     "why": [
+      "FAIL smash>1.50",
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 0,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  },
+  "imit18_power_dart_s51@gain1.2": {
+   "tier": "hypothetical power tier (impact gain 1.2, no spin model)",
+   "label": "script-distilled policy",
+   "kind": "policy",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     500.0,
+     300.0,
+     240.0,
+     240.0,
+     300.0,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     240.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": -105.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 0.6348511728731578,
+       "t_ms": 0.0,
+       "at_impact": 0.6348511728731578
+      },
+      "arm": {
+       "peak_dps": 2519.3908613431017,
+       "t_ms": -10.0,
+       "at_impact": 2095.2991011353342
+      },
+      "club": {
+       "peak_dps": 2939.718488395488,
+       "t_ms": -5.0,
+       "at_impact": 2387.5578265491395
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)",
+      "thorax does not rotate (peak 0.6 deg/s < 20): structural"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.0017693788551987192,
+      "at_top_deg": 0.00011031288323297899,
+      "stretch_deg": 1.5223879342387073e-05
+     },
+     "why": [
+      "peak X-factor 0.0 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": 0.0,
+      "right_shoulder_roll": 0.0,
+      "right_elbow": 0.0,
+      "right_wrist": 0.0,
+      "left_shoulder_pitch": 0.0,
+      "right_hip_pitch": 0.0,
+      "right_knee": 1.0,
+      "right_ankle": 0.0,
+      "left_hip_pitch": 0.0,
+      "left_knee": 1.0,
+      "left_ankle": 0.0,
+      "chest_yaw": 0.0
+     },
+     "why": [
+      "right_knee within 5% of a limit 100% of the swing (> 10%, DERIVED)"
+     ],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": false,
+     "values": {
+      "peak_power_W": 18111.603365051196,
+      "max_sat_frac": 0.45454545454545453,
+      "max_jerk_frac": 0.00597020245223838,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 1.0,
+       "right_shoulder_roll": 0.001939257431469413,
+       "right_elbow": 0.8405562862663278,
+       "right_wrist": 0.7813662952190776,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.21188213067147593,
+       "right_knee": 0.0012751888863817443,
+       "right_ankle": 0.004424431611996707,
+       "left_hip_pitch": 0.20585341551832453,
+       "left_knee": 0.0012533275797864786,
+       "left_ankle": 0.003972590456344655,
+       "chest_yaw": 0.0011586410190690586
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 500.0,
+       "right_shoulder_roll": 300.0,
+       "right_elbow": 240.0,
+       "right_wrist": 240.0,
+       "left_shoulder_pitch": 300.0,
+       "right_hip_pitch": 500.0,
+       "right_knee": 399.96000000000004,
+       "right_ankle": 160.01999999999998,
+       "left_hip_pitch": 500.0,
+       "left_knee": 399.96000000000004,
+       "left_ankle": 160.01999999999998,
+       "chest_yaw": 240.0
+      }
+     },
+     "why": [
+      "right_shoulder_pitch at its actuator cap 45% of the downswing (> 5%, DERIVED)"
+     ],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.3325795178625155,
+       0.3262376501743586
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.725,
+      "downswing_s": 0.105,
+      "ratio": 6.904761904761905
+     },
+     "why": [
+      "backswing:downswing 6.90:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 105 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 132.39822849024483,
+      "carry_yd": 322.06403895361734,
+      "launch_deg": 12.58218182697323,
+      "smash": 1.4671952629589122,
+      "ref_band": {
+       "carry_yd": [
+        317.5747740462223,
+        349.05441974427123
+       ],
+       "launch_deg": [
+        3.930310014207154,
+        11.174203723621844
+       ],
+       "extrapolated": true
+      }
+     },
+     "why": [
+      "launch 12.6 deg outside the same band 3.9-11.2 deg"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": true,
+     "values": {
+      "smash": 1.4671952629589122,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": []
+     },
+     "why": [
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 1,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  },
+  "scripted_v3": {
+   "tier": "force_scale 2 (hypothetical-strength actuators)",
+   "label": "SCRIPTED (not learned)",
+   "kind": "scripted",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     500.0,
+     300.0,
+     240.0,
+     120.0,
+     300.0,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     240.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": -120.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 0.5240845851232866,
+       "t_ms": 5.0,
+       "at_impact": 0.2061137400913802
+      },
+      "arm": {
+       "peak_dps": 2388.9580799230266,
+       "t_ms": -10.0,
+       "at_impact": 2188.7182810245317
+      },
+      "club": {
+       "peak_dps": 2717.731212179925,
+       "t_ms": -5.0,
+       "at_impact": 2536.0794358199737
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)",
+      "thorax does not rotate (peak 0.5 deg/s < 20): structural"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.0005465970411810117,
+      "at_top_deg": 2.644377902471254e-07,
+      "stretch_deg": 2.7041897776635424e-05
+     },
+     "why": [
+      "peak X-factor 0.0 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": NaN,
+      "right_shoulder_roll": NaN,
+      "right_elbow": NaN,
+      "right_wrist": NaN,
+      "left_shoulder_pitch": NaN,
+      "right_hip_pitch": NaN,
+      "right_knee": NaN,
+      "right_ankle": NaN,
+      "left_hip_pitch": NaN,
+      "left_knee": NaN,
+      "left_ankle": NaN,
+      "chest_yaw": NaN
+     },
+     "why": [],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": false,
+     "values": {
+      "peak_power_W": 16214.797927010466,
+      "max_sat_frac": 0.16,
+      "max_jerk_frac": 0.023323813409492723,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 1.0,
+       "right_shoulder_roll": 0.0007212687632461312,
+       "right_elbow": 0.677270092651577,
+       "right_wrist": 1.0,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.18878602515522164,
+       "right_knee": 0.0011266068891483674,
+       "right_ankle": 0.004284800015948005,
+       "left_hip_pitch": 0.18344367067753575,
+       "left_knee": 0.0011083544574739127,
+       "left_ankle": 0.0038351041667822943,
+       "chest_yaw": 0.0005429595259375491
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 500.0,
+       "right_shoulder_roll": 300.0,
+       "right_elbow": 240.0,
+       "right_wrist": 120.0,
+       "left_shoulder_pitch": 300.0,
+       "right_hip_pitch": 500.0,
+       "right_knee": 399.96000000000004,
+       "right_ankle": 160.01999999999998,
+       "left_hip_pitch": 500.0,
+       "left_knee": 399.96000000000004,
+       "left_ankle": 160.01999999999998,
+       "chest_yaw": 240.0
+      }
+     },
+     "why": [
+      "right_shoulder_pitch at its actuator cap 16% of the downswing (> 5%, DERIVED)"
+     ],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.3045238120968501,
+       0.298758619963232
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.72,
+      "downswing_s": 0.12,
+      "ratio": 6.0
+     },
+     "why": [
+      "backswing:downswing 6.00:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 120 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 120.43888856425072,
+      "carry_yd": 118.91572557995559,
+      "launch_deg": 12.734296167222844,
+      "smash": 1.0024623070918164,
+      "ref_band": {
+       "carry_yd": [
+        282.2947212645396,
+        311.3824989773898
+       ],
+       "launch_deg": [
+        6.023194501256124,
+        12.549527815111167
+       ],
+       "extrapolated": true
+      }
+     },
+     "why": [
+      "carry 119 yd outside the TrackMan AoA -5..+5 optimizer band 282-311 yd at 120 mph (band extrapolated outside 100-120 mph, DERIVED)",
+      "launch 12.7 deg outside the same band 6.0-12.5 deg"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": false,
+     "values": {
+      "smash": 1.0024623070918164,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": [
+       "WARN smash<1.30 (poor/non-physical contact?)"
+      ]
+     },
+     "why": [
+      "WARN smash<1.30 (poor/non-physical contact?)",
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 0,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  },
+  "scripted_v3_fs1_q23_dz016": {
+   "tier": "stock (force_scale 1)",
+   "label": "SCRIPTED (not learned)",
+   "kind": "scripted",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     250.0,
+     150.0,
+     120.0,
+     60.0,
+     150.0,
+     250.0,
+     199.98000000000002,
+     80.00999999999999,
+     250.0,
+     199.98000000000002,
+     80.00999999999999,
+     120.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": -145.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 0.304310897436057,
+       "t_ms": 0.0,
+       "at_impact": 0.304310897436057
+      },
+      "arm": {
+       "peak_dps": 1941.0548977099918,
+       "t_ms": -5.0,
+       "at_impact": 1752.6532684740735
+      },
+      "club": {
+       "peak_dps": 2202.674737317084,
+       "t_ms": -5.0,
+       "at_impact": 1945.089951295788
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)",
+      "thorax does not rotate (peak 0.3 deg/s < 20): structural"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.0015278076206184754,
+      "at_top_deg": 2.403837202352284e-06,
+      "stretch_deg": 1.0051180449586006e-05
+     },
+     "why": [
+      "peak X-factor 0.0 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": 0.0,
+      "right_shoulder_roll": 0.0,
+      "right_elbow": 0.0,
+      "right_wrist": 0.0,
+      "left_shoulder_pitch": 0.0,
+      "right_hip_pitch": 0.0,
+      "right_knee": 1.0,
+      "right_ankle": 0.0,
+      "left_hip_pitch": 0.0,
+      "left_knee": 1.0,
+      "left_ankle": 0.0,
+      "chest_yaw": 0.0
+     },
+     "why": [
+      "right_knee within 5% of a limit 100% of the swing (> 10%, DERIVED)"
+     ],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": false,
+     "values": {
+      "peak_power_W": 7068.29490227759,
+      "max_sat_frac": 0.7,
+      "max_jerk_frac": 0.0056179775280898875,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 1.0,
+       "right_shoulder_roll": 0.0037078085515023095,
+       "right_elbow": 1.0,
+       "right_wrist": 1.0,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.2847037220007629,
+       "right_knee": 0.0016217746866769907,
+       "right_ankle": 0.007403651463524133,
+       "left_hip_pitch": 0.2754604330556831,
+       "left_knee": 0.0015908999336374627,
+       "left_ankle": 0.006469962593281288,
+       "chest_yaw": 0.0011410327025726404
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 250.0,
+       "right_shoulder_roll": 150.0,
+       "right_elbow": 120.0,
+       "right_wrist": 60.0,
+       "left_shoulder_pitch": 150.0,
+       "right_hip_pitch": 250.0,
+       "right_knee": 199.98000000000002,
+       "right_ankle": 80.00999999999999,
+       "left_hip_pitch": 250.0,
+       "left_knee": 199.98000000000002,
+       "left_ankle": 80.00999999999999,
+       "chest_yaw": 120.0
+      }
+     },
+     "why": [
+      "right_shoulder_pitch at its actuator cap 70% of the downswing (> 5%, DERIVED)"
+     ],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.2696891928975277,
+       0.26462093849279267
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.7175,
+      "downswing_s": 0.145,
+      "ratio": 5.051724137931035
+     },
+     "why": [
+      "backswing:downswing 5.05:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 145 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 100.94151526423033,
+      "carry_yd": 155.55047039873767,
+      "launch_deg": 17.788324239897793,
+      "smash": 1.0161730154092226,
+      "ref_band": {
+       "carry_yd": [
+        224.77747002947947,
+        249.96577308232554
+       ],
+       "launch_deg": [
+        9.435234828759691,
+        14.791725744613512
+       ],
+       "extrapolated": false
+      }
+     },
+     "why": [
+      "carry 156 yd outside the TrackMan AoA -5..+5 optimizer band 225-250 yd at 101 mph",
+      "launch 17.8 deg outside the same band 9.4-14.8 deg"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": false,
+     "values": {
+      "smash": 1.0161730154092226,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": [
+       "WARN smash<1.30 (poor/non-physical contact?)"
+      ]
+     },
+     "why": [
+      "WARN smash<1.30 (poor/non-physical contact?)",
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 0,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  },
+  "ppo_v4yaw_s43": {
+   "tier": "force_scale 2 + impact gain (HYPOTHETICAL)",
+   "label": "residual PPO (yaw-only residual)",
+   "kind": "policy",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     500.0,
+     300.0,
+     240.0,
+     120.0,
+     300.0,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     240.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": -110.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 2.086457992109925,
+       "t_ms": -2.5,
+       "at_impact": 1.5749962806457942
+      },
+      "arm": {
+       "peak_dps": 2546.734857909326,
+       "t_ms": -15.0,
+       "at_impact": 2021.105179939926
+      },
+      "club": {
+       "peak_dps": 2915.343518145567,
+       "t_ms": -10.0,
+       "at_impact": 2379.2612460919377
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)",
+      "thorax does not rotate (peak 2.1 deg/s < 20): structural"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.07473483575994974,
+      "at_top_deg": 0.03951093311668261,
+      "stretch_deg": 1.6377352732813155e-05
+     },
+     "why": [
+      "peak X-factor 0.1 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": NaN,
+      "right_shoulder_roll": NaN,
+      "right_elbow": NaN,
+      "right_wrist": NaN,
+      "left_shoulder_pitch": NaN,
+      "right_hip_pitch": NaN,
+      "right_knee": NaN,
+      "right_ankle": NaN,
+      "left_hip_pitch": NaN,
+      "left_knee": NaN,
+      "left_ankle": NaN,
+      "chest_yaw": NaN
+     },
+     "why": [],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": false,
+     "values": {
+      "peak_power_W": 18261.428800194873,
+      "max_sat_frac": 0.391304347826087,
+      "max_jerk_frac": 0.011661906704746362,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 1.0,
+       "right_shoulder_roll": 0.002499458636436064,
+       "right_elbow": 0.783458187035758,
+       "right_wrist": 1.0,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.20572232027993642,
+       "right_knee": 0.0012489489025043546,
+       "right_ankle": 0.004484651890660673,
+       "left_hip_pitch": 0.20006269654445125,
+       "left_knee": 0.0012287868732503884,
+       "left_ankle": 0.004208526561700514,
+       "chest_yaw": 0.003934095225621159
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 500.0,
+       "right_shoulder_roll": 300.0,
+       "right_elbow": 240.0,
+       "right_wrist": 120.0,
+       "left_shoulder_pitch": 300.0,
+       "right_hip_pitch": 500.0,
+       "right_knee": 399.96000000000004,
+       "right_ankle": 160.01999999999998,
+       "left_hip_pitch": 500.0,
+       "left_knee": 399.96000000000004,
+       "left_ankle": 160.01999999999998,
+       "chest_yaw": 240.0
+      }
+     },
+     "why": [
+      "right_shoulder_pitch at its actuator cap 39% of the downswing (> 5%, DERIVED)"
+     ],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.33653235948550153,
+       0.32994470438738965
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.72,
+      "downswing_s": 0.11,
+      "ratio": 6.545454545454545
+     },
+     "why": [
+      "backswing:downswing 6.55:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 110 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 128.398383795567,
+      "carry_yd": 291.96751759356204,
+      "launch_deg": 11.639583783235974,
+      "smash": 1.4838960211750372,
+      "ref_band": {
+       "carry_yd": [
+        305.77523219692273,
+        336.4549089560361
+       ],
+       "launch_deg": [
+        4.630282835775772,
+        11.634185863509792
+       ],
+       "extrapolated": true
+      }
+     },
+     "why": [
+      "carry 292 yd outside the TrackMan AoA -5..+5 optimizer band 306-336 yd at 128 mph (band extrapolated outside 100-120 mph, DERIVED)",
+      "launch 11.6 deg outside the same band 4.6-11.6 deg"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": true,
+     "values": {
+      "smash": 1.4838960211750372,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": []
+     },
+     "why": [
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 1,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  },
+  "ppo15_klres_s101": {
+   "tier": "force_scale 2 (hypothetical-strength)",
+   "label": "= init, not learned",
+   "kind": "policy",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     500.0,
+     300.0,
+     240.0,
+     120.0,
+     300.0,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     240.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": -120.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 0.34036354803452057,
+       "t_ms": 5.0,
+       "at_impact": 0.19664176364740454
+      },
+      "arm": {
+       "peak_dps": 2388.8797403759236,
+       "t_ms": -10.0,
+       "at_impact": 2188.8285308474497
+      },
+      "club": {
+       "peak_dps": 2717.629687053772,
+       "t_ms": -5.0,
+       "at_impact": 2536.3790029744823
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)",
+      "thorax does not rotate (peak 0.3 deg/s < 20): structural"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.0010486018154167442,
+      "at_top_deg": 0.0003823145428920367,
+      "stretch_deg": 0.0
+     },
+     "why": [
+      "peak X-factor 0.0 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": 0.0,
+      "right_shoulder_roll": 0.0,
+      "right_elbow": 0.0,
+      "right_wrist": 0.0,
+      "left_shoulder_pitch": 0.0,
+      "right_hip_pitch": 0.0,
+      "right_knee": 1.0,
+      "right_ankle": 0.0,
+      "left_hip_pitch": 0.0,
+      "left_knee": 1.0,
+      "left_ankle": 0.0,
+      "chest_yaw": 0.0
+     },
+     "why": [
+      "right_knee within 5% of a limit 100% of the swing (> 10%, DERIVED)"
+     ],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": false,
+     "values": {
+      "peak_power_W": 16214.561834545279,
+      "max_sat_frac": 0.16,
+      "max_jerk_frac": 0.023256600074367036,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 1.0,
+       "right_shoulder_roll": 0.0007088313897661185,
+       "right_elbow": 0.6770845565733377,
+       "right_wrist": 1.0,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.1887645756419788,
+       "right_knee": 0.001126827306501794,
+       "right_ankle": 0.00428457626977913,
+       "left_hip_pitch": 0.18342310121552058,
+       "left_knee": 0.0011085691998089107,
+       "left_ankle": 0.0038349308389489132,
+       "chest_yaw": 0.0004251743324367078
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 500.0,
+       "right_shoulder_roll": 300.0,
+       "right_elbow": 240.0,
+       "right_wrist": 120.0,
+       "left_shoulder_pitch": 300.0,
+       "right_hip_pitch": 500.0,
+       "right_knee": 399.96000000000004,
+       "right_ankle": 160.01999999999998,
+       "left_hip_pitch": 500.0,
+       "left_knee": 399.96000000000004,
+       "left_ankle": 160.01999999999998,
+       "chest_yaw": 240.0
+      }
+     },
+     "why": [
+      "right_shoulder_pitch at its actuator cap 16% of the downswing (> 5%, DERIVED)"
+     ],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.304482965667356,
+       0.2987089422878976
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.7175,
+      "downswing_s": 0.12,
+      "ratio": 6.104166666666666
+     },
+     "why": [
+      "backswing:downswing 6.10:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 120 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 120.4480464087413,
+      "carry_yd": 118.5748420463075,
+      "launch_deg": 12.832205759678448,
+      "smash": 1.0019162680506013,
+      "ref_band": {
+       "carry_yd": [
+        282.32173690578685,
+        311.4113461875351
+       ],
+       "launch_deg": [
+        6.0215918784702716,
+        12.54847466299475
+       ],
+       "extrapolated": true
+      }
+     },
+     "why": [
+      "carry 119 yd outside the TrackMan AoA -5..+5 optimizer band 282-311 yd at 120 mph (band extrapolated outside 100-120 mph, DERIVED)",
+      "launch 12.8 deg outside the same band 6.0-12.5 deg"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": false,
+     "values": {
+      "smash": 1.0019162680506013,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": [
+       "WARN smash<1.30 (poor/non-physical contact?)"
+      ]
+     },
+     "why": [
+      "WARN smash<1.30 (poor/non-physical contact?)",
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 0,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  },
+  "ppo20_klres_s111": {
+   "tier": "stock (force_scale 1)",
+   "label": "= init, not learned",
+   "kind": "policy",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     250.0,
+     150.0,
+     120.0,
+     60.0,
+     150.0,
+     250.0,
+     199.98000000000002,
+     80.00999999999999,
+     250.0,
+     199.98000000000002,
+     80.00999999999999,
+     120.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": -145.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 0.30410637067983926,
+       "t_ms": 0.0,
+       "at_impact": 0.30410637067983926
+      },
+      "arm": {
+       "peak_dps": 1941.0769188442957,
+       "t_ms": -5.0,
+       "at_impact": 1752.7656705809407
+      },
+      "club": {
+       "peak_dps": 2202.6690939988175,
+       "t_ms": -5.0,
+       "at_impact": 1945.2733604488144
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)",
+      "thorax does not rotate (peak 0.3 deg/s < 20): structural"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.0015127740951422805,
+      "at_top_deg": 2.11694671873527e-05,
+      "stretch_deg": 3.887289388569225e-05
+     },
+     "why": [
+      "peak X-factor 0.0 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": 0.0,
+      "right_shoulder_roll": 0.0,
+      "right_elbow": 0.0,
+      "right_wrist": 0.0,
+      "left_shoulder_pitch": 0.0,
+      "right_hip_pitch": 0.0,
+      "right_knee": 1.0,
+      "right_ankle": 0.0,
+      "left_hip_pitch": 0.0,
+      "left_knee": 1.0,
+      "left_ankle": 0.0,
+      "chest_yaw": 0.0
+     },
+     "why": [
+      "right_knee within 5% of a limit 100% of the swing (> 10%, DERIVED)"
+     ],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": false,
+     "values": {
+      "peak_power_W": 7068.22940972919,
+      "max_sat_frac": 0.7,
+      "max_jerk_frac": 0.0056179775280898875,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 1.0,
+       "right_shoulder_roll": 0.003711605627025186,
+       "right_elbow": 1.0,
+       "right_wrist": 1.0,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.28470831125857354,
+       "right_knee": 0.0016217941158426289,
+       "right_ankle": 0.007403675073141502,
+       "left_hip_pitch": 0.2754675147686045,
+       "left_knee": 0.0015909334503630699,
+       "left_ankle": 0.006469805417963249,
+       "chest_yaw": 0.0011404052723990128
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 250.0,
+       "right_shoulder_roll": 150.0,
+       "right_elbow": 120.0,
+       "right_wrist": 60.0,
+       "left_shoulder_pitch": 150.0,
+       "right_hip_pitch": 250.0,
+       "right_knee": 199.98000000000002,
+       "right_ankle": 80.00999999999999,
+       "left_hip_pitch": 250.0,
+       "left_knee": 199.98000000000002,
+       "left_ankle": 80.00999999999999,
+       "chest_yaw": 120.0
+      }
+     },
+     "why": [
+      "right_shoulder_pitch at its actuator cap 70% of the downswing (> 5%, DERIVED)"
+     ],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.269679678535065,
+       0.26461552033235947
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.7175,
+      "downswing_s": 0.145,
+      "ratio": 5.051724137931035
+     },
+     "why": [
+      "backswing:downswing 5.05:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 145 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 100.94165150882125,
+      "carry_yd": 155.37408394938353,
+      "launch_deg": 17.806143934566812,
+      "smash": 1.0158918959629892,
+      "ref_band": {
+       "carry_yd": [
+        224.7778719510227,
+        249.96620225278696
+       ],
+       "launch_deg": [
+        9.43521098595628,
+        14.791710076485556
+       ],
+       "extrapolated": false
+      }
+     },
+     "why": [
+      "carry 155 yd outside the TrackMan AoA -5..+5 optimizer band 225-250 yd at 101 mph",
+      "launch 17.8 deg outside the same band 9.4-14.8 deg"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": false,
+     "values": {
+      "smash": 1.0158918959629892,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": [
+       "WARN smash<1.30 (poor/non-physical contact?)"
+      ]
+     },
+     "why": [
+      "WARN smash<1.30 (poor/non-physical contact?)",
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 0,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  },
+  "ppo_resid_v3_s0": {
+   "tier": "older residual PPO (see its results JSON)",
+   "label": "residual PPO (older)",
+   "kind": "policy",
+   "n_episodes": 24,
+   "true_contact": 24,
+   "structure": {
+    "torso_pinned_by_env": true,
+    "model_mass_kg": 32.25,
+    "equality_constraints": [
+     [
+      "0",
+      "left_hand",
+      "right_wrist"
+     ]
+    ],
+    "foot_geoms": 2,
+    "foot_geoms_colliding": 0,
+    "actuator_caps_Nm": [
+     500.0,
+     300.0,
+     240.0,
+     120.0,
+     300.0,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     500.0,
+     399.96000000000004,
+     160.01999999999998,
+     240.0
+    ],
+    "actuator_names": [
+     "right_shoulder_pitch",
+     "right_shoulder_roll",
+     "right_elbow",
+     "right_wrist",
+     "left_shoulder_pitch",
+     "right_hip_pitch",
+     "right_knee",
+     "right_ankle",
+     "left_hip_pitch",
+     "left_knee",
+     "left_ankle",
+     "chest_yaw"
+    ],
+    "n_free_root_dofs": 0
+   },
+   "checks": {
+    "1_kinematic_sequence": {
+     "passed": false,
+     "values": {
+      "pelvis": {
+       "peak_dps": 0.0,
+       "t_ms": 0.0,
+       "at_impact": 0.0
+      },
+      "thorax": {
+       "peak_dps": 23.924435034749248,
+       "t_ms": 17.5,
+       "at_impact": 12.817146564464327
+      },
+      "arm": {
+       "peak_dps": 72.81434111750144,
+       "t_ms": 0.0,
+       "at_impact": 72.8014342566187
+      },
+      "club": {
+       "peak_dps": 42.830566044867446,
+       "t_ms": 20.0,
+       "at_impact": 36.0313311192601
+      }
+     },
+     "why": [
+      "pelvis does not rotate (peak 0.0 deg/s < 20): structural - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)"
+     ],
+     "ref": "[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)"
+    },
+    "2_x_factor": {
+     "passed": false,
+     "values": {
+      "peak_deg": 0.37455574230051325,
+      "at_top_deg": 0.2078824781271003,
+      "stretch_deg": 0.0
+     },
+     "why": [
+      "peak X-factor 0.4 deg outside 39.4-70.7 (DERIVED from 50.8+-5.7 / 54.9+-7.9)",
+      "no X-factor stretch in the early downswing (0.0 deg < 2, DERIVED)",
+      "the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis"
+     ],
+     "ref": "[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top"
+    },
+    "3_joint_limits": {
+     "passed": false,
+     "values": {
+      "right_shoulder_pitch": NaN,
+      "right_shoulder_roll": NaN,
+      "right_elbow": NaN,
+      "right_wrist": NaN,
+      "left_shoulder_pitch": NaN,
+      "right_hip_pitch": NaN,
+      "right_knee": NaN,
+      "right_ankle": NaN,
+      "left_hip_pitch": NaN,
+      "left_knee": NaN,
+      "left_ankle": NaN,
+      "chest_yaw": NaN
+     },
+     "why": [],
+     "ref": "DERIVED: 5% of range, 10% of the swing"
+    },
+    "4_torque_power": {
+     "passed": true,
+     "values": {
+      "peak_power_W": 69.92643145155233,
+      "max_sat_frac": 0.0,
+      "max_jerk_frac": 0.0,
+      "peak_torque_over_cap": {
+       "right_shoulder_pitch": 0.017208941679228,
+       "right_shoulder_roll": 0.0038768966300842334,
+       "right_elbow": 0.05828173618944611,
+       "right_wrist": 0.10275074847295508,
+       "left_shoulder_pitch": 0.0,
+       "right_hip_pitch": 0.00921601657202541,
+       "right_knee": 0.00013486030187055833,
+       "right_ankle": 0.00013671289850390278,
+       "left_hip_pitch": 0.009209809406473143,
+       "left_knee": 0.000135038921689575,
+       "left_ankle": 0.00010991300245545354,
+       "chest_yaw": 0.03582504253728959
+      },
+      "caps_Nm": {
+       "right_shoulder_pitch": 500.0,
+       "right_shoulder_roll": 300.0,
+       "right_elbow": 240.0,
+       "right_wrist": 120.0,
+       "left_shoulder_pitch": 300.0,
+       "right_hip_pitch": 500.0,
+       "right_knee": 399.96000000000004,
+       "right_ankle": 160.01999999999998,
+       "left_hip_pitch": 500.0,
+       "left_knee": 399.96000000000004,
+       "left_ankle": 160.01999999999998,
+       "chest_yaw": 240.0
+      }
+     },
+     "why": [],
+     "ref": "DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)"
+    },
+    "5_ground_reaction": {
+     "passed": false,
+     "values": {
+      "peak_vert_BW_lead": 0.0,
+      "peak_vert_BW_trail": 0.0,
+      "lead_share_top": null,
+      "lead_share_impact": null,
+      "shear_over_normal_max": 0.0,
+      "foot_slip_m": [
+       0.009084993015710745,
+       0.009087169105414877
+      ],
+      "mu_published": 0.62
+     },
+     "why": [
+      "feet do not collide with the ground in this model (0 of 2 foot geoms have collision enabled): ground reaction = 0.00 BW by construction",
+      "no weight shift measurable (no foot force)"
+     ],
+     "ref": "[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62"
+    },
+    "6_tempo": {
+     "passed": false,
+     "values": {
+      "backswing_s": 0.0175,
+      "downswing_s": 0.0,
+      "ratio": 0.6470588235294117
+     },
+     "why": [
+      "backswing:downswing 0.65:1 outside 2.5-4.0 (DERIVED around the published 3:1)",
+      "downswing 0 ms outside the human 210-390 ms (published pro 310+-40 ms, recreational 250+-20 ms)"
+     ],
+     "ref": "[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros"
+    },
+    "7_ball_flight_tables": {
+     "passed": false,
+     "values": {
+      "club_mph": 100.33520331557632,
+      "carry_yd": 67.04413692701979,
+      "launch_deg": 47.80167175294224,
+      "smash": 0.6587058978517629,
+      "ref_band": {
+       "carry_yd": [
+        222.98884978095015,
+        248.05589044406543
+       ],
+       "launch_deg": [
+        9.541339419774143,
+        14.861451618708724
+       ],
+       "extrapolated": false
+      }
+     },
+     "why": [
+      "carry 67 yd outside the TrackMan AoA -5..+5 optimizer band 223-248 yd at 100 mph",
+      "launch 47.8 deg outside the same band 9.5-14.9 deg"
+     ],
+     "ref": "[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)"
+    },
+    "8_smash_spin_flags": {
+     "passed": false,
+     "values": {
+      "smash": 0.6587058978517629,
+      "spin_rpm": null,
+      "spin_source": "absent (no spin model)",
+      "flags": [
+       "WARN smash<1.30 (poor/non-physical contact?)"
+      ]
+     },
+     "why": [
+      "WARN smash<1.30 (poor/non-physical contact?)",
+      "spin is not simulated (hand-set backspin), so no spin check is possible"
+     ],
+     "ref": "data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)"
+    }
+   },
+   "checks_passed": 1,
+   "verdict": "FAIL",
+   "seeds": {
+    "4000": 8,
+    "8000": 8,
+    "9000": 8
+   }
+  }
+ }
+}

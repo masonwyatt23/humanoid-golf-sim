@@ -1,7 +1,7 @@
 # Multi-model comparison (GENERATED from results/leaderboard.json by eval.compare_styles.from_leaderboard - do not edit by hand)
 
 Env fingerprint `c66fd89099c7`, 50 episodes/mode, seeds 4000+. Distance = final ball x; carry = first landing (mean over all episodes; 0 if never landed); +y = left, miss = |y| > 0.5 m.
-Best trained: **ppo_scott_curr**; best left-handed: **n/a**; best overall incl. scripted baseline: **ppo_scott_curr**.
+Best trained: **none (no row passes smash + swing-realism gates)**; best left-handed: **n/a**; best overall incl. scripted baseline: **none (no row passes smash + swing-realism gates)**.
 
 | Model | Steps | Hand | Mode | Contact | Mean dist (m) | Max dist (m) | Mean carry (m) | Landed | Lateral std (m) | Left | Right | Peak club mph (mean/max) | % of 120 mph (max) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
