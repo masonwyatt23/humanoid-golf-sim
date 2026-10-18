@@ -21,3 +21,9 @@ python render_blender/assemble.py golf_render/test out.mp4
 ```
 
 Not committed on purpose: rendered frames, videos (`*.mp4` is gitignored; `results/videos/` is gitignored), `.blend` files and the exported `swing_v3.npz`/`swing_v3.json` (regenerate them with `export_trajectory.py`). The scripts are not run by the test suite or smoke test, and have not been re-verified after the paths were generalised for this commit.
+
+## Policy rollouts (Stage 27+)
+- `export_policy_trajectory.py`: rolls out a trained policy (deterministic) with the gate's env kwargs (`env_kwargs_full` + optional `--override`, e.g. `{"impact_gain": 1.2}`), records poses/club/ball in the same npz format, picks the MEDIAN-carry true-contact swing among N consecutive seeds, and writes the seed, all candidate carries and the separate 100-episode gate means to the json.
+- `build_and_render.py --clip policy`: 17 s cut whose sample indices are relative to the rollout's own impact index.
+- `assemble_policy.py`: HUD + title/end cards. On-screen numbers come from the one rolled-out episode; gate means are a separate caption. "Script-distilled policy" = behaviour-cloned from the scripted swing; power tier is labelled hypothetical (impact gain 1.2, no spin model).
+Videos/frames/npz stay untracked.

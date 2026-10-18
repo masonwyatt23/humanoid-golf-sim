@@ -251,6 +251,10 @@ if a.clip == "test":      # v1: 12 s (frames 0-287 @24fps reused)
 elif a.clip == "test2":   # v2: 17.8 s. same first 8.6 s as v1; chase now follows the ball to landing + hold; DTL orbit slow-mo replay
     SEG = [(0, 3.0, 0, 0), (3.0, 7.0, 0, 168), (7.0, 8.6, 168, 188), (8.6, 12.6, 188, LAST), (12.6, 13.8, LAST, LAST), (13.8, 17.8, 112, 196)]
     KINDS = ["orbit", "swing", "impact", "chase", "land", "dtl"]
+elif a.clip == "policy":  # 17 s cut for exported policy rollouts: sample offsets are relative to the rollout's own impact index (IMP), not the hard-coded scripted-v3 indices
+    _s0, _s1, _d0 = max(IMP - 7, 1), IMP + 13, max(IMP - 63, 0)
+    SEG = [(0, 2.0, 0, 0), (2.0, 5.5, 0, _s0), (5.5, 7.5, _s0, _s1), (7.5, 12.5, _s1, LAST), (12.5, 14.0, LAST, LAST), (14.0, 17.0, _d0, min(IMP + 21, LAST))]
+    KINDS = ["orbit", "swing", "impact", "chase", "land", "dtl"]
 else:                     # 30 s hero cut
     SEG = [(0, 5.0, 0, 0), (5.0, 10.0, 0, 168), (10.0, 12.5, 168, 188), (12.5, 20.0, 188, LAST), (20.0, 22.5, LAST, LAST), (22.5, 30.0, 112, 196)]
     KINDS = ["orbit", "swing", "impact", "chase", "land", "dtl"]
@@ -304,7 +308,7 @@ for fi in fr:
     # subtle address waggle-free idle: tiny breathing so the establishing shot is not frozen
     pose(f); ball.location = lerp_ball(f); update_trail(f)
     kd_, _u = kind_at(tv); k_ = 4.0 if kd_ in ("chase", "land") else 1.0   # COSMETIC: ball drawn 4x larger in the distance shots so it is visible
-    ball.scale = (0.02135 * k_,) * 3; cu.bevel_depth = (0.06 if a.clip != "hero" else 0.035) * (2.0 if kd_ in ("chase", "land") else 1.0)
+    ball.scale = (0.02135 * k_,) * 3; cu.bevel_depth = (0.06 if a.clip not in ("hero", "policy") else 0.035) * (2.0 if kd_ in ("chase", "land") else 1.0)
     cl, tg = camera_for(tv, f); cam.location = cl; tgt.location = tg
     sc.render.filepath = os.path.join(a.out, f"f{fi:05d}.png"); t0 = time.time()
     bpy.ops.render.render(write_still=True); print(f"frame {fi} tv={tv:.2f} sim_idx={f:.1f} {time.time()-t0:.1f}s", flush=True)
