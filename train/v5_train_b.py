@@ -34,6 +34,8 @@ class BEnv(TrainEnv):
         if e.contact and not was and not unstable:
             q = max(0.0, 1 - np.hypot(info["dy"], info["dz"]) / self.hit_tol)
             mph = info["club_speed_mph"]
+            valid = float(np.clip(info["ball_speed_mph"] / max(1.2 * mph, 1e-6), 0.0, 1.0))   # B3: no speed credit unless the strike sends the ball forward (B2 exploit: backward/closed-face hit, ball speed 0)
+            mph = mph * valid
             r += 8.0 * min(mph / 100.0, 1.3) * (0.3 + 0.7 * q) + 10.0 * min(info["carry_m_noroll"] / 100.0, 1.0) * (0.3 + 0.7 * q) - 3.0 * min(abs(info["lateral_carry_m"]) / 20.0, 1.0)
         if info["fell"] or unstable: r -= 5.0
         if unstable and e.contact and not was: r = -5.0
