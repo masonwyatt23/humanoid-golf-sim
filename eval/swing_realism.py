@@ -171,105 +171,161 @@ def analyse(R, jr, caps, chest_j, BW, s):
     e["foot_unloaded_frac"] = [float((fz[st:imp + 1, i] < 0.01 * BW).mean()) for i in (0, 1)]
     # 7/8 ball flight (sim flight tracker, ONE episode)
     club = float(s.get("impact_club_speed", 0.0)) * MPS2MPH; ball_v = float(s.get("peak_ball_speed", s.get("ball_speed_sep", 0.0))) * MPS2MPH   # peak ball speed, the same smash convention as the leaderboard (ratio of means, peak ball / impact club)
-    e.update(club_mph=club, ball_mph=ball_v, smash=(ball_v / club if club > 0 else None), launch_deg=float(s.get("launch_elev_deg", float("nan"))), carry_yd=float(s.get("carry", 0.0)) * M2YD)
+    e.update(club_mph=club, ball_mph=ball_v, smash=(ball_v / club if club > 0 else None), launch_deg=float(s.get("launch_elev_deg", float("nan"))), carry_yd=float(s.get("carry", 0.0)) * M2YD,
+             total_yd=(float(s["total_yd"]) if s.get("total_yd") is not None else None))
+    # Data Agent checks (realism/checks.py, thresholds from data/references/realism_thresholds.json): swing traces + shot (no spin in this env -> spin/golfphys checks are skipped by their code)
+    jt = dict(pelvis_w=R["w"][:, 0], thorax_w=R["w"][:, 1], arm_w=R["w"][:, 2], club_w=R["w"][:, 3], pelvis=np.zeros(len(R["w"])), thorax=R["q"][:, chest_j] - R["q"][0, chest_j], grf_lead_vertical_bw=R["fz"][:, 0] / BW)
+    e["da_swing"] = da_swing(jt, DT, club, imp); e["da_shot"] = da_shot(dict(club_speed_mph=club, ball_speed_mph=ball_v, launch_deg=e["launch_deg"], carry_yd=e["carry_yd"], total_yd=e["total_yd"]))
     return e
 
+# ---- Data Agent checks (realism/checks.py; their file is NOT modified) --------------------------------------------------------------------------------------------
+def _compact(res, cap_extrapolated=False):
+    out = []
+    for c in res["checks"]:
+        st = c["status"]
+        if cap_extrapolated and c.get("extrapolated") and st == "fail": st = "warn"      # Orchestrator rule: rows built on EXTRAPOLATED reference values can only WARN
+        out.append(dict(name=c["name"], status=st, value=c["value"], expected=c["expected"], reason=c["reason"], extrapolated=bool(c.get("extrapolated")), tag=c.get("tag"), source=c.get("source")))
+    return out
+
+def da_swing(jt, dt, chs_mph, impact_idx):
+    from realism.checks import check_swing_realism
+    try: return _compact(check_swing_realism(jt, dt, chs_mph=chs_mph if chs_mph and chs_mph > 0 else None, impact_idx=impact_idx), cap_extrapolated=True)
+    except Exception as ex: return [dict(name="swing_input", status="fail", value=None, expected=None, reason=f"check_swing_realism error: {ex}", extrapolated=False, tag=None, source=None)]
+
+def da_shot(shot):
+    from realism.checks import check_shot_realism
+    shot = {k: v for k, v in shot.items() if v is not None and not (isinstance(v, float) and math.isnan(v))}
+    try: return _compact(check_shot_realism(shot), cap_extrapolated=True)
+    except Exception as ex: return [dict(name="shot_input", status="fail", value=None, expected=None, reason=f"check_shot_realism error: {ex}", extrapolated=False, tag=None, source=None)]
+
 # ---- aggregate + checks ---------------------------------------------------------------------------------------------------------------------------------------
+_RK = {"skip": -1, "pass": 0, "warn": 1, "fail": 2}
 def med(xs): xs = [x for x in xs if x is not None and not (isinstance(x, float) and math.isnan(x))]; return float(np.median(xs)) if xs else None
+def _medval(vals):
+    vals = [v for v in vals if v is not None]
+    if not vals: return None
+    if all(isinstance(v, dict) for v in vals): return {k: _medval([v.get(k) for v in vals]) for k in vals[0]}
+    if all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in vals): return float(np.median(vals))
+    return vals[0]
+def agg_da(eps, key, prefix):
+    """Aggregate the per-episode Data Agent check lists: status = most common across episodes (a tie goes to the worse status), value = median, reason from the first episode with that status."""
+    names = []
+    for e in eps:
+        for c in e.get(key, []):
+            if c["name"] not in names: names.append(c["name"])
+    out = {}
+    for n in names:
+        rows = [c for e in eps for c in e.get(key, []) if c["name"] == n]
+        cnt = {}
+        for c in rows: cnt[c["status"]] = cnt.get(c["status"], 0) + 1
+        st = sorted(cnt, key=lambda k: (-cnt[k], -_RK[k]))[0]
+        r0 = next(c for c in rows if c["status"] == st)
+        out[f"{prefix}/{n}"] = dict(status=st, passed=(st == "pass"), values=_medval([c["value"] for c in rows]), expected=r0["expected"], why=[r0["reason"]], ref=r0.get("source"), tag=r0.get("tag"), extrapolated=r0["extrapolated"], episode_status_counts=cnt)
+    return out
+
+def _mine(name, ok, why, values, ref, status=None):
+    st = status or ("pass" if ok else "fail"); return f"mine/{name}", dict(status=st, passed=(st == "pass"), values=values, why=why, ref=ref, tag="derived")
 
 def checks(struct, eps):
-    C = {}; ok = [e for e in eps if e["true_contact"]] or eps
-    # 1 kinematic sequence
-    ks = {n: dict(peak_dps=med([e["ks"][n]["peak_dps"] for e in ok]), t_ms=med([e["ks"][n]["peak_t_ms_rel_impact"] for e in ok]), at_impact=med([e["ks"][n]["at_impact_dps"] for e in ok])) for n in ("pelvis", "thorax", "arm", "club")}
-    seq = ["pelvis", "thorax", "arm", "club"]; why = []
-    moving = [n for n in seq if ks[n]["peak_dps"] is not None and ks[n]["peak_dps"] >= MOVE_MIN_DPS]
-    for n in seq:
-        if n not in moving: why.append(f"{n} does not rotate (peak {ks[n]['peak_dps']:.1f} deg/s < {MOVE_MIN_DPS:g}): structural" + (" - the env pins the torso/pelvis (pin_torso=True, qpos/qvel reset every physics step)" if n == "pelvis" and struct["torso_pinned_by_env"] else ""))
-    order_ok = all(ks[a]["t_ms"] < ks[b]["t_ms"] for a, b in zip(seq, seq[1:])) if len(moving) == 4 else False
-    mag_ok = all(ks[a]["peak_dps"] < ks[b]["peak_dps"] for a, b in zip(seq, seq[1:])) if len(moving) == 4 else False
-    if len(moving) == 4 and not order_ok: why.append("peak order is not pelvis < thorax < arm < club: " + ", ".join(f"{n} {ks[n]['t_ms']:+.0f} ms" for n in seq))
-    if len(moving) == 4 and not mag_ok: why.append("peaks are not increasing proximal-to-distal")
-    dec_ok = all(ks[n]["at_impact"] < KS_DECEL * ks[n]["peak_dps"] for n in ("pelvis", "thorax", "arm") if n in moving) and len(moving) >= 3
-    if len(moving) == 4 and not dec_ok: why.append("pelvis/thorax/arm do not decelerate before impact")
-    C["1_kinematic_sequence"] = dict(passed=bool(len(moving) == 4 and order_ok and mag_ok and dec_ok), values=ks, why=why, ref="[KS] order pelvis,thorax,arm,club; peaks ~477/727/980/2254 deg/s (pros)")
-    # 2 X-factor
-    xp, xt, xs = med([e["xf_peak_deg"] for e in ok]), med([e["xf_at_top_deg"] for e in ok]), med([e["xf_stretch_deg"] for e in ok]); why = []
-    if not (XF_BAND[0] <= xp <= XF_BAND[1]): why.append(f"peak X-factor {xp:.1f} deg outside {XF_BAND[0]}-{XF_BAND[1]} (DERIVED from 50.8+-5.7 / 54.9+-7.9)")
-    if xs < XF_STRETCH_MIN: why.append(f"no X-factor stretch in the early downswing ({xs:.1f} deg < {XF_STRETCH_MIN:g}, DERIVED)")
-    why.append("the pelvis is pinned by the env (no pelvis rotation), so 'X-factor' here is chest yaw alone vs a fixed pelvis" if struct["torso_pinned_by_env"] else "")
-    C["2_x_factor"] = dict(passed=bool(XF_BAND[0] <= xp <= XF_BAND[1] and xs >= XF_STRETCH_MIN and not struct["torso_pinned_by_env"]), values=dict(peak_deg=xp, at_top_deg=xt, stretch_deg=xs), why=[w for w in why if w], ref="[XF] 50.82+-5.68 / 54.9+-7.9 deg at top; stretch after top")
-    # 3 joint limits
-    lim = np.median(np.array([e["limit_frac_per_joint"] for e in ok]), axis=0); names = struct["actuator_names"]; worst = int(np.argmax(lim))
-    C["3_joint_limits"] = dict(passed=bool(lim.max() <= LIMIT_TIME_MAX), values={n: float(x) for n, x in zip(names, lim)}, why=([f"{names[worst]} within {NEAR_LIMIT_FRAC*100:.0f}% of a limit {lim[worst]*100:.0f}% of the swing (> {LIMIT_TIME_MAX*100:.0f}%, DERIVED)"] if lim.max() > LIMIT_TIME_MAX else []), ref="DERIVED: 5% of range, 10% of the swing")
-    # 4 torque / power
-    sat = np.median(np.array([e["sat_frac_per_act"] for e in ok]), axis=0); jer = np.median(np.array([e["jerk_frac_per_act"] for e in ok]), axis=0); pk = np.median(np.array([e["peak_torque_over_cap"] for e in ok]), axis=0)
-    why = []
+    """All checks for one model: Data Agent swing + shot checks (aggregated) plus this harness's own structural / tempo / limit / saturation / carry-band checks."""
+    ok = [e for e in eps if e["true_contact"]] or eps; C = {}
+    C.update(agg_da(ok, "da_swing", "swing")); C.update(agg_da(ok, "da_shot", "shot"))
+    names = struct["actuator_names"]
+    # mine: do the segments rotate at all (a static pelvis makes 'order' meaningless)
+    pk = {n: med([e["ks"][n]["peak_dps"] for e in ok]) for n in ("pelvis", "thorax", "arm", "club")}; mv = {n: v >= MOVE_MIN_DPS for n, v in pk.items()}
+    why = [f"{n} does not rotate (peak {pk[n]:.1f} deg/s < {MOVE_MIN_DPS:g}, DERIVED)" + (" - the env pins the torso/pelvis (pin_torso=True)" if n == "pelvis" and struct["torso_pinned_by_env"] else "") for n in pk if not mv[n]]
+    k, v = _mine("segments_rotate", all(mv.values()), why, pk, "DERIVED: a segment peaking below 20 deg/s does not rotate; structural"); C[k] = v
+    # mine: ground contact + weight shift (published: trail->lead transfer)
+    ls_t, ls_i = med([e["grf_lead_share_top"] for e in ok]), med([e["grf_lead_share_impact"] for e in ok]); why = []
+    if struct["foot_geoms_colliding"] == 0: why.append(f"feet do not collide with the ground in this model (0 of {struct['foot_geoms']} foot geoms): ground reaction = 0 by construction")
+    elif ls_t is None or ls_i is None or ls_i - ls_t < 0.1: why.append(f"no trail-to-lead weight shift (lead share {ls_t} -> {ls_i}; need +0.10, DERIVED)")
+    k, v = _mine("ground_contact_weight_shift", not why, why, dict(lead_share_top=ls_t, lead_share_impact=ls_i, foot_slip_m=[med([e["foot_slip_m"][i] for e in ok]) for i in (0, 1)]), "Hume & Keogh 2005 (trail-to-lead transfer); +0.10 share is DERIVED"); C[k] = v
+    # mine: joint limits
+    lim = np.median(np.array([e["limit_frac_per_joint"] for e in ok]), axis=0); w_ = int(np.argmax(lim))
+    k, v = _mine("joint_limits", lim.max() <= LIMIT_TIME_MAX, ([f"{names[w_]} within {NEAR_LIMIT_FRAC*100:.0f}% of a limit {lim[w_]*100:.0f}% of the swing (> {LIMIT_TIME_MAX*100:.0f}%, DERIVED)"] if lim.max() > LIMIT_TIME_MAX else []), {n: float(x) for n, x in zip(names, lim)}, "DERIVED: 5% of range, 10% of the swing"); C[k] = v
+    # mine: torque saturation / bang-bang (the Data Agent's actuator checks are G1-tier specific and are skipped for this humanoid)
+    sat = np.median(np.array([e["sat_frac_per_act"] for e in ok]), axis=0); jer = np.median(np.array([e["jerk_frac_per_act"] for e in ok]), axis=0); why = []
     if sat.max() > SAT_TIME_MAX: why.append(f"{names[int(np.argmax(sat))]} at its actuator cap {sat.max()*100:.0f}% of the downswing (> {SAT_TIME_MAX*100:.0f}%, DERIVED)")
     if jer.max() > JERK_TIME_MAX: why.append(f"{names[int(np.argmax(jer))]} bang-bang torque steps in {jer.max()*100:.0f}% of samples (> {JERK_TIME_MAX*100:.0f}%, DERIVED)")
-    C["4_torque_power"] = dict(passed=bool(sat.max() <= SAT_TIME_MAX and jer.max() <= JERK_TIME_MAX), values=dict(peak_power_W=med([e["peak_power_W"] for e in ok]), max_sat_frac=float(sat.max()), max_jerk_frac=float(jer.max()), peak_torque_over_cap={n: float(x) for n, x in zip(names, pk)}, caps_Nm={n: c for n, c in zip(names, struct["actuator_caps_Nm"])}), why=why, ref="DERIVED saturation/smoothness limits; peak power informational (no published per-joint pass limit used)")
-    # 5 ground reaction
-    pv = [med([e["grf_peak_vert_BW"][i] for e in ok]) for i in (0, 1)]; ls_t, ls_i = med([e["grf_lead_share_top"] for e in ok]), med([e["grf_lead_share_impact"] for e in ok]); why = []
-    if struct["foot_geoms_colliding"] == 0: why.append(f"feet do not collide with the ground in this model (0 of {struct['foot_geoms']} foot geoms have collision enabled): ground reaction = {max(pv):.2f} BW by construction")
-    if ls_t is None or ls_i is None: why.append("no weight shift measurable (no foot force)")
-    else:
-        if not (ls_i - ls_t >= 0.1): why.append(f"no trail-to-lead weight shift ({ls_t:.2f} -> {ls_i:.2f} lead share; need +0.10, DERIVED)")
-    gp = bool(struct["foot_geoms_colliding"] > 0 and pv[0] >= 0.5 * LEAD_VERT_BW and ls_t is not None and ls_i is not None and ls_i - ls_t >= 0.1)
-    C["5_ground_reaction"] = dict(passed=gp, values=dict(peak_vert_BW_lead=pv[0], peak_vert_BW_trail=pv[1], lead_share_top=ls_t, lead_share_impact=ls_i, shear_over_normal_max=med([e["grf_shear_over_normal_max"] for e in ok]), foot_slip_m=[med([e["foot_slip_m"][i] for e in ok]) for i in (0, 1)], mu_published=MU), why=why, ref="[GRF] driver 0.84 BW lead / 0.49 BW trail peak vertical; weight shift trail->lead; mu 0.62")
-    # 6 tempo
+    k, v = _mine("torque_saturation_smoothness", not why, why, dict(peak_power_W=med([e["peak_power_W"] for e in ok]), max_sat_frac=float(sat.max()), max_jerk_frac=float(jer.max())), "DERIVED limits; peak power informational"); C[k] = v
+    # mine: tempo (the Data Agent file has no tempo key)
     bs, dsw, tr = med([e["backswing_s"] for e in ok]), med([e["downswing_s"] for e in ok]), med([e["tempo_ratio"] for e in ok]); why = []
-    if not (TEMPO_RATIO[0] <= tr <= TEMPO_RATIO[1]): why.append(f"backswing:downswing {tr:.2f}:1 outside {TEMPO_RATIO[0]}-{TEMPO_RATIO[1]} (DERIVED around the published 3:1)")
+    if not (TEMPO_RATIO[0] <= tr <= TEMPO_RATIO[1]): why.append(f"backswing:downswing {tr:.2f}:1 outside {TEMPO_RATIO[0]}-{TEMPO_RATIO[1]} (DERIVED around the published 3:1; TPI 3.2:1)")
     if not (DOWN_S[0] <= dsw <= DOWN_S[1]): why.append(f"downswing {dsw*1000:.0f} ms outside the human {DOWN_S[0]*1000:.0f}-{DOWN_S[1]*1000:.0f} ms (published pro 310+-40 ms, recreational 250+-20 ms)")
-    C["6_tempo"] = dict(passed=bool(TEMPO_RATIO[0] <= tr <= TEMPO_RATIO[1] and DOWN_S[0] <= dsw <= DOWN_S[1]), values=dict(backswing_s=bs, downswing_s=dsw, ratio=tr), why=why, ref="[TEMPO] 3:1 (TPI 3.2:1); downswing driver 0.31+-0.04 s pros")
-    # 7 ball flight vs launch-monitor tables
-    club, carry, launch, smash = med([e["club_mph"] for e in ok]), med([e["carry_yd"] for e in ok]), med([e["launch_deg"] for e in ok]), med([e["smash"] for e in ok]); band = _ref_band(club); why = []
-    if not (band["carry_yd"][0] - CARRY_TOL <= carry <= band["carry_yd"][1] + CARRY_TOL): why.append(f"carry {carry:.0f} yd outside the TrackMan AoA -5..+5 optimizer band {band['carry_yd'][0]:.0f}-{band['carry_yd'][1]:.0f} yd at {club:.0f} mph" + (" (band extrapolated outside 100-120 mph, DERIVED)" if band["extrapolated"] else ""))
-    if not (band["launch_deg"][0] <= launch <= band["launch_deg"][1]): why.append(f"launch {launch:.1f} deg outside the same band {band['launch_deg'][0]:.1f}-{band['launch_deg'][1]:.1f} deg")
-    C["7_ball_flight_tables"] = dict(passed=not why, values=dict(club_mph=club, carry_yd=carry, launch_deg=launch, smash=smash, ref_band=band), why=why, ref="[LM] TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)")
-    # 8 smash / spin flags (data.launch_output.flags): spin is not simulated, so it can only be 'absent'
-    from data.launch_output import flags
-    fl = flags(dict(smash=smash, spin_rpm=None, launch_deg=launch)); fl = [f for f in fl if f.startswith("FAIL") or f.startswith("WARN smash")]
-    C["8_smash_spin_flags"] = dict(passed=not fl, values=dict(smash=smash, spin_rpm=None, spin_source="absent (no spin model)", flags=fl), why=fl + ["spin is not simulated (hand-set backspin), so no spin check is possible"], ref="data/launch_output.py: FAIL >1.50, WARN >1.49, WARN <1.30 (derived)")
+    k, v = _mine("tempo", not why, why, dict(backswing_s=bs, downswing_s=dsw, ratio=tr), "TPI 3.2:1; PMC9227529 downswing table (band DERIVED)"); C[k] = v
+    # mine: carry vs the TrackMan optimizer band (published rows 100/120 mph); extrapolated outside 100-120 -> WARN only
+    club, carry, launch = med([e["club_mph"] for e in ok]), med([e["carry_yd"] for e in ok]), med([e["launch_deg"] for e in ok]); band = _ref_band(club)
+    inside = band["carry_yd"][0] - CARRY_TOL <= carry <= band["carry_yd"][1] + CARRY_TOL
+    why = [] if inside else [f"carry {carry:.0f} yd outside the TrackMan AoA -5..+5 optimizer band {band['carry_yd'][0]:.0f}-{band['carry_yd'][1]:.0f} yd at {club:.0f} mph" + (" (band extrapolated outside 100-120 mph, DERIVED: WARN only)" if band["extrapolated"] else "")]
+    k, v = _mine("carry_vs_trackman_band", inside, why, dict(club_mph=club, carry_yd=carry, ref_band=band), "TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)", status=("pass" if inside else ("warn" if band["extrapolated"] else "fail"))); C[k] = v
     return C
+
+def summarize(C):
+    st = [c["status"] for c in C.values()]; n_pass, n_warn, n_fail, n_skip = (st.count(x) for x in ("pass", "warn", "fail", "skip"))
+    return dict(verdict="FAIL" if n_fail else "WARN" if n_warn else "PASS", n_pass=n_pass, n_warn=n_warn, n_fail=n_fail, n_skip=n_skip, n_checks=len(st) - n_skip)
+
+def evaluate(reg, eps_per_seed=8, workers=2, log=print):
+    import multiprocessing as mp
+    ctx = mp.get_context("spawn"); jobs = [(r, s, eps_per_seed) for r in reg for s in SEEDS]; res = {}
+    with ctx.Pool(min(workers, 2)) as pool:
+        for key, struct, eps in pool.imap_unordered(rollout_task, jobs):
+            res.setdefault(key, dict(struct=struct, eps=[]))["eps"] += eps; log(f"done {key} {len(res[key]['eps'])}")
+    out = {}
+    for r in reg:
+        if r["key"] not in res: continue
+        x = res[r["key"]]; C = checks(x["struct"], x["eps"]); S = summarize(C)
+        out[r["key"]] = dict(key=r["key"], tier=r["tier"], label=r["label"], kind=r["kind"], env="v1 (humanoid_golf_v3 family)", n_episodes=len(x["eps"]), true_contact=sum(e["true_contact"] for e in x["eps"]), structure=x["struct"], checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], verdict=S["verdict"])
+    return out
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--eps-per-seed", type=int, default=8); ap.add_argument("--workers", type=int, default=2); ap.add_argument("--models", default="")
     a = ap.parse_args(); reg = registry()
     if a.models: reg = [r for r in reg if r["key"] in a.models.split(",")]
-    import multiprocessing as mp
-    ctx = mp.get_context("spawn"); jobs = [(r, s, a.eps_per_seed) for r in reg for s in SEEDS]; res = {}
-    with ctx.Pool(min(a.workers, 2)) as pool:
-        for key, struct, eps in pool.imap_unordered(rollout_task, jobs):
-            res.setdefault(key, dict(struct=struct, eps=[]))["eps"] += eps; print("done", key, len(res[key]["eps"]), flush=True)
-    out = dict(protocol=f"deterministic rollouts, gate seeds {list(SEEDS)} x {a.eps_per_seed} episodes (seed+i), gate env kwargs; medians over true-contact episodes", derived_note="every band marked DERIVED is built from published mean+-SD, not a published threshold", models={})
-    for r in reg:
-        if r["key"] not in res: continue
-        x = res[r["key"]]; C = checks(x["struct"], x["eps"]); npass = sum(c["passed"] for c in C.values())
-        out["models"][r["key"]] = dict(tier=r["tier"], label=r["label"], kind=r["kind"], n_episodes=len(x["eps"]), true_contact=sum(e["true_contact"] for e in x["eps"]), structure=x["struct"], checks=C, checks_passed=int(npass), verdict="PASS" if npass == len(C) else "FAIL", seeds={str(s): sum(1 for e in x["eps"] if e["seed"] // 1 >= s and e["seed"] < s + a.eps_per_seed) for s in SEEDS})
+    out = dict(protocol=f"deterministic rollouts, gate seeds {list(SEEDS)} x {a.eps_per_seed} episodes (seed+i), gate env kwargs; per-check status = most common over true-contact episodes; medians for values", derived_note="bands marked DERIVED are built from published mean+-SD, not published thresholds; Data Agent checks use data/references/realism_thresholds.json (tags there)", models=evaluate(reg, a.eps_per_seed, a.workers))
     OUT_JSON.write_text(json.dumps(out, indent=1, default=float)); OUT_MD.write_text(to_md(out)); print("wrote", OUT_JSON, OUT_MD)
 
+DIFF_ROWS = [  # (key, this harness before the reconcile, Data Agent realism_thresholds.json, used now)
+    ("x_factor top band (deg)", "pass 39.4-70.7 (DERIVED, 2 SD of 50.8+-5.7 / 54.9+-7.9)", "pass 40-65, warn 28-80, fail outside 20-90 (derived; Parker 54.9+-7.9, Myers, Hume)", "Data Agent (via check_swing_realism x_factor_top_deg)"),
+    ("x_factor stretch", "stretch >= 2 deg required (DERIVED)", "not checked (published 1-3 deg joint-coordinate, ~10 deg sensor method)", "Data Agent: dropped as a pass criterion"),
+    ("segment peak speeds", "~477/727/980/2254 deg/s (Cheetham 2001-style pro means) as text only", "table by club speed (Cheetham 2008 two-group fit): at 100 mph 442/665/886/2054; 90, 120, 132 mph rows tagged extrapolated; pass ratio 0.7-1.3", "Data Agent (peak_speed_*_deg_s); extrapolated rows capped at WARN (Orchestrator rule)"),
+    ("kinematic order / timing", "order + increasing peaks + decel before impact (DERIVED 95%)", "order pelvis,thorax,arm,club; tie tolerance 20 ms (50 Hz control resolution); lead times pro 87/68/65 ms, warn bands", "Data Agent (order, timing); my decel check dropped; my 'segments_rotate' guard kept (a static pelvis would otherwise pass 'order' by argmax-of-zeros)"),
+    ("ground reaction", "peak lead vertical 0.84 BW (PMC3794489, single study) with half-BW floor", "lead vertical pass 0.8-1.7 BW, warn 0.5-2.4, fail outside -0.02..3.0 (Worsfold, Han, Hirano, Hume)", "Data Agent (grf_lead_vertical_bw); my contact/weight-shift check kept (published qualitative transfer, +0.10 share DERIVED)"),
+    ("smash", "FAIL >1.50, WARN >1.49 / <1.30 (data/launch_output.py)", "fail >1.5, warn >1.49 or <1.3 (published TrackMan/R&A)", "identical; Data Agent's check_shot_realism used"),
+    ("launch angle", "TrackMan AoA -5..+5 band (3.9-14.8 deg)", "pass 7-16, warn 4-20, fail outside 2-25 (derived)", "Data Agent"),
+    ("spin", "1800-3000 pass (DERIVED), absent in this env", "pass 1800-3000, warn 1200-4000", "Data Agent; SKIPPED here because the v1 env has no spin"),
+    ("carry", "inside TrackMan carry-optimizer band 100-120 mph", "golfphys residual |<=15 yd| pass (skipped without spin); total/carry 1.04-1.25 pass", "Data Agent for total/carry and golfphys carry (skipped w/o spin); my TrackMan band kept as an extra check, WARN only outside 100-120 mph"),
+    ("descent angle", "not checked", "pass 30-48, warn 25-55", "Data Agent (skipped: this env does not log descent)"),
+    ("tempo", "ratio 2.5-4.0 (DERIVED around 3:1); downswing 210-390 ms (DERIVED from PMC9227529)", "no tempo key", "mine (kept; nothing to defer to)"),
+    ("joint limits / torque saturation", "5%-of-range / 98%-of-cap bands (DERIVED)", "G1-tier torque-speed limits only (not this humanoid; check skipped)", "mine (kept)"),
+    ("actuator torque-speed / power feasibility", "-", "G1 stock/elite tier tables", "skipped (tier=None: this humanoid is not the G1)"),
+]
+
 def to_md(out):
-    names = list(next(iter(out["models"].values()))["checks"]) if out["models"] else []
+    M = out["models"]; names = list(next(iter(M.values()))["checks"]) if M else []
     L = ["# Swing realism: does the rolled-out swing look and behave like a real golf swing?", "",
-         "**Protocol:** " + out["protocol"] + ". " + out["derived_note"] + ". References are cited in `eval/swing_realism.py` (Cheetham et al. kinematic sequence; Korean-pro / elite / Stanford X-factor; PMC9227529 downswing times; TPI tempo; PMC3794489 GRF and friction; TrackMan optimizer rows).", "",
-         "**Overall verdict = PASS only if all 8 checks pass.** No human-attainable-power claim is made; force_scale 2 and the power tier are hypothetical.", "",
-         "| model | tier | verdict | passed | " + " | ".join(n.split("_", 1)[1] for n in names) + " |", "|---|---|---|---|" + "---|" * len(names)]
-    for k, m in out["models"].items(): L.append(f"| {k} | {m['tier']} | **{m['verdict']}** | {m['checks_passed']}/8 | " + " | ".join("PASS" if m["checks"][n]["passed"] else "FAIL" for n in names) + " |")
-    L += ["", "## Why each model fails", ""]
-    for k, m in out["models"].items():
+         "**Protocol:** " + out["protocol"] + ". " + out["derived_note"] + ".", "",
+         "Swing checks (`swing/*`) and shot checks (`shot/*`) are the Data Agent's `realism.checks.check_swing_realism` / `check_shot_realism` (file untouched); `mine/*` are this harness's extra structural checks (`eval/swing_realism.py`). Status per check: pass / warn / fail / skip (skip = input absent, e.g. spin). **Verdict = FAIL if any check fails, WARN if any warns (no fail), PASS only if none warn or fail.** Only PASS is eligible for showcase/qualifying. Extrapolated reference rows can only WARN. No human-attainable-power claim is made; force_scale 2 and the power tier are hypothetical.", "",
+         "| model | tier | verdict | pass | warn | fail | skip |", "|---|---|---|---|---|---|---|"]
+    for k, m in M.items(): L.append(f"| {k} | {m['tier']} | **{m['verdict']}** | {m['n_pass']} | {m['n_warn']} | {m['n_fail']} | {m['n_skip']} |" if "n_pass" in m else f"| {k} | {m['tier']} | **{m['verdict']}** | {m['checks_passed']} | {m['n_warn']} | {m['n_fail']} | {m['n_skip']} |")
+    L += ["", "## Per-check status", "", "| check | " + " | ".join(M) + " |", "|---|" + "---|" * len(M)]
+    for n in names: L.append(f"| {n} | " + " | ".join(m["checks"].get(n, {}).get("status", "-").upper() for m in M.values()) + " |")
+    L += ["", "## Why each model is not PASS", ""]
+    for k, m in M.items():
         L += [f"### {k} ({m['label']}; {m['tier']}; {m['n_episodes']} episodes)", ""]
-        for n in names:
-            c = m["checks"][n]
-            if not c["passed"]: L.append(f"- **FAIL {n}**: " + "; ".join(c["why"]) if c["why"] else f"- **FAIL {n}**")
-        v = m["checks"]
-        L += ["", f"Key numbers: downswing {v['6_tempo']['values']['downswing_s']*1000:.0f} ms, backswing:downswing {v['6_tempo']['values']['ratio']:.2f}:1, X-factor peak {v['2_x_factor']['values']['peak_deg']:.1f} deg, club {v['7_ball_flight_tables']['values']['club_mph']:.1f} mph, smash {v['7_ball_flight_tables']['values']['smash']:.2f}, carry {v['7_ball_flight_tables']['values']['carry_yd']:.0f} yd, peak power {v['4_torque_power']['values']['peak_power_W']:.0f} W", ""]
-    s0 = next(iter(out["models"].values()))["structure"] if out["models"] else {}
-    L += ["## Model structure (measured, same for all rows)", "", f"- Torso/pelvis pinned by the env each physics step (`pin_torso`): {s0.get('torso_pinned_by_env')} (no pelvis translation or rotation, so the kinematic sequence cannot start at the pelvis, and the whole body cannot shift weight); equality constraints (hands grip only): {s0.get('equality_constraints')}",
-          f"- Foot geoms: {s0.get('foot_geoms')}, with collision enabled: {s0.get('foot_geoms_colliding')} (no ground reaction force exists)", f"- Model mass {s0.get('model_mass_kg')} kg; only one trunk rotation DOF (chest_yaw), pitch-only hips/knees/ankles."]
-    L += ["", "## Check of the 'pelvis = 0 / X-factor = 0' finding (raw-trace audit, 2026-10-17): NOT a recording error", "",
+        for n, c in m["checks"].items():
+            if c["status"] in ("fail", "warn"): L.append(f"- **{c['status'].upper()} {n}**: " + "; ".join(x for x in c["why"] if x) + (f" [value {json.dumps(c['values'], default=float)[:160]}]" if c.get("values") is not None and n.startswith(("swing/peak", "swing/x_f", "shot/")) else ""))
+        t = m["checks"].get("mine/tempo", {}).get("values") or {}
+        if t: L += ["", f"Key numbers: downswing {t['downswing_s']*1000:.0f} ms, backswing:downswing {t['ratio']:.2f}:1", ""]
+    L += ["## Reconcile with the Data Agent's `data/references/realism_thresholds.json` (diff by key)", "", "| key | this harness before | Data Agent (cited) | used now |", "|---|---|---|---|"] + [f"| {a} | {b} | {c} | {d} |" for a, b, c, d in DIFF_ROWS] + ["",
+         "The Data Agent's file is not modified. Golfphys: `golfphys-lh-fix` (357bc0c) is already on main (05a482e), so the corrected left-hand high/low strike is what `check_shot_realism` uses; the old left-hand high-strike spin is not used anywhere in this harness (the v1 env has no spin).", ""]
+    s0 = next(iter(M.values()))["structure"] if M else {}
+    L += ["## Model structure (measured, same for all v1 rows)", "", f"- Torso/pelvis pinned by the env each physics step (`pin_torso`): {s0.get('torso_pinned_by_env')} (no pelvis translation or rotation, so the kinematic sequence cannot start at the pelvis, and the whole body cannot shift weight); equality constraints (hands grip only): {s0.get('equality_constraints')}",
+          f"- Foot geoms: {s0.get('foot_geoms')}, with collision enabled: {s0.get('foot_geoms_colliding')} (no ground reaction force exists)", f"- Model mass {s0.get('model_mass_kg')} kg; only one trunk rotation DOF (chest_yaw), pitch-only hips/knees/ankles.", "",
+          "## Check of the 'pelvis = 0 / X-factor = 0' finding (raw-trace audit, 2026-10-17): NOT a recording error", "",
           "Rolled out one scripted v3 (fs1 q23 dz016), one scripted v3 (fs2) and one imit20 swing (seed 4000) and dumped raw MuJoCo state every 5 ms:",
           "- What the harness reads: pelvis = body `torso`, thorax = body `chest`, lead arm = body `right_elbow`, club = body `right_wrist`; speed = |`data.cvel[body][:3]`| (world angular velocity, rad/s) x 180/pi = deg/s. X-factor = joint `chest_yaw` (`qpos[20]`, rad, relative to the pelvis because the pelvis does not turn) x 180/pi = deg.",
-          "- `pin_torso` really pins the pelvis: `env.pin_torso` is True (residual env default) and the env resets `qpos[7:14]` and `qvel[6:12]` every physics step; measured torso quaternion deviation 0.0, root qpos deviation 1.2e-5, root qvel max 0.05 (it is reset after each step, so the residual is sub-step noise).",
-          "- Raw `chest_yaw`: total range 0.0095 deg (scripted fs1), 0.0138 deg (scripted fs2), 0.0096 deg (imit20); max |qvel| 0.62-0.69 deg/s, against a joint range of +-45 deg. The chest does not rotate in these swings (the scripts have `yaw_ff` 0.0 and the yaw channel is not driven), so X-factor ~ 0 deg and the thorax speed ~ 0.3-0.7 deg/s are real, not units or indexing errors. Even the yaw-residual PPO (ppo_v4yaw_s43) reaches only 0.07 deg and the older ppo_resid_v3_s0 0.37 deg.", ""]
+          "- `pin_torso` really pins the pelvis: `env.pin_torso` is True (residual env default) and the env resets `qpos[7:14]` and `qvel[6:12]` every physics step; measured torso quaternion deviation 0.0, root qpos deviation 1.2e-5, root qvel max 0.05 (reset after each step, so sub-step noise).",
+          "- Raw `chest_yaw`: total range 0.0095 deg (scripted fs1), 0.0138 deg (scripted fs2), 0.0096 deg (imit20); max |qvel| 0.62-0.69 deg/s, against a joint range of +-45 deg. The chest does not rotate in these swings (`yaw_ff` 0.0, yaw channel not driven), so X-factor ~ 0 deg is real, not a units or indexing error. Even ppo_v4yaw_s43 reaches only 0.07 deg and ppo_resid_v3_s0 0.37 deg.", ""]
     return "\n".join(L) + "\n"
 
 if __name__ == "__main__": main()

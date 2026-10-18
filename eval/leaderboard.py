@@ -293,7 +293,7 @@ def main():
         k_ = next((n for n in c["names"] if n in _SR), None)
         if k_ is None and c.get("scripted"): k_ = next((kk for kk in ("scripted_v3",) if kk in _SR), None)   # scripted rows: harness scripted_v3 (same structural limits)
         r_ = _SR.get(k_) if k_ else None
-        c["realism"] = (dict(verdict=r_["verdict"], checks_passed=r_["checks_passed"], failed=[n for n, ck in r_["checks"].items() if not ck["passed"]], harness_row=k_) if r_ else dict(verdict="NOT EVALUATED", checks_passed=None, failed=[], harness_row=None))
+        c["realism"] = (dict(verdict=r_["verdict"], checks_passed=r_["checks_passed"], n_checks=r_.get("n_checks", 8), n_warn=r_.get("n_warn", 0), n_fail=r_.get("n_fail"), failed=[n for n, ck in r_["checks"].items() if ck.get("status", "pass" if ck["passed"] else "fail") == "fail"], warned=[n for n, ck in r_["checks"].items() if ck.get("status") == "warn"], harness_row=k_) if r_ else dict(verdict="NOT EVALUATED", checks_passed=None, failed=[], harness_row=None))
     sm_ok = lambda c: c.get("smash_flag") is None and "smash_flag" in c and not c.get("hypo_demoted") and (c.get("realism") or {}).get("verdict") == "PASS"   # eligible = smash 1.30-1.49 AND not demoted AND swing-realism harness PASS (unevaluated = unverified = not eligible)
     ranked_all = sorted(cur, key=score, reverse=True)           # incl. scripted baseline
     ranked = [c for c in ranked_all if not c.get("scripted")]   # trained checkpoints only
@@ -307,7 +307,7 @@ def main():
         f = float(ek.get("force_scale", 1.0) or 1.0)
         return "stock (force_scale 1)" if f <= 1.0 else f"{f:g}x (force_scale {f:g}, hypothetical-strength actuators)"
     def _rtag(c):
-        r = c.get("realism") or {}; return "" if not r else (f"[REALISM {r['verdict']}" + (f" {r['checks_passed']}/8" if r.get("checks_passed") is not None else "") + "] ")
+        r = c.get("realism") or {}; return "" if not r else (f"[REALISM {r['verdict']}" + (f" {r['checks_passed']}/{r.get('n_checks', 8)}" if r.get("checks_passed") is not None else "") + "] ")
     def _label(c): return _rtag(c) + _label0(c)
     def _label0(c):
         if c.get("scripted"): return "SCRIPTED (not learned)"
@@ -477,7 +477,7 @@ def main():
            "| model | smash | flag | demotion |", "|---|---|---|---|"]
     for c in sorted([c for c in cur if "smash_flag" in c and not c.get("scripted")], key=lambda c: -(c.get("smash_ratio_det") or 0)):
         Qs.append(f"| {'/'.join(c['names'][:1])} | {('%.3f' % c['smash_ratio_det']) if c.get('smash_ratio_det') else 'n/m'} | {c['smash_flag'] or 'ok (1.30-1.49)'} | {c.get('hypo_demoted') or '-'} |")
-    Qs += ["", "## Swing realism (results/swing_realism.md; eval/swing_realism.py)", "", "A row is eligible for best/top/showcase/qualifying only if the harness PASSES all 8 checks. NOT EVALUATED = unverified = not eligible.", ""] + [f"- **{'/'.join(c['names'])[:90]}**: {c['realism']['verdict']}" + (f" ({c['realism']['checks_passed']}/8); failed: {', '.join(x.split('_', 1)[1] for x in c['realism']['failed'])}" if c['realism']['failed'] else "") for c in cur if c.get("realism") and c["realism"]["verdict"] != "NOT EVALUATED"] + [f"- {sum(1 for c in cur if c.get('realism', {}).get('verdict') == 'NOT EVALUATED')} other rows: NOT EVALUATED."]
+    Qs += ["", "## Swing realism (results/swing_realism.md; eval/swing_realism.py)", "", "A row is eligible for best/top/showcase/qualifying only if the realism harness verdict is PASS (no failing and no warning check; Data Agent swing/shot checks + this harness's extra checks, skipped checks ignored). NOT EVALUATED = unverified = not eligible.", ""] + [f"- **{'/'.join(c['names'])[:90]}**: {c['realism']['verdict']}" + (f" ({c['realism']['checks_passed']}/8); failed: {', '.join(x.split('_', 1)[1] for x in c['realism']['failed'])}" if c['realism']['failed'] else "") for c in cur if c.get("realism") and c["realism"]["verdict"] != "NOT EVALUATED"] + [f"- {sum(1 for c in cur if c.get('realism', {}).get('verdict') == 'NOT EVALUATED')} other rows: NOT EVALUATED."]
     Qs += ["", "## Verdicts (from each run's results JSON)", ""] + [f"- **{'/'.join(c['names'])}**: {c['verdict']}" for c in cur if c.get("verdict")] + [""]
     Qs += ["", ("Qualifying: " + ", ".join('/'.join(c['names']) for c in qualifying)) if qualifying else "**None qualifies.**"]
     flat = [c for c in cur if any(v.get("launch_flat_flag") for v in c.get("modes", {}).values())]

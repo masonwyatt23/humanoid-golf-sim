@@ -1,0 +1,76 @@
+"""One-command realism check for a checkpoint / results JSON.
+  python -m eval.realism_check <model.zip | results/<name>.json | <name>> [--env v1|v5] [--eps-per-seed 8] [--club-len 1.05] [--seeds 4000,8000,9000] [--json out.json]
+v1 (default): rolls the model out under ITS OWN env kwargs (the results JSON's env_kwargs_full / args, as the gates do) with eval/swing_realism.py's recorder.
+v5: the Trainer's G1 env (local commit 71197e6, NOT on origin/main). Run from the Trainer's checkout via a subprocess (`--v5-repo`, default $V5_REPO or the Trainer worktree) because its `env` package collides with this repo's.
+    <ckpt> is the checkpoint base (ckpt_*.zip / final.zip with a sibling *_vecnorm.pkl). Uses their tether 0, friction nominal, deterministic.
+Prints PASS/WARN/FAIL/SKIP per check and the overall verdict (only PASS is showcase/qualifying-eligible). Run it under `taskset -c 0-1` with OMP/MKL/OPENBLAS threads <= 2."""
+import argparse, json, os, subprocess, sys, tempfile
+from pathlib import Path
+import numpy as np
+ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_V5 = os.environ.get("V5_REPO", "/workspace/artifacts/humanoid-golf-scott")
+
+def _v1_spec(target):
+    from eval import swing_realism as SR
+    p = Path(target); name = p.stem
+    if p.suffix == ".zip" and p.parent.name != "models":                       # arbitrary zip: need a sibling results json
+        cand = p.with_suffix(".json")
+        if cand.exists(): name = p.stem
+    for r in SR.registry():
+        if r["key"] == name or r.get("model") == name: return r
+    rj = ROOT / "results" / f"{name}.json"
+    if not rj.exists() and p.suffix == ".json" and p.exists(): rj = p
+    if not rj.exists(): sys.exit(f"no results JSON for '{name}' (needs results/{name}.json with env_kwargs_full or args)")
+    J = json.loads(rj.read_text()); spec = dict(key=name, kind="policy", tier=J.get("tier", "unknown (see its results JSON)"), label="policy (realism_check)")
+    if "env_kwargs_full" not in J and "args" not in J: sys.exit(f"{rj} has neither env_kwargs_full nor args")
+    return spec
+
+def run_v1(a):
+    from eval import swing_realism as SR
+    SR.SEEDS = tuple(int(s) for s in a.seeds.split(","))
+    spec = _v1_spec(a.target)
+    return SR.evaluate([spec], a.eps_per_seed, a.workers)[spec["key"]]
+
+def run_v5(a):
+    from eval import swing_realism as SR
+    repo = Path(a.v5_repo); ck = str(Path(a.target).with_suffix("")) if a.target.endswith(".zip") else a.target
+    if not (repo / "env" / "v5_golf_env.py").exists(): sys.exit(f"v5 env not found in {repo} (it is a Trainer-local commit, not on origin/main)")
+    if not Path(ck + "_vecnorm.pkl").exists(): sys.exit(f"missing {ck}_vecnorm.pkl (PPO checkpoints need VecNormalize stats)")
+    seeds = [int(s) for s in a.seeds.split(",")]; eps = []; bw = None; env = dict(os.environ, OMP_NUM_THREADS="2", MKL_NUM_THREADS="2", OPENBLAS_NUM_THREADS="2", NUMEXPR_NUM_THREADS="2")
+    for sd in seeds:
+        with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
+        subprocess.run([sys.executable, str(ROOT / "eval" / "_v5_worker.py"), str(repo), os.path.abspath(ck), str(a.club_len), str(sd), str(a.eps_per_seed), outp], check=True, cwd=str(repo), env=env)
+        J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]; eps += J["eps"]
+    out = []
+    for r in eps:
+        w = np.radians(np.array([r["pelvis_dps"], r["thorax_dps"], r["arm_dps"], r["club_dps"]]).T); n = len(w); imp = r["impact_idx"]
+        grf = np.array(r["grf"]).reshape(-1, 2); lead_i = 0 if r["lead"] == "left" else 1; sh = {k: v for k, v in r["shot"].items() if v is not None}
+        club = sh.get("club_speed_mph", 0.0)
+        jt = dict(pelvis_w=w[:, 0], thorax_w=w[:, 1], arm_w=w[:, 2], club_w=w[:, 3], pelvis=np.zeros(n), thorax=np.radians(np.array(r["xfactor_deg"])), grf_lead_vertical_bw=grf[:n, lead_i] / bw)
+        shot = {}
+        if sh:
+            shot = dict(club_speed_mph=club, ball_speed_mph=sh.get("ball_speed_mph"), launch_deg=sh.get("launch_deg"), spin_rpm=sh.get("spin_rpm"), carry_yd=sh["carry_m_noroll"] * SR.M2YD if sh.get("carry_m_noroll") is not None else None,
+                        total_yd=sh["total_m_model"] * SR.M2YD if sh.get("total_m_model") is not None else None)
+        pk = [float(np.degrees(w[:, j]).max()) for j in range(4)]
+        out.append(dict(true_contact=bool(r["contact"]), club_mph=club, da_swing=SR.da_swing(jt, 0.005, club, imp), da_shot=SR.da_shot(shot) if shot else [], seg_peak_dps=pk))
+    ok = [e for e in out if e["true_contact"]] or out; C = {}
+    C.update(SR.agg_da(ok, "da_swing", "swing")); C.update(SR.agg_da(ok, "da_shot", "shot"))
+    pk = {n: SR.med([e["seg_peak_dps"][j] for e in ok]) for j, n in enumerate(("pelvis", "thorax", "arm", "club"))}; bad = [n for n, v in pk.items() if v < SR.MOVE_MIN_DPS]
+    k, v = SR._mine("segments_rotate", not bad, [f"{n} does not rotate (peak {pk[n]:.1f} deg/s)" for n in bad], pk, "DERIVED 20 deg/s"); C[k] = v
+    for nm in ("ground_contact_weight_shift", "joint_limits", "torque_saturation_smoothness", "tempo", "carry_vs_trackman_band"):
+        C[f"mine/{nm}"] = dict(status="skip", passed=False, values=None, why=["not implemented for the v5 recorder (v1 recorder only)"], ref=None, tag="derived")
+    S = SR.summarize(C)
+    return dict(key=Path(ck).parent.name + "/" + Path(ck).name, env=f"v5 (G1, club_len {a.club_len}, tether 0)", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], verdict=S["verdict"],
+                club_mph_median=SR.med([e["club_mph"] for e in ok]))
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter); ap.add_argument("target"); ap.add_argument("--env", default="v1", choices=["v1", "v5"])
+    ap.add_argument("--eps-per-seed", type=int, default=8); ap.add_argument("--seeds", default="4000,8000,9000"); ap.add_argument("--workers", type=int, default=2); ap.add_argument("--club-len", type=float, default=1.05)
+    ap.add_argument("--v5-repo", default=DEFAULT_V5); ap.add_argument("--json", default="")
+    a = ap.parse_args(); r = run_v5(a) if a.env == "v5" else run_v1(a)
+    print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}")
+    for n, c in r["checks"].items():
+        print(f"  {c['status'].upper():5s} {n}" + (f"  - {'; '.join(x for x in c['why'] if x)[:200]}" if c["status"] in ("fail", "warn") else ""))
+    if a.json: Path(a.json).write_text(json.dumps(r, indent=1, default=float))
+    return 0
+if __name__ == "__main__": main()

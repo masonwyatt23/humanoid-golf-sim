@@ -34,11 +34,38 @@ def test_derived_thresholds_documented():
     for k in ("XF_BAND", "TEMPO_RATIO", "DOWN_S", "SAT_TIME_MAX", "LIMIT_TIME_MAX"): assert f"{k} " in src and "DERIVED" in src
     assert "Cheetham" in src and "PMC9227529" in src and "PMC3794489" in src
 
+def test_da_wrappers_and_static_pelvis_guard():
+    # Data Agent functions are called; a static pelvis must not sneak through (peak_speed fails; my segments_rotate guard catches it too)
+    R = synth(); jr = np.tile([[-1.0, 1.0]], (12, 1)); caps = np.full(12, 10.0)
+    e = sr.analyse(R, jr, caps, 11, 300.0, dict(true_contact=True, impact_club_speed=45.0, peak_ball_speed=60.0, launch_elev_deg=12.0, carry=200.0))
+    st = {c["name"]: c["status"] for c in e["da_swing"]}; assert st["peak_speed_pelvis_deg_s"] == "fail"
+    assert {c["name"]: c["status"] for c in e["da_shot"]}["smash"] in ("pass", "warn", "fail")
+    assert e["ks"]["pelvis"]["peak_dps"] < sr.MOVE_MIN_DPS
+
+def test_extrapolated_rows_only_warn():
+    res = dict(checks=[dict(name="x", status="fail", value=1, expected=2, reason="r", extrapolated=True), dict(name="y", status="fail", value=1, expected=2, reason="r", extrapolated=False)])
+    c = {x["name"]: x["status"] for x in sr._compact(res, cap_extrapolated=True)}; assert c == {"x": "warn", "y": "fail"}
+
+def test_verdict_tristate_and_aggregation():
+    mk = lambda st: dict(status=st)
+    assert sr.summarize({"a": mk("pass"), "b": mk("skip")})["verdict"] == "PASS"
+    assert sr.summarize({"a": mk("pass"), "b": mk("warn")})["verdict"] == "WARN"
+    assert sr.summarize({"a": mk("warn"), "b": mk("fail")})["verdict"] == "FAIL"
+    eps = [dict(k=[dict(name="n", status=x, value=1.0, expected=None, reason=x, extrapolated=False)]) for x in ("pass", "warn", "warn", "fail")]
+    assert sr.agg_da(eps, "k", "p")["p/n"]["status"] == "warn"                 # most common
+    eps = [dict(k=[dict(name="n", status=x, value=1.0, expected=None, reason=x, extrapolated=False)]) for x in ("pass", "fail")]
+    assert sr.agg_da(eps, "k", "p")["p/n"]["status"] == "fail"                 # tie -> worse
+
 def test_committed_results_verdicts_consistent():
     p = ROOT / "results" / "swing_realism.json"
     if not p.exists(): return
     J = json.loads(p.read_text())
     for k, m in J["models"].items():
-        n = sum(c["passed"] for c in m["checks"].values())
-        assert m["checks_passed"] == n and (m["verdict"] == "PASS") == (n == len(m["checks"]) == 8), k
-        assert math.isfinite(m["checks"]["6_tempo"]["values"]["downswing_s"])
+        st = [c["status"] for c in m["checks"].values()]
+        assert m["checks_passed"] == st.count("pass") and m["n_fail"] == st.count("fail") and m["n_warn"] == st.count("warn")
+        assert m["verdict"] == ("FAIL" if "fail" in st else "WARN" if "warn" in st else "PASS"), k
+        assert math.isfinite(m["checks"]["mine/tempo"]["values"]["downswing_s"])
+
+def test_realism_check_cli_importable_and_v5_worker_isolated():
+    import importlib; importlib.import_module("eval.realism_check")
+    w = (ROOT / "eval" / "_v5_worker.py").read_text(); assert "from eval" not in w and "import eval" not in w     # must not import this repo's packages (env/ collides with the Trainer's)

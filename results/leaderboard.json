@@ -3556,15 +3556,30 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 1,
+    "checks_passed": 2,
+    "n_checks": 19,
+    "n_warn": 4,
+    "n_fail": 13,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "swing/peak_speed_club_deg_s",
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "shot/launch_deg",
+     "shot/carry_positive",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/tempo",
+     "mine/carry_vs_trackman_band"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "shot/smash",
+     "shot/total_over_carry"
     ],
     "harness_row": "ppo_resid_v3_s0"
    }
@@ -5470,16 +5485,28 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 3,
+    "n_checks": 18,
+    "n_warn": 8,
+    "n_fail": 7,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "shot/smash",
+     "shot/total_over_carry",
+     "mine/carry_vs_trackman_band"
     ],
     "harness_row": "scripted_v3"
    }
@@ -6101,16 +6128,28 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 3,
+    "n_checks": 18,
+    "n_warn": 8,
+    "n_fail": 7,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "shot/smash",
+     "shot/total_over_carry",
+     "mine/carry_vs_trackman_band"
     ],
     "harness_row": "scripted_v3"
    }
@@ -7379,16 +7418,28 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 3,
+    "n_checks": 18,
+    "n_warn": 8,
+    "n_fail": 7,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "shot/smash",
+     "shot/total_over_carry",
+     "mine/carry_vs_trackman_band"
     ],
     "harness_row": "scripted_v3"
    }
@@ -8030,16 +8081,28 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 3,
+    "n_checks": 18,
+    "n_warn": 8,
+    "n_fail": 7,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "shot/smash",
+     "shot/total_over_carry",
+     "mine/carry_vs_trackman_band"
     ],
     "harness_row": "scripted_v3"
    }
@@ -8665,16 +8728,28 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 3,
+    "n_checks": 18,
+    "n_warn": 8,
+    "n_fail": 7,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "shot/smash",
+     "shot/total_over_carry",
+     "mine/carry_vs_trackman_band"
     ],
     "harness_row": "scripted_v3"
    }
@@ -20879,15 +20954,29 @@
    "hypo_demoted": "HYPOTHETICAL, effectively scripted: force_scale 2 + impact gain 1.28 (inflated), yaw-only residual (res_scale [0.0, 0.0, 0.0, 0.05]); not a stock-motor policy",
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 1,
+    "checks_passed": 3,
+    "n_checks": 19,
+    "n_warn": 7,
+    "n_fail": 9,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables"
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "shot/smash",
+     "shot/carry_positive",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "shot/total_over_carry",
+     "mine/carry_vs_trackman_band"
     ],
     "harness_row": "ppo_v4yaw_s43"
    }
@@ -42346,16 +42435,28 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 3,
+    "n_checks": 18,
+    "n_warn": 5,
+    "n_fail": 10,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "shot/smash",
+     "shot/total_over_carry",
+     "mine/carry_vs_trackman_band"
     ],
     "harness_row": "imit16_fs1_dart_s51"
    }
@@ -45070,16 +45171,27 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 4,
+    "n_checks": 18,
+    "n_warn": 6,
+    "n_fail": 8,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "shot/smash",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "shot/total_over_carry"
     ],
     "harness_row": "imit18_power_dart_s51"
    }
@@ -49114,16 +49226,29 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 2,
+    "n_checks": 18,
+    "n_warn": 5,
+    "n_fail": 11,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo",
+     "mine/carry_vs_trackman_band"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "shot/smash",
+     "shot/launch_deg",
+     "shot/total_over_carry"
     ],
     "harness_row": "imit20_fs1_q23_dart_s51"
    }
@@ -49802,16 +49927,28 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 3,
+    "n_checks": 18,
+    "n_warn": 8,
+    "n_fail": 7,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "shot/smash",
+     "shot/total_over_carry",
+     "mine/carry_vs_trackman_band"
     ],
     "harness_row": "ppo15_klres_s101"
    }
@@ -50490,16 +50627,29 @@
    "hypo_demoted": null,
    "realism": {
     "verdict": "FAIL",
-    "checks_passed": 0,
+    "checks_passed": 2,
+    "n_checks": 18,
+    "n_warn": 5,
+    "n_fail": 11,
     "failed": [
-     "1_kinematic_sequence",
-     "2_x_factor",
-     "3_joint_limits",
-     "4_torque_power",
-     "5_ground_reaction",
-     "6_tempo",
-     "7_ball_flight_tables",
-     "8_smash_spin_flags"
+     "swing/peak_speed_pelvis_deg_s",
+     "swing/peak_speed_thorax_deg_s",
+     "swing/peak_speed_arm_deg_s",
+     "swing/x_factor_top_deg",
+     "swing/grf_lead_vertical_bw",
+     "mine/segments_rotate",
+     "mine/ground_contact_weight_shift",
+     "mine/joint_limits",
+     "mine/torque_saturation_smoothness",
+     "mine/tempo",
+     "mine/carry_vs_trackman_band"
+    ],
+    "warned": [
+     "swing/kinematic_sequence_order",
+     "swing/kinematic_sequence_timing_ms_before_club_peak",
+     "shot/smash",
+     "shot/launch_deg",
+     "shot/total_over_carry"
     ],
     "harness_row": "ppo20_klres_s111"
    }
