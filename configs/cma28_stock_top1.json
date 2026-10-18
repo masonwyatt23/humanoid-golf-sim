@@ -1,0 +1,25 @@
+{
+ "description": "STOCK fs1 SCRIPTED-PARAMETER SEARCH (CMA-ES, Stage 28; not neural/learned/distilled) top1 from fast_scripted_v3_fs1_q23_dz016; search 40ep@6000, finalist 100ep@7000; results/param_search_s28_stock.json",
+ "script": {
+  "q_back": 2.21768,
+  "t_down": 0.075,
+  "t_back": 0.5471,
+  "wr_end": -0.01,
+  "yaw_ff": 0.0,
+  "wr_rel_start": 0.03834,
+  "yaw_fin": -0.0174
+ },
+ "ball_x": 0.39771,
+ "ball_x_noise": 0.003,
+ "loft_deg": -43.79692,
+ "ball_dz": -0.02227,
+ "tee_height": 0.04,
+ "force_scale": 1.0,
+ "kp": 700,
+ "kd": 23.33,
+ "handedness": "left",
+ "model_xml": "humanoid_golf_v3.xml",
+ "sh_noise": 0.05,
+ "el_noise": 0.17,
+ "elbow_base": 0.4
+}

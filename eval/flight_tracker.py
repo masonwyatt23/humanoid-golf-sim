@@ -25,6 +25,8 @@ TARGET_MPH = 120.0
 TARGET_MS = 53.64     # 120 mph
 MAX_PLAUSIBLE_CLUB_SPEED = 100.0  # m/s; above this the MuJoCo sim blew up (unstable QACC), not a real speed
 FLAT_LAUNCH_DEG = 5.0   # launch elevation below this = flat/negative (flagged): mean < 5 deg or >= 50% of shots < 5 deg
+LAND_Z = 0.03          # m; ball centre height counted as touchdown (matches env carry rule)
+LAND_MIN_APEX = 0.5    # m; ball must have flown above this before touchdown counts
 MIN_CLUB_SPEED = 0.05  # m/s; smash factor undefined below this
 
 
@@ -32,7 +34,7 @@ class FlightTracker:
     def __init__(self, env):
         self.env, self.traj = env, []
 
-    def install(self):
+    def install(self, track_landing=False):
         """Patch mujoco.mj_step to sample club_head speed after EVERY physics substep (peak over whole swing)."""
         import mujoco
         self._mj, self._orig, self.peak_club = mujoco, mujoco.mj_step, 0.0
@@ -40,6 +42,7 @@ class FlightTracker:
         self._sep, self._last_v, self.v_sep = False, None, None
         self._hist, self.club_pre = [], float('nan')
         self._seq_init()
+        self.track_landing = bool(track_landing); self._land_reset()
         def wrapped(m, d, *a, **k):
             self._orig(m, d, *a, **k)
             v = self.env._club_speed()
@@ -47,6 +50,10 @@ class FlightTracker:
             self._seq_n += 1
             if self._seq_n % 10 == 0:   # every 10th substep (5 ms): |joint angular velocity| of the sequencing segments + club speed
                 self._seq_t.append(float(d.time)); self._seq_v.append([abs(d.qvel[i]) if i is not None else np.nan for i in self._seq_dofs] + [v])
+            if self.track_landing and self.land_v is None:   # opt-in: ball velocity at first descent through z<LAND_Z after it has flown above LAND_MIN_APEX
+                bz = float(self.env.data.xpos[self.env._ball_id][2]); self._land_apex = max(self._land_apex, bz)
+                if self._land_apex > LAND_MIN_APEX and bz < LAND_Z:
+                    self.land_v = np.array(self.env._ball_lin_vel(), float)
             if self.env.true_contact and self.t_impact is None: self.t_impact = float(d.time)
             if self.env.true_contact and self.club_pre != self.club_pre and len(self._hist) >= 3: self.club_pre = self._hist[-3]
             if not np.isfinite(v) or v > MAX_PLAUSIBLE_CLUB_SPEED:   # validate; never silently clip
@@ -67,7 +74,11 @@ class FlightTracker:
         if getattr(self, "_orig", None) is not None:
             self._mj.mj_step = self._orig; self._orig = None
 
+    def _land_reset(self):
+        self.land_v, self._land_apex = None, 0.0
+
     def reset(self):
+        self._land_reset()
         self.peak_club, self.n_nonphysical, self.raw_max, self.first_bad_t = 0.0, 0, 0.0, None
         self._sep, self._last_v, self.v_sep = False, None, None
         self._hist, self.club_pre = [], float("nan")
@@ -142,7 +153,15 @@ class FlightTracker:
                 "peak_club_speed": float(getattr(self, "peak_club", float("nan"))),
                 "nonphysical_substeps": int(getattr(self, "n_nonphysical", 0)),
                 "raw_max_club_speed": float(getattr(self, "raw_max", 0.0)),
-                "first_nonphysical_sim_time": getattr(self, "first_bad_t", None)}
+                "first_nonphysical_sim_time": getattr(self, "first_bad_t", None)} | self.landing_summary()
+
+    def landing_summary(self) -> Dict[str, float]:
+        """Opt-in (install(track_landing=True)); {} otherwise so default output is unchanged. descent_angle_deg = angle below horizontal of the ball
+        velocity at first touchdown (z<LAND_Z m); landing_speed_mps = |v| there. NaN if the ball never landed. Env flight model, no roll."""
+        if not getattr(self, "track_landing", False): return {}
+        v = self.land_v
+        if v is None: return {"descent_angle_deg": float("nan"), "landing_speed_mps": float("nan")}
+        return {"descent_angle_deg": float(np.degrees(np.arctan2(-v[2], np.hypot(v[0], v[1]) + 1e-9))), "landing_speed_mps": float(np.linalg.norm(v))}
 
 
 def seq_aggregate(shots):

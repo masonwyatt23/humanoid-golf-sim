@@ -1,0 +1,156 @@
+{
+ "phase": "power",
+ "label": "SCRIPTED-PARAMETER SEARCH (CMA-ES), not neural/learned, not distilled; HYPOTHETICAL power tier, gain 1.20",
+ "eval": "40 eps seed 6000 per candidate; finalists 100 eps seed 7000; carry = single no-roll metres",
+ "start_cfg": "configs/fast_scripted_v4_power_elbowrange.json",
+ "override": {
+  "impact_model": {
+   "gain": 1.2,
+   "dz0": 0.017,
+   "k_off": 0.4,
+   "spin_k": 130,
+   "k_side": 3500
+  },
+  "loft_deg": -28
+ },
+ "bounds": {
+  "q_back": [
+   1.9,
+   2.5
+  ],
+  "t_back": [
+   0.45,
+   0.9
+  ],
+  "t_down": [
+   0.04,
+   0.09
+  ],
+  "wr_rel_start": [
+   0.0,
+   0.3
+  ],
+  "yaw_fin": [
+   -0.08,
+   0.08
+  ],
+  "loft_deg": [
+   -34,
+   -24
+  ],
+  "ball_x": [
+   0.38,
+   0.42
+  ],
+  "ball_dz": [
+   -0.02,
+   0.0
+  ]
+ },
+ "finalists": [
+  {
+   "name": "start_config",
+   "x": {
+    "q_back": 2.2,
+    "t_back": 0.6,
+    "t_down": 0.06,
+    "wr_rel_start": 0.0,
+    "yaw_fin": 0.0,
+    "loft_deg": -28.0,
+    "ball_x": 0.396,
+    "ball_dz": -0.008
+   },
+   "r100_seed7000": {
+    "contact_rate": 1.0,
+    "mean_carry": 284.43104828401954,
+    "lateral_std": 2.350106709987968,
+    "peak_club_mph_mean": 132.4064366184743,
+    "mean_y": 0.0601876597205959,
+    "launch_elev_mean_deg": 10.43778956015626,
+    "smash_factor_mean": 1.4578602590751606,
+    "backspin_rpm_mean": 2432.593150046672,
+    "mean_distance": 284.43104828401954
+   },
+   "feasible100": true,
+   "fit100": -297.671691945867
+  },
+  {
+   "name": "top1",
+   "x": {
+    "q_back": 2.2452727952148335,
+    "t_back": 0.7502355730488476,
+    "t_down": 0.06346171420896743,
+    "wr_rel_start": 0.007653755051886892,
+    "yaw_fin": -0.003848960228768933,
+    "loft_deg": -28.44708803139043,
+    "ball_x": 0.40483174868559435,
+    "ball_dz": -0.00623286280063381
+   },
+   "r100_seed7000": {
+    "contact_rate": 1.0,
+    "mean_carry": 283.3335408942449,
+    "lateral_std": 2.779710723840377,
+    "peak_club_mph_mean": 133.67627157884314,
+    "mean_y": 0.8258094305988658,
+    "launch_elev_mean_deg": 12.494108295197215,
+    "smash_factor_mean": 1.45181837106997,
+    "backspin_rpm_mean": 2681.874242902529,
+    "mean_distance": 283.3335408942449
+   },
+   "feasible100": false,
+   "fit100": -282.70546847397355
+  },
+  {
+   "name": "top2",
+   "x": {
+    "q_back": 2.177884196882718,
+    "t_back": 0.6915618056328162,
+    "t_down": 0.056833338184842964,
+    "wr_rel_start": 0.015956248805043323,
+    "yaw_fin": 0.0006242147430978312,
+    "loft_deg": -28.622332687402718,
+    "ball_x": 0.40471271307391854,
+    "ball_dz": -0.007234131749985566
+   },
+   "r100_seed7000": {
+    "contact_rate": 1.0,
+    "mean_carry": 289.8398341636374,
+    "lateral_std": 2.4817393645120682,
+    "peak_club_mph_mean": 131.78910236572645,
+    "mean_y": -0.0778502434563339,
+    "launch_elev_mean_deg": 11.258937629658709,
+    "smash_factor_mean": 1.4766152946552975,
+    "backspin_rpm_mean": 2599.5639915128404,
+    "mean_distance": 289.8398341636374
+   },
+   "feasible100": true,
+   "fit100": -303.01874440021004
+  },
+  {
+   "name": "top3",
+   "x": {
+    "q_back": 2.160300359308863,
+    "t_back": 0.6635909358834262,
+    "t_down": 0.062355789015500186,
+    "wr_rel_start": 0.007004440392173331,
+    "yaw_fin": -0.0012147451924555963,
+    "loft_deg": -27.338641273834057,
+    "ball_x": 0.40063474096964635,
+    "ball_dz": -0.007005591347588403
+   },
+   "r100_seed7000": {
+    "contact_rate": 1.0,
+    "mean_carry": 276.6112520007206,
+    "lateral_std": 2.2058578512386746,
+    "peak_club_mph_mean": 130.7806402612965,
+    "mean_y": 0.2863794187872098,
+    "launch_elev_mean_deg": 10.090997651849717,
+    "smash_factor_mean": 1.4565471155670389,
+    "backspin_rpm_mean": 2330.4034767702956,
+    "mean_distance": 276.6112520007206
+   },
+   "feasible100": true,
+   "fit100": -289.68931602685024
+  }
+ ]
+}

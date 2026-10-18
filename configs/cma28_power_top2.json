@@ -1,0 +1,34 @@
+{
+ "description": "HYPOTHETICAL power tier (impact gain 1.20) SCRIPTED-PARAMETER SEARCH (CMA-ES, Stage 28; not neural/learned/distilled) top2; search 40ep@6000, finalist 100ep@7000; results/param_search_s28_power.json",
+ "script": {
+  "q_back": 2.17788,
+  "t_down": 0.05683,
+  "t_back": 0.69156,
+  "wr_end": -0.1,
+  "yaw_ff": 0.0,
+  "wr_rel_start": 0.01596,
+  "yaw_fin": 0.00062
+ },
+ "ball_x": 0.40471,
+ "ball_x_noise": 0.003,
+ "loft_deg": -28.62233,
+ "ball_dz": -0.00723,
+ "tee_height": 0.04,
+ "force_scale": 2.0,
+ "kp": 700,
+ "kd": 23.33,
+ "handedness": "left",
+ "model_xml": "humanoid_golf_v4_power.xml",
+ "sh_noise": 0.05,
+ "el_noise": 0.1,
+ "contact_damp": 0.3,
+ "impact_model": {
+  "gain": 1.2,
+  "dz0": 0.017,
+  "k_off": 0.4,
+  "spin_k": 130,
+  "k_side": 3500
+ },
+ "flight_steps": 900,
+ "elbow_base": 0.45
+}

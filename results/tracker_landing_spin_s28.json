@@ -1,0 +1,46 @@
+{
+ "label": "HYPOTHETICAL power tier, scripted, 20 eps seed 6000, single no-roll metres",
+ "rows": {
+  "-27": {
+   "carry": 280.8355312162238,
+   "launch_elev_deg": 9.717366291897553,
+   "sep_rpm": 2311.0266942325443,
+   "descent_angle_deg": 34.955717124896665,
+   "landing_speed_mps": 28.8279147279918,
+   "ball_speed_sep": 78.27393513153862,
+   "descent_std": 3.8700715497369007,
+   "n_landed_desc": 20
+  },
+  "-29": {
+   "carry": 289.06266673962676,
+   "launch_elev_deg": 11.148944564486586,
+   "sep_rpm": 2577.94447660195,
+   "descent_angle_deg": 40.30420962030316,
+   "landing_speed_mps": 29.056307710939272,
+   "ball_speed_sep": 77.57463887322913,
+   "descent_std": 3.461260104037973,
+   "n_landed_desc": 20
+  },
+  "-31": {
+   "carry": 290.4419503577324,
+   "launch_elev_deg": 12.583868945187357,
+   "sep_rpm": 2829.4871841007857,
+   "descent_angle_deg": 43.91785649500514,
+   "landing_speed_mps": 29.5399767937938,
+   "ball_speed_sep": 76.86358677014196,
+   "descent_std": 2.4469727933236474,
+   "n_landed_desc": 20
+  }
+ },
+ "spin_formula": {
+  "rpm_at_launch": {
+   "8": 1751.190307555839,
+   "10": 2096.72766325232,
+   "11.2": 2302.8507170788303,
+   "12.5": 2525.0079914281228,
+   "14": 2779.720883871812
+  },
+  "d_rpm_per_deg_launch": 171.50011486193875,
+  "ball_speed_used_mps": 77.57463887322913
+ }
+}

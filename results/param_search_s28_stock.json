@@ -1,0 +1,147 @@
+{
+ "phase": "stock",
+ "label": "SCRIPTED-PARAMETER SEARCH (CMA-ES), not neural/learned, not distilled; STOCK fs1",
+ "eval": "40 eps seed 6000 per candidate; finalists 100 eps seed 7000; carry = single no-roll metres",
+ "start_cfg": "configs/fast_scripted_v3_fs1_q23_dz016.json",
+ "override": {},
+ "bounds": {
+  "q_back": [
+   1.9,
+   2.6
+  ],
+  "t_back": [
+   0.45,
+   0.9
+  ],
+  "t_down": [
+   0.075,
+   0.13
+  ],
+  "wr_rel_start": [
+   0.0,
+   0.3
+  ],
+  "yaw_fin": [
+   -0.08,
+   0.08
+  ],
+  "loft_deg": [
+   -50,
+   -32
+  ],
+  "ball_x": [
+   0.38,
+   0.42
+  ],
+  "ball_dz": [
+   -0.024,
+   -0.006
+  ]
+ },
+ "finalists": [
+  {
+   "name": "start_config",
+   "x": {
+    "q_back": 2.3,
+    "t_back": 0.6,
+    "t_down": 0.095,
+    "wr_rel_start": 0.0,
+    "yaw_fin": 0.0,
+    "loft_deg": -41.0,
+    "ball_x": 0.396,
+    "ball_dz": -0.016
+   },
+   "r100_seed7000": {
+    "contact_rate": 1.0,
+    "mean_carry": 139.68718462699152,
+    "lateral_std": 1.3806845176941787,
+    "peak_club_mph_mean": 100.67936887412908,
+    "mean_y": -0.09124832724904033,
+    "launch_elev_mean_deg": 17.51400454283892,
+    "smash_factor_mean": 1.0068288772919245,
+    "backspin_rpm_mean": null,
+    "mean_distance": 139.68718462699152
+   },
+   "feasible100": true,
+   "fit100": -149.75512151440444
+  },
+  {
+   "name": "top1",
+   "x": {
+    "q_back": 2.217676264105545,
+    "t_back": 0.5470992818234056,
+    "t_down": 0.07500240365896317,
+    "wr_rel_start": 0.03833533490119876,
+    "yaw_fin": -0.01740092454930077,
+    "loft_deg": -43.79692065428023,
+    "ball_x": 0.3977105196501458,
+    "ball_dz": -0.022274466600397592
+   },
+   "r100_seed7000": {
+    "contact_rate": 1.0,
+    "mean_carry": 144.23801149422258,
+    "lateral_std": 0.16600941897613308,
+    "peak_club_mph_mean": 99.2173558177843,
+    "mean_y": 2.47931961859377,
+    "launch_elev_mean_deg": 18.553692567307152,
+    "smash_factor_mean": 1.0161762449252114,
+    "backspin_rpm_mean": null,
+    "mean_distance": 144.23801149422258
+   },
+   "feasible100": true,
+   "fit100": -154.159747076001
+  },
+  {
+   "name": "top2",
+   "x": {
+    "q_back": 2.211942610624559,
+    "t_back": 0.5650529221368532,
+    "t_down": 0.09709146601948776,
+    "wr_rel_start": 0.09681377586038865,
+    "yaw_fin": -0.01563446769131753,
+    "loft_deg": -45.79391651797626,
+    "ball_x": 0.3974057676774278,
+    "ball_dz": -0.012653473973754744
+   },
+   "r100_seed7000": {
+    "contact_rate": 1.0,
+    "mean_carry": 142.59396702387232,
+    "lateral_std": 0.49078439396126317,
+    "peak_club_mph_mean": 98.79133296012137,
+    "mean_y": 2.0121080819528863,
+    "launch_elev_mean_deg": 19.61744919672579,
+    "smash_factor_mean": 1.0053153528875598,
+    "backspin_rpm_mean": null,
+    "mean_distance": 142.59396702387232
+   },
+   "feasible100": true,
+   "fit100": -152.47310031988445
+  },
+  {
+   "name": "top3",
+   "x": {
+    "q_back": 2.2680066396319294,
+    "t_back": 0.5429647743361032,
+    "t_down": 0.07539205940932535,
+    "wr_rel_start": 0.11457962207370377,
+    "yaw_fin": 0.0015768339534309034,
+    "loft_deg": -44.967273422508455,
+    "ball_x": 0.39227791550544416,
+    "ball_dz": -0.01741854360945104
+   },
+   "r100_seed7000": {
+    "contact_rate": 1.0,
+    "mean_carry": 141.87991854740207,
+    "lateral_std": 0.7291871677214197,
+    "peak_club_mph_mean": 100.24653084033375,
+    "mean_y": -0.30275936864084246,
+    "launch_elev_mean_deg": 19.79831265384235,
+    "smash_factor_mean": 0.9863576195948014,
+    "backspin_rpm_mean": null,
+    "mean_distance": 141.87991854740207
+   },
+   "feasible100": true,
+   "fit100": -151.90457163143543
+  }
+ ]
+}
