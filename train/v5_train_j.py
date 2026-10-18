@@ -18,13 +18,18 @@ from env.v5_ref import SwingRef
 EXTRA = 4
 
 class JEnv(HEnv):
-    res_scale = 1.0; track_w = 1.0; bs_floor = 1.0; xf_cap_w = 0.08; xf_cap_lo = 60.0; ord_w = 1.5; track_floor = 0.3; grf_w = 0.15; ctr_w = 2.0; spin_w = 1.0; _cprev = False; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
+    res_scale = 1.0; track_w = 1.0; bs_floor = 1.0; xf_cap_w = 0.08; xf_cap_lo = 60.0; ord_w = 1.5; track_floor = 0.3; grf_w = 0.15; ctr_w = 2.0; spin_w = 1.0; _cprev = False; xf_hard = 0.0; grf_lo = 2.0; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
     def __init__(self, dt=0.002, seed=0, keys=None, res_scale=1.0, t_down=0.27):
         super().__init__(dt=dt, seed=seed, planar=False); self.ref_keys = keys; self.res_scale = res_scale; self.t_down = t_down; self.ref = None
         self.target_len = 1.15; self.target_tether = 0.0; self.prior_w = 0.0; self.env.friction_rand = False; self.rng2 = np.random.default_rng(seed + 12345)
         n = self.env.observation_space.shape[0] + EXTRA; self.observation_space = spaces.Box(-np.inf, np.inf, (n,), np.float32)
+    def configure(self, **kw):
+        for k, v in kw.items():
+            if v is not None: setattr(self, k, v)
     def _ensure_ref(self):
         e = self.env
+        if self.xf_hard > 0 and (self.ref is None or self.ref_len != e.club_len):   # HARD X-factor cap: waist_yaw target clipped to address + xf_hard deg (also bounds the reference)
+            wi = [j for j, n in enumerate(e.names) if n.startswith("waist_yaw")][0]; e.jhi[wi] = min(e.jhi[wi], e.q_addr[wi] + np.radians(self.xf_hard))
         if self.ref is None or self.ref_len != e.club_len:
             self.ref = SwingRef(e.names, e.q_addr, e.lead, e.jlo, e.jhi, keys=self.ref_keys, t_down=self.t_down); self.ref_len = e.club_len; self.home = e.q_addr.copy()
     def _xobs(self, o):
@@ -50,7 +55,7 @@ class JEnv(HEnv):
         rew += 0.1 * tw * float(np.exp(-(rmse / 0.25) ** 2))
         if e.armed and not e.contact:   # X-factor cap: 82-112 deg seen in det evals; kseq-v2/public target 40-65
             xf = abs(float(e.log["xfactor_deg"][-1])) if len(e.log["xfactor_deg"]) else 0.0; rew -= self.xf_cap_w * float(np.clip((xf - self.xf_cap_lo) / 20.0, 0.0, 2.0))
-        rew -= self.grf_w * float(np.clip(self.prev_lead - 2.0, 0.0, 4.0))   # extra lead-foot impulse penalty (harness measured 3.4-3.9 BW vs 0.8-1.7)
+        rew -= self.grf_w * float(np.clip(self.prev_lead - self.grf_lo, 0.0, 4.0))   # extra lead-foot impulse penalty (harness measured 3.4-3.9 BW vs 0.8-1.7)
         if e.contact and not self._cprev and not info.get('ep', {}).get('unstable'):   # centred strike + spin cap
             q_ = max(0.0, 1 - np.hypot(info['dy'], info['dz']) / self.hit_tol); rew += self.ctr_w * q_ - self.spin_w * float(np.clip((info.get('spin_rpm', 0.0) - 3000.0) / 2000.0, 0.0, 1.0))
         self._cprev = bool(e.contact)
@@ -69,7 +74,7 @@ class CurrJ(CurrH):
             for k, val in (("target_len", 1.15), ("target_tether", 0.0), ("hit_tol", cur[2]), ("progress", p), ("speed_T", float(self.T)), ("track_w", cur[4])):
                 self.training_env.env_method("__setattr__", k, val)
     def det_eval(self, n=16):
-        vn = self.training_env; env = JEnv(seed=999, keys=self.keys, res_scale=self.res_scale, t_down=self.t_down); env.rsi = (1.0, 0.0, 0.0)
+        vn = self.training_env; env = JEnv(seed=999, keys=self.keys, res_scale=self.res_scale, t_down=self.t_down); env.configure(**self.extra); env.rsi = (1.0, 0.0, 0.0)
         env.prior_w, env.rate_w = 0.0, self.rate_w; env.env.arm_dist = 0.6; env.hit_tol = self.cur[2]; env.target_len = 1.15; env.target_tether = 0.0; env.env.friction_rand = False
         env.progress = self.num_timesteps / self.total_all; env.speed_T = self.T; env.track_w = self.cur[4]
         res = []
@@ -85,9 +90,9 @@ class CurrJ(CurrH):
                    launch_med=med("launch"), lat_abs=float(np.mean([abs(x["lat"]) for x in c])) if c else 0.0, fwd_strike_frac=len(fwdc) / n, lead_grf_bw=float(np.mean([x["lead_grf_peak_bw"] for x in res])),
                    flail=float(np.mean([x["flail_ratio"] for x in res])), track_rmse=float(np.mean([x.get("track_rmse", 0.0) for x in res])), hpeak_mph=float(np.mean([x.get("hpeak_mph", 0.0) for x in res])),
                    xf_deg=med("xf_deg") if c and "xf_deg" in c[0] else None, seq=float(np.mean([x.get("seq", 0.0) for x in c])) if c else 0.0)
-        sc = row["contact"] * (float(np.median([x["carry"] for x in fwdc])) if fwdc else 0.0) * min(1.0, row["impact_mph_med"] / 60.0) + 0.001 * row["contact"] * row["impact_mph_med"]; row["best_score"] = sc
-        if row["contact"] >= 0.9 and row["fwd_strike_frac"] >= 0.9 and row["impact_mph_med"] >= 0.8 * self.T:
-            self.T += 5; self.last_promo = self.num_timesteps; row["promoted_to"] = self.T
+        sc = row["contact"] * (float(np.median([x["carry"] for x in fwdc])) if fwdc else 0.0) + 0.001 * row["contact"] * row["impact_mph_med"]; row["best_score"] = sc
+        if row["contact"] >= 0.9 and row["fwd_strike_frac"] >= 0.9 and row["impact_mph_med"] >= 0.8 * self.T and row["carry_med"] >= self.carry_min:
+            self.T += self.T_step; self.last_promo = self.num_timesteps; row["promoted_to"] = self.T
         if self.anneal_start is None and self.num_timesteps >= self.track_hold and row["fell"] <= 0.25 and row["track_rmse"] < 0.3:
             self.anneal_start = self.num_timesteps; row["anneal_started"] = True
         if sc > getattr(self, "best_sc", 0.0) + 1e-3:
@@ -99,8 +104,9 @@ class CurrJ(CurrH):
         if self.num_timesteps - self.last_promo >= 1_000_000:      # steps since training START (num_timesteps is persisted across resumes); last_promo = last promotion/best-score gain
             self.stop = True; open(os.path.join(self.out, "STALLED"), "w").write(json.dumps(row))
 
-def make(rank, seed, dt, keys, rs, td):
-    def f(): return JEnv(dt=dt, seed=seed * 100 + rank + 191, keys=keys, res_scale=rs, t_down=td)
+def make(rank, seed, dt, keys, rs, td, extra=None):
+    def f():
+        e_ = JEnv(dt=dt, seed=seed * 100 + rank + 191, keys=keys, res_scale=rs, t_down=td); e_.configure(**(extra or {})); return e_
     return f
 
 if __name__ == "__main__":
@@ -110,10 +116,13 @@ if __name__ == "__main__":
     ap.add_argument("--track_hold", type=int, default=400_000); ap.add_argument("--track_len", type=int, default=1_200_000); ap.add_argument("--track_end", type=float, default=0.2)
     ap.add_argument("--ent", type=float, default=0.003); ap.add_argument("--log_std", type=float, default=-1.0); ap.add_argument("--log_std_end", type=float, default=-1.6); ap.add_argument("--std_end", type=float, default=0.7)
     ap.add_argument("--rate_w", type=float, default=0.05); ap.add_argument("--resume", action="store_true"); ap.add_argument("--reset_stall", action="store_true"); ap.add_argument("--init_ck", default=None)
+    ap.add_argument("--T_step", type=float, default=5.0); ap.add_argument("--carry_min", type=float, default=0.0); ap.add_argument("--xf_hard", type=float, default=None); ap.add_argument("--grf_lo", type=float, default=None)
+    ap.add_argument("--grf_w", type=float, default=None); ap.add_argument("--xf_cap_lo", type=float, default=None); ap.add_argument("--xf_cap_w", type=float, default=None); ap.add_argument("--track_floor", type=float, default=None)
     a = ap.parse_args()
     keys = {tuple(k.split("|")): v for k, v in json.load(open(a.keys)).items()} if a.keys and a.keys != "none" else None
+    extra = dict(xf_hard=a.xf_hard, grf_lo=a.grf_lo, grf_w=a.grf_w, xf_cap_lo=a.xf_cap_lo, xf_cap_w=a.xf_cap_w, track_floor=a.track_floor)
     out = f"results/v5_runs/{a.tag}_s{a.seed}"; os.makedirs(out, exist_ok=True)
-    venv = SubprocVecEnv([make(i, a.seed, a.dt, keys, a.res_scale, a.t_down) for i in range(a.workers)])
+    venv = SubprocVecEnv([make(i, a.seed, a.dt, keys, a.res_scale, a.t_down, extra) for i in range(a.workers)])
     step0, ck = newest(out) if a.resume else (0, None)
     if ck:
         venv = VecNormalize.load(ck.replace(".zip", "_vecnorm.pkl"), venv); venv.training = True; model = PPO.load(ck, env=venv, device="cpu")
@@ -126,7 +135,7 @@ if __name__ == "__main__":
         old = VecNormalize.load(a.init_ck + "_vecnorm.pkl", venv); venv.obs_rms = old.obs_rms
     json.dump(vars(a), open(os.path.join(out, "args.json"), "w"))
     cb = CurrJ(a.steps, out, 10**12, a.tag); cb.base = 0; cb.total_all = a.steps; cb.stop = False; cb.planar = False; cb.act_end, cb.prior_w, cb.rate_w = 1.0, 0.0, a.rate_w; cb.h_every = 100_000; cb.h_last = step0
-    cb.keys, cb.res_scale, cb.t_down = keys, a.res_scale, a.t_down; cb.track_hold, cb.track_len, cb.track_end = a.track_hold, a.track_len, a.track_end
+    cb.keys, cb.res_scale, cb.t_down = keys, a.res_scale, a.t_down; cb.extra = extra; cb.T_step, cb.carry_min = a.T_step, a.carry_min; cb.track_hold, cb.track_len, cb.track_end = a.track_hold, a.track_len, a.track_end
     cb.T, cb.last_promo, cb.anneal_start, cb.best_sc = a.T0, 0, None, 0.0
     cj = os.path.join(out, "curriculum.json")
     if ck and os.path.exists(cj): d_ = json.load(open(cj)); cb.T, cb.last_promo, cb.anneal_start, cb.best_sc = d_["T"], d_["last_promo"], d_.get("anneal_start"), d_.get("best_sc", 0.0)

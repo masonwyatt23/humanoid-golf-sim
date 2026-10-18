@@ -17,14 +17,16 @@ def score(args):
     s = 0.0
     if r["contact"]: s += 20.0 + min(r["mph"], cap) + 0.5 * min(r["carry"], 100.0)
     else: s += -40.0 * min(r["min_head_ball"], 1.0) - (10.0 if r["foul"] else 0.0)
+    s -= 0.6 * max(r.get('xf_max_deg', 0.0) - 65.0, 0.0) + 30.0 * max(r.get('lead_grf_bw', 0.0) - 1.7, 0.0)
     s -= 0.4 * max(r["max_tilt_deg"] - 30.0, 0.0) + 40.0 * max(0.6 - r["min_pelvis_z"], 0.0) + (30.0 if r["fell"] else 0.0)
     return float(s), r
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--out", default="results/v5_runs/stageJ_ref/fit_state.json"); ap.add_argument("--gens", type=int, default=150); ap.add_argument("--pop", type=int, default=48)
-    ap.add_argument("--procs", type=int, default=3); ap.add_argument("--tdown", type=float, default=0.27); ap.add_argument("--sigma", type=float, default=0.12); ap.add_argument("--cap", type=float, default=100.0); ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--procs", type=int, default=3); ap.add_argument("--tdown", type=float, default=0.27); ap.add_argument("--sigma", type=float, default=0.12); ap.add_argument("--cap", type=float, default=100.0); ap.add_argument("--seed", type=int, default=0); ap.add_argument("--init", default=None)
     a = ap.parse_args(); os.makedirs(os.path.dirname(a.out), exist_ok=True); n = len(TUNED_KEYS); rng = np.random.default_rng(a.seed)
     if os.path.exists(a.out): st = json.load(open(a.out)); mu, sig, g0, best = np.array(st["mu"]), np.array(st["sig"]), st["gen"], st["best"]
-    else: mu, sig, g0, best = np.zeros(n), np.full(n, a.sigma), 0, dict(score=-1e9, x=None, r=None)
+    else:
+        mu = np.array([json.load(open(a.init)).get("|".join(k), 0.0) for k in TUNED_KEYS]) if a.init else np.zeros(n); sig, g0, best = np.full(n, a.sigma), 0, dict(score=-1e9, x=None, r=None)
     with Pool(a.procs) as pool:
         for g in range(g0, a.gens):
             X = np.vstack([mu[None], mu + sig * rng.standard_normal((a.pop - 1, n))]); X = np.clip(X, -1.8, 1.8)
