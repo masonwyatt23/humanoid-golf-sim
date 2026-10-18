@@ -50,6 +50,13 @@ def delivery_vectors(d: Delivery):
     return vc, n, toe
 
 
+def face_up(n):
+    """Face-up axis: world +z projected onto the face plane. Handedness-independent (the old cross(toe, n) flipped sign for LH)."""
+    n = _unit(n); z = np.array([0.0, 0.0, 1.0])
+    u = z - np.dot(z, n) * n
+    return _unit(u)
+
+
 def e_normal(vn, p: Params):
     return max(0.5, p.e0 + p.e_slope * (vn - p.e_ref_speed))
 
@@ -59,7 +66,7 @@ def impact_vec(vc, n, toe, p: Params, x_toe=0.0, y_high=0.0, m_head=None, e_over
     toe: unit vector toward the toe. Returns dict with v_ball (3), omega (3, rad/s), diagnostics."""
     m = m_head or p.m_head
     n = _unit(n); toe = _unit(toe - np.dot(toe, n) * n)
-    up = np.cross(toe, n)                      # face-up axis
+    up = face_up(n)                            # face-up axis (handedness-independent)
     # bulge / roll: local surface normal tilts toward the strike side
     ne = _unit(n + (x_toe / p.bulge_radius) * toe + (y_high / p.roll_radius) * up)
     vn = float(np.dot(vc, ne))

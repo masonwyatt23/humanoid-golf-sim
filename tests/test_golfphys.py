@@ -213,3 +213,16 @@ def test_standalone_no_env_eval_train_imports_and_no_mason_data():
         assert "mason" not in t.lower(), f
         if f.name != "build_coeffs.py":
             assert "instagram" not in t.lower(), f
+
+
+def test_lh_mirrors_rh_with_high_strike():
+    """LH high-face strike must give the same backspin/launch as RH (regression: up axis flipped for LH)."""
+    for y in (0.0, 0.01, -0.01):
+        r = impact(Delivery(55.0, 13.0, 0.0, handed="RH"), Strike(x_toe_m=0.0, y_high_m=y), P)
+        l = impact(Delivery(55.0, 13.0, 0.0, handed="LH"), Strike(x_toe_m=0.0, y_high_m=y), P)
+        assert l["backspin_rpm"] == pytest.approx(r["backspin_rpm"], rel=1e-9)
+        assert l["launch_deg"] == pytest.approx(r["launch_deg"], rel=1e-9)
+    r = impact(Delivery(55.0, 13.0, 0.0, handed="RH"), Strike(x_toe_m=0.01, y_high_m=0.01), P)
+    l = impact(Delivery(55.0, 13.0, 0.0, handed="LH"), Strike(x_toe_m=0.01, y_high_m=0.01), P)
+    # sidespin is signed + = counter-clockwise from above (left curve): a toe hit draws, i.e. + for RH and - for LH
+    assert l["sidespin_rpm"] == pytest.approx(-r["sidespin_rpm"], rel=1e-9)

@@ -7,7 +7,7 @@ env_contact_to_shot(.) : maps what the env already exposes at first contact (clu
 import math
 import numpy as np
 from .params import Params, load_params
-from .impact import impact_vec, ball_launch_state
+from .impact import impact_vec, ball_launch_state, face_up
 
 
 def contact_to_ball(v_head_com, omega_head, n_face, toe_dir, p_contact, p_com, p: Params = None, m_head=None, e_override=None):
@@ -19,7 +19,7 @@ def contact_to_ball(v_head_com, omega_head, n_face, toe_dir, p_contact, p_com, p
     v_c = np.asarray(v_head_com, float) + np.cross(np.asarray(omega_head, float), r)
     n = np.asarray(n_face, float); n = n / np.linalg.norm(n)
     toe = np.asarray(toe_dir, float); toe = toe - np.dot(toe, n) * n; toe /= np.linalg.norm(toe)
-    up = np.cross(toe, n)
+    up = face_up(n)
     x, y = float(np.dot(r, toe)), float(np.dot(r, up))
     res = impact_vec(v_c, n, toe, p, x, y, m_head=m_head, e_override=e_override)
     out = ball_launch_state(res["v_ball"], res["omega"])
@@ -42,6 +42,6 @@ def env_contact_to_shot(club_vel, face_normal, face_off, handed="RH", toe_sign=1
     hl = np.array([-n[1], n[0], 0.0]); hl /= max(np.linalg.norm(hl), 1e-9)
     toe = -hl if handed.upper().startswith("R") else hl
     dy, dz = (0.0, 0.0) if face_off is None else face_off
-    up = np.cross(toe, n)
+    up = face_up(n)
     pc = float(dy) * float(toe_sign) * toe + float(dz) * up
     return contact_to_ball(np.asarray(club_vel, float), np.zeros(3), n, toe, pc, np.zeros(3), p, m_head)
