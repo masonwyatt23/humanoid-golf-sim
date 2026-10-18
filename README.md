@@ -8,7 +8,7 @@ Autonomous pipeline for training a simulated humanoid to swing a golf club, usin
 
 ## Status and honesty
 
-- **Not learned from scratch.** Every committed policy is scripted or script-distilled (scripted swing, residual on a script, or imitation of a script). No from-scratch policy exists yet.
+- **Not learned from scratch.** Every committed policy is scripted, script-distilled, or reference-guided (scripted swing, residual on a script, imitation of a script, or the v5 Stage J residual on a tuned joint-space reference). No from-scratch policy has produced a real swing yet: the from-scratch v5 Stages A-I only ever produced taps (< 20 mph legal forward strikes) or backward/closed-face strikes (`results/TRAINING_NOTES.md`).
 - **Power-tier results are hypothetical.** They use `force_scale` 2.0 actuators and an inflated smash factor; they are not realistic hardware or human claims.
 - **Stock-actuator results** are only the figures already in the committed results files (`results/leaderboard.md`, `results/TRAINING_NOTES.md`); this section adds no new numbers.
 - **From-scratch effort in progress** (stock `force_scale` 1.0, no scripted teacher): see [docs/FROM_SCRATCH_TRAINING_PLAN.md](docs/FROM_SCRATCH_TRAINING_PLAN.md). Repo organisation (simulator / training / evaluation) and the physics validation gap list: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
@@ -41,6 +41,22 @@ Autonomous pipeline for training a simulated humanoid to swing a golf club, usin
 | Smash factor | **Unverified** | The leaderboard reports scripted ~1.0 (peak ball speed / impact club speed, 1.01 for Stage 6). The ball model has no spin or compliance, so treat smash as a diagnostic, not a validated figure; no real-world comparison exists |
 | Model checkpoints | Not published | See `docs/CHECKPOINT_RELEASE.md` for what blocks a Release |
 | Real robot / real ball validation | None | Simulation only |
+
+### v5 full-body humanoid (G1-based, stock `force_scale` 1.0 torque, left-handed) - best honest numbers
+
+**Stage J is a reference-guided residual (script-distilled init + residual: a tuned joint-space reference swing plus a PPO residual), NOT from-scratch.** Its reference swing was built from public joint-angle keyframes and then tuned by a sim-only evolution strategy on one fixed ball (`env/v5_ref.py`, `scripts/v5_ref_fit.py`). Simulation only, single seed (`stageJ_s0`), model-only physics (golfphys ball flight, no roll). The Evaluator realism harness **FAILS** every committed Stage J checkpoint. Model checkpoints are not committed (gitignored).
+
+| Row | Club speed at impact | Carry (model-only, no roll) | Realism harness | Source |
+|---|---|---|---|---|
+| Target (this project) | 88-109 mph | not claimed (no 350 yd result exists) | - | project goal, not a result |
+| Stage J open-loop tuned reference (zero residual; a tuned script, **not learned**, single-episode fit to a fixed ball) | 57.3 mph | 26.9 m | not run | `results/v5_runs/stageJ_ref/openloop_tuned.json` |
+| Stage J open-loop public-only keyframes (no tuning) | 0 mph (no contact) | 0 m | not run | `results/v5_runs/stageJ_ref/openloop_public_only.json` |
+| Stage J `s0` `ckpt_1800000` (residual PPO, deterministic, 24 eps, arm 0.6, strike gate on) | 51.0 mph median | not in the JSON (the notes give none for this checkpoint) | **FAIL** (6 pass / 5 warn / 4 fail / 8 skip; fails: X-factor, lead GRF, total/carry ratio; order WARN) | `results/v5_runs/stageJ_harness/s0_ckpt_1800k.json` |
+| Stage J `s0` `ckpt_2600000` (best Trainer-reported) | 46.9 mph median | 30.5 m, Trainer-reported in `results/TRAINING_NOTES.md` (the JSON's own check reports carry 33 yd, model-only) | **FAIL** (9 pass / 2 warn / 4 fail / 8 skip; fails: kinematic order arm->club, X-factor 93.3 deg vs 40-65, lead-foot GRF peak 4.01 BW vs 0.8-1.7, total/carry ratio; 24/24 contact) | `results/v5_runs/stageJ_harness/s0_ckpt_2600k.json` |
+| Stage J `s0` `best_det` (500k) | 46.2 mph median | not in the JSON | **FAIL** (5 pass / 6 warn / 4 fail / 8 skip) | `results/v5_runs/stageJ_harness/s0_best_det_500k.json` |
+
+Reading this honestly: the best committed numbers are 47-51 mph and about 30 m carry, versus the 88-109 mph target. Deterministic contact is fragile (it alternates between checkpoints; see `results/TRAINING_NOTES.md`, Stage J result). The `total/carry` check is meaningless here because the v5 env has no roll. Gate JSONs and run outputs beyond the files cited above are held locally ("[gate JSON held locally, Trainer-reported]"). Nothing in this table is a realism, validation or 350 yd claim.
+
 
 ## How to run
 

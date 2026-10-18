@@ -1,5 +1,7 @@
 # Plan: a real golf swing learned from scratch (v5 body, left-handed, stock torque limits)
 
+> Status note: the v5 Stage J policy is a reference-guided residual (script-distilled init + residual), NOT from-scratch; the from-scratch Stages A-I produced only taps or backward strikes. See README and `results/TRAINING_NOTES.md`.
+
 Status: **PLAN ONLY. No training launched, nothing pushed.** Written 2026-10-17 (America/New_York). Author: Scott/Trainer agent.
 Labels used throughout: **[measured]** = measured on this box in this repo; **[read]** = read from a file/doc in this repo;
 **[published]** = from a cited source, not re-verified by me; **[guess]** = my assumption, must be validated; **[hypothetical]** = not a stock/real robot.
