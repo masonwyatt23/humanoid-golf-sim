@@ -1,6 +1,10 @@
-# PureGolf / Adam Scott Humanoid Training System
+# humanoid-golf-sim: MuJoCo humanoid golf swing simulator and training (research preview)
 
-Autonomous pipeline for training a simulated humanoid to swing a golf club in the style of Adam Scott and other pure/textbook swings.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Repo](https://img.shields.io/badge/github-masonwyatt23%2Fhumanoid-golf-sim-black)](https://github.com/masonwyatt23/humanoid-golf-sim)
+
+Repository: <https://github.com/masonwyatt23/humanoid-golf-sim> (renamed 2026-10-18 from `humanoid-golf-scott`; GitHub redirects the old URL).
+
+Autonomous pipeline for training a simulated humanoid to swing a golf club, using pure/textbook pro-swing references (including Adam Scott-style synthetic references; see data provenance below) as style targets. This project is not affiliated with or endorsed by any named golfer.
 
 ## Status and honesty
 
