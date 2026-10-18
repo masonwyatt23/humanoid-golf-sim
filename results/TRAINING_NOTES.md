@@ -508,3 +508,8 @@ force_scale labels: v3 configs = force_scale 2 (BOOSTED, 120 N·m wrist). "stock
 - Fix (B2): env opt-in `arm_dist` (default 0=off): ball contact/collision disabled until head has been >= 0.6 m from the tee (forces a real backswing), +1 one-off arming bonus; everything else = Stage B reward. Runs results/v5_runs/stageB2_s0 (warm start Stage A s0, own policy) and stageB2_s1 (from scratch, soft pelvis tether 1->0 over first 30%), 3M steps, setsid nohup, resumable.
 - B2 result (killed at ~1.25M): REWARD EXPLOIT. s0 club 35 mph at contact but carry 0.0: hits the ball backwards (club path 143 deg, face yaw -80, golfphys ball speed 0) and still collected the at-impact speed reward. Moved to results/v5_runs/_stageB2_exploit/ (not a result). s1: contact 0.5, fell 0.33, no carry.
 - B3 fix: speed reward scaled by valid = clip(ball_speed/(1.2*club_speed),0,1) (needs a real forward strike). Relaunched as stageB3_s0 (warm Stage A s0) / stageB3_s1 (scratch+tether), 3M steps.
+
+## B3 monitor (Oct 18 ~3:20 AM ET)
+- s0 (pid 867068) @1.14M: contact 0.18, fell 0.50, stochastic club mean 26.6/max 61 mph, carry max 2.7 m. s1 (867069) @1.06M: contact 0.24, fell 0.50, club 17.7/30 mph. Both alive, not yet collapsed (contact not falling), not at contact>=0.9 & >=40 mph.
+- Evaluator (deterministic, all FAIL): B3 s0 ckpt_1000000 best, 12.4 mph; stochastic-vs-deterministic gap, GRF spikes 3-7 BW, dribbles, X-factor low, order broken.
+- Planned B4 if no recovery by ~1.6M: deterministic eval during training, log_std anneal, GRF-spike penalty/foot softness check. Not launched yet.
