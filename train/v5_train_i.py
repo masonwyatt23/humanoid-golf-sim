@@ -75,8 +75,8 @@ class HEnv(F.EEnv):
         fl, fr = e.foot_forces(); lead = (fl if e.lead == "left" else fr) / self.bw
         if self.nstep > 5:
             self.lgpeak = max(self.lgpeak, lead); self.gpeak = max(self.gpeak, (fl + fr) / self.bw)
-            r -= 0.03 * min(max(lead - 2.0, 0.0), 4.0) + 0.02 * min(max(abs(lead - self.prev_lead) - 1.0, 0.0), 4.0)
-            if lead > 4.0 and not e.contact and e.armed: r -= 3.0; term = True
+            r -= 0.08 * min(max(lead - 2.0, 0.0), 4.0) + 0.02 * min(max(abs(lead - self.prev_lead) - 1.0, 0.0), 4.0)
+            if lead > 3.5 and not e.contact and e.armed: r -= 3.0; term = True
         self.prev_lead = lead
         if e.d.qpos[2] > 0.8 * self.z0 and float(e.d.xmat[e.pel].reshape(3, 3)[2, 2]) > 0.85: r += 0.01
         L = e.log; ff, ex = 1.0, 0.0
@@ -104,7 +104,7 @@ class HEnv(F.EEnv):
                     lg = dict(L); lg["t_impact"] = e.t_contact if e.contact else None
                     rw = episode_terms(lg, progress=self.progress, stage="C")["raw_prior_terms"]; xf_max = float(np.max(np.abs(L["xfactor_deg"])))
                     pr_raw = dict(seq=rw["sequence"] / 1.5, lag=rw["lag"], xf=xf_win(xf_max) if rw["xfactor"] > 0 else 0.0, xf_deg=xf_max)
-                    pr = 0.5 * min((1.5 * pr_raw["xf"] + 1.0 * pr_raw["seq"] + 1.0 * pr_raw["lag"]), 3.0) * ff   # UNGATED by contact
+                    pr = 1.0 * min((1.5 * pr_raw["xf"] + 1.0 * pr_raw["seq"] + 1.0 * pr_raw["lag"]), 3.0) * ff   # UNGATED by contact
                 except Exception: pr = 0.0
             r += pr
             info["ep"] = dict(contact=bool(e.contact) and not unstable, foul=bool(e.foul), fell=bool(info["fell"]), unstable=bool(unstable), club_mph=info.get("club_speed_mph", 0.0), carry=info.get("carry_m_noroll", 0.0),
