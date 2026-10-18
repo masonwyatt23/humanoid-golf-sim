@@ -1,7 +1,7 @@
+# Changelog
+
 ## 2026-10-18
 - Repo renamed `humanoid-golf-scott` -> `humanoid-golf-sim` (public; old URL redirects). MIT LICENSE added. CMU/MultiSense/CaddieSet-converter/mason*.npz/imit_private files untracked at the tip (still in git history; held locally).
-
-# Changelog
 
 All notable changes to this project are documented here. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Licence items are engineering diligence, not legal advice.
 

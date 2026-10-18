@@ -138,8 +138,16 @@ def test_v1_files_frozen_by_hash():
     assert _sha("data/reference_sets/unified_v1_sampling.json") == V1_SAMPLING_SHA256
 
 
+def _strip_origin(m):
+    # on_origin_main depends on live origin/main (these files were untracked at the tip
+    # on 2026-10-18), so it is excluded from rebuild equality.
+    m = dict(m)
+    m["entries"] = [{k: v for k, v in e.items() if k != "on_origin_main"} for e in m["entries"]]
+    return m
+
+
 def test_v1_rebuild_reproduces_committed_manifest_and_default_loaders_are_v1():
-    assert U.build_manifest("unified_v1") == U.load_manifest()
+    assert _strip_origin(U.build_manifest("unified_v1")) == _strip_origin(U.load_manifest())
     assert U.load_manifest()["version"] == "unified_v1" and U.load_sampling_config()["version"] == "unified_v1"
     assert "honor_exclusion_flags" not in U.load_sampling_config()
 
@@ -187,7 +195,7 @@ def test_v2_equals_v1_except_exclusions_and_renormalisation():
         if e["path"] in FLAGGED:
             continue
         assert e["split"] == o["split"] and e["license_class"] == o["license_class"] and e["commercial_ok"] == o["commercial_ok"]
-    assert U.build_manifest("unified_v2") == V2
+    assert _strip_origin(U.build_manifest("unified_v2")) == _strip_origin(V2)
     assert V2["version"] == "unified_v2" and U.load_sampling_config(version="unified_v2")["honor_exclusion_flags"] is True
     assert all(e["license_class"] == "needs_counsel" for e in V2["entries"] if e["source"] == "multisense")
 
