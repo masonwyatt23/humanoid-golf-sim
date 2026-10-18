@@ -29,15 +29,19 @@ class TrainEnv(gym.Wrapper):
         e = self.env
         was = e.contact
         o, _, term, trunc, info = e.step(a)
-        v = e._vel_site(e.head_site)[3:]; vf = max(0.0, float(v[0]))   # +x is the target direction
+        v = e._vel_site(e.head_site)[3:]
+        unstable = (not np.all(np.isfinite(v))) or float(np.linalg.norm(v)) > 62.0 or float(np.max(np.abs(e.d.qvel))) > 60.0   # >139 mph head or blow-up: sim instability, not a swing
+        if unstable: v = np.zeros(3); term = True
+        vf = max(0.0, float(v[0]))   # +x is the target direction
         r = 0.05 * max(0.0, vf - self.peak); self.peak = max(self.peak, vf)
         r -= 0.002 * float(np.sum((a - e.last_act) ** 2)) if False else 0.0
-        if e.contact and not was:
+        if e.contact and not was and not unstable:
             q = max(0.0, 1 - np.hypot(info["dy"], info["dz"]) / self.hit_tol)
             r += 3.0 * q * min(info["club_speed_mph"] / 80.0, 1.0) + 15.0 * min(info["carry_m_noroll"] / 250.0, 1.0) - 3.0 * min(abs(info["lateral_carry_m"]) / 20.0, 1.0)
-        if info["fell"]: r -= 5.0
+        if info["fell"] or unstable: r -= 5.0
+        if unstable and e.contact and not was: r = -5.0
         if term or trunc:
-            info["ep"] = dict(contact=bool(e.contact), fell=bool(info["fell"]), club_mph=info.get("club_speed_mph", 0.0), carry=info.get("carry_m_noroll", 0.0),
+            info["ep"] = dict(contact=bool(e.contact) and not unstable, fell=bool(info["fell"]), unstable=bool(unstable), club_mph=info.get("club_speed_mph", 0.0), carry=info.get("carry_m_noroll", 0.0),
                               lat=info.get("lateral_carry_m", 0.0), peak_head_mph=self.peak / 0.44704, club_len=e.club_len, tether=e.tether_strength)
         return o, r, term, trunc, info
 
@@ -67,7 +71,7 @@ class Curr(BaseCallback):
         if len(self.eps) >= 100:
             e = self.eps; self.eps = []
             c = [x for x in e if x["contact"]]
-            row = dict(step=self.num_timesteps, wall_s=round(time.time() - self.t0), contact=len(c) / len(e), fell=float(np.mean([x["fell"] for x in e])),
+            row = dict(step=self.num_timesteps, wall_s=round(time.time() - self.t0), contact=len(c) / len(e), fell=float(np.mean([x["fell"] for x in e])), unstable=float(np.mean([x["unstable"] for x in e])),
                        club_mph_mean=float(np.mean([x["club_mph"] for x in c])) if c else 0.0, club_mph_max=float(max([x["club_mph"] for x in c])) if c else 0.0,
                        carry_mean=float(np.mean([x["carry"] for x in c])) if c else 0.0, carry_max=float(max([x["carry"] for x in c])) if c else 0.0,
                        peak_head_mph=float(np.mean([x["peak_head_mph"] for x in e])), club_len=self.cur[0], tether=self.cur[1], hit_tol=self.cur[2])
