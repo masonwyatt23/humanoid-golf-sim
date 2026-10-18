@@ -1,0 +1,144 @@
+{
+ "_meta": {
+  "title": "Rough mapping: public human pelvis/thorax/X-factor/arm/elbow/wrist references -> Unitree G1 joints (v5 env) and v4_power names",
+  "version": 1,
+  "generated_by": "scripts/gen_g1_joint_mapping_public_refs.py",
+  "derived": true,
+  "contains_instagram_or_mason_derived_data": false,
+  "derived_from_cmu_multisense_amass_golfdb": false,
+  "status": "ROUGH. Names, ranges and actuators READ from the XMLs; axes/signs FK-checked; the human->G1 correspondences are assumptions unless an entry says otherwise.",
+  "read_only_sources": [
+   "env/models/humanoid_golf_v5_g1_rh.xml",
+   "env/models/humanoid_golf_v5_g1_lh.xml",
+   "env/models/humanoid_golf_v4_power.xml",
+   "env/v5_body.py (lead_trail, STOCK)",
+   "docs/HANDEDNESS.md"
+  ],
+  "g1_frame": "G1 faces +x in its own frame, +y left, +z up. v5 LH golfer: body yawed +90 deg (faces +y), physical RIGHT side toward the target = LEAD side (right_* = lead). v5 RH: yawed -90 deg, left_* = lead.",
+  "conflict_with_older_docs": "docs/HANDEDNESS.md and the trajectory file state env right_* = TRAIL arm. That holds for the old simple/v4 env (right_* motors = club-hand arm for a RH golfer). In v5 (physical G1 sides) right_* is the LEAD arm for a LEFT-handed golfer. Always choose side by role through env/v5_body.py lead_trail(handed).",
+  "lh_mirror_rule": {
+   "summary": "Reference channels are in golfer ROLES (lead/trail). Pick the physical side with lead_trail(handed). Yaw and roll joints (waist_yaw, waist_roll, shoulder_roll, shoulder_yaw, wrist_roll, wrist_yaw) flip sign between handedness (and between the physical sides of one body); pitch joints (shoulder_pitch, elbow, wrist_pitch, waist_pitch) do not. x_factor/pelvis (RH convention + toward target) are negated for LH. The v5 XMLs already mirror right-side roll/yaw ranges, so an exactly mirrored pose is q_right_roll_or_yaw = -q_left.",
+   "status": "rule restated from HANDEDNESS.md and checked against the XML range mirroring and FK; not exercised in a training run"
+  },
+  "v5_all_29_joints_actuated": true,
+  "v4_power_unactuated_joints": [
+   "left_elbow",
+   "left_shoulder_roll"
+  ],
+  "v4_power_names": {
+   "waist": "chest_yaw (+-60 deg)",
+   "shoulders": "{side}_shoulder_pitch/roll",
+   "elbows": "{side}_elbow",
+   "wrist": "right_wrist only (trail); no lead wrist",
+   "no_pelvis_yaw": true
+  },
+  "weak_spots": [
+   "human angle definitions (Zheng) unverified",
+   "wrist hinge joint unverified",
+   "wrist pitch/yaw stock torque 5 N*m",
+   "no waist roll/pitch/shoulder roll/yaw references",
+   "pelvis has no joint in v5",
+   "elbow FK-fit uses link origins"
+  ]
+ },
+ "mapping": {
+  "waist_yaw": {
+   "g1_joint": "waist_yaw_joint",
+   "range_rad": "-2.618 2.618",
+   "axis": "z of waist_yaw_link (+ = CCW from above, FK-checked)",
+   "actuated_v5": true,
+   "human_channel": "x_factor (thorax - pelvis rotation)",
+   "rule": "waist_yaw_rad = +x_factor_rad (RH golfer), -x_factor_rad (LH golfer); x_factor in the reference RH convention (+ toward target)",
+   "status": "UNVERIFIED sign vs a real env run; magnitude: top -61 deg, impact -14 deg (derived) is well inside +-150 deg",
+   "note": "v5 address waist_yaw ~ -1 deg (LH_105) so the x_factor=0 address assumption is fine. Absolute thorax -103 deg exceeds nothing here because it is pelvis-relative."
+  },
+  "pelvis_rotation": {
+   "g1_joint": "NONE (free-base pelvis yaw in v5)",
+   "human_channel": "pelvis_rotation",
+   "rule": "world yaw of the free base relative to address heading: d_yaw = +pelvis_deg (RH) / -pelvis_deg (LH) about world z (LH G1 is yawed +90 deg, LH backswing = CCW = +z)",
+   "status": "UNVERIFIED. v5 has no pelvis yaw joint; pelvis turn comes from hips + ground reaction. g1_golf_env.py (old env, cannot be read as v5) adds a hinge named pelvis_yaw (+-1.6 rad); v4_power has none.",
+   "note": "Use as a reward target on measured pelvis heading, not as a joint position target."
+  },
+  "waist_pitch": {
+   "g1_joint": "waist_pitch_joint",
+   "range_rad": "-0.52 0.52",
+   "actuated_v5": true,
+   "human_channel": "none (no public channel here)",
+   "rule": "+ = forward lean (FK: shoulders move +x and down); hold the address value",
+   "status": "no reference supplied; sign FK-verified"
+  },
+  "waist_roll": {
+   "g1_joint": "waist_roll_joint",
+   "range_rad": "-0.52 0.52",
+   "actuated_v5": true,
+   "human_channel": "none (no public channel here)",
+   "rule": "+ = about +x: G1-left shoulder rises (FK); lateral bend sign flips LH vs RH",
+   "status": "no reference supplied; sign FK-verified"
+  },
+  "arm_to_trunk": {
+   "g1_joint_left": "left_shoulder_pitch_joint",
+   "g1_joint_right": "right_shoulder_pitch_joint",
+   "range_rad_left": "-3.0892 2.6704",
+   "range_rad_right": "-3.0892 2.6704",
+   "actuated_v5": true,
+   "role_lh_lead_physical": "right",
+   "human_channel": "lead_arm_to_trunk / trail_arm_to_trunk",
+   "rule": "shoulder_pitch_rad = -(elevation_deg - 5 deg) in rad; roll=yaw=0 (assumed)",
+   "status": "UNVERIFIED: Zheng 'arm to trunk' plane/definition not verified; elevation assumed sagittal and trunk-relative (G1 shoulder is distal of the waist joints, so trunk-relative is natural)",
+   "note": "negative pitch = forward flexion (FK: q=-1.5 rad puts the upper arm horizontal forward). Lead top 90 -> -85 deg, impact 35 -> -30 deg. Trail top 43, impact 23.",
+   "roll_yaw_note": "shoulder_roll (+ abducts left arm; right-side range is mirrored) and shoulder_yaw carry the plane tilt; no public channel; do not constrain. Roll/yaw/wrist roll/wrist yaw flip sign between mirrored sides."
+  },
+  "elbow": {
+   "g1_joint_left": "left_elbow_joint",
+   "g1_joint_right": "right_elbow_joint",
+   "range_rad_left": "-1.0472 2.0944",
+   "range_rad_right": "-1.0472 2.0944",
+   "actuated_v5": true,
+   "role_lh_lead_physical": "right",
+   "human_channel": "lead_elbow_flexion / trail_elbow_flexion",
+   "rule": "q_rad = (80 - flexion_deg) / 55 (FK-fitted: flexion = 80 - 55 q)",
+   "status": "ROUGH, FK-derived from link origins (+-~10 deg); Zheng flexion definition unverified; lead top 58 -> q 0.40, impact 34 -> 0.84; trail top 130 -> -0.91, impact 40 -> 0.73",
+   "note": "pitch joints do not change sign LH vs RH. Range -1.047..2.094; trail top 130 deg flexion needs q=-0.91 (inside range, near the limit). Flexion is NOT monotone in q above ~1.4.",
+   "fk_table": {
+    "q_rad": [
+     -1.0,
+     -0.5,
+     0.0,
+     0.5,
+     1.0
+    ],
+    "flexion_deg": [
+     135,
+     107,
+     80,
+     52,
+     25
+    ],
+    "linear_fit": "flexion_deg = 80 - 55 * q_rad (valid for q in [-1.05, 1.0]; flexion rises again beyond q ~ 1.4)"
+   }
+  },
+  "wrist_hinge": {
+   "candidates": [
+    "{S}_wrist_pitch_joint (axis y)",
+    "{S}_wrist_yaw_joint (axis z)",
+    "{S}_wrist_roll_joint (axis x) is forearm roll, not hinge"
+   ],
+   "ranges_rad": {
+    "wrist_pitch": "-1.61443 1.61443",
+    "wrist_yaw": "-1.61443 1.61443",
+    "wrist_roll": "-1.97222 1.97222"
+   },
+   "actuated_v5": true,
+   "stock_torque_nm": {
+    "wrist_roll": 25,
+    "wrist_pitch": 5,
+    "wrist_yaw": 5,
+    "source": "env/v5_body.py STOCK (read); docs/V5_STAGE0_REPORT.md: the 5 N*m limits were binding"
+   },
+   "human_channel": "lead_wrist_set_angle (94 -> 165 deg), trail_wrist_angle (75 -> 118 deg)",
+   "rule": "hinge magnitude w = 90 - interior; lead top w=-4, impact w=-75 (release 71 deg); trail top 15, impact -28 (release 43). Which joint carries the cock depends on forearm roll and hand frame",
+   "status": "UNVERIFIED which of pitch/yaw is the hinge and the sign (FK at wrist_roll=0: pitch moves the hand in the vertical plane of the forearm, yaw in the horizontal plane; the golf grip orientation determines which is the cock plane). Use magnitude and timing only.",
+   "note": "Old g1_poses.json (another env) has wrist_yaw ~ 89 deg at address, i.e. that env used yaw for the grip rotation; not verified for v5."
+  }
+ }
+}
