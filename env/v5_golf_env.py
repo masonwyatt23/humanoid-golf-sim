@@ -45,10 +45,41 @@ class V5GolfEnv(gym.Env):
     metadata = {"render_modes": []}
 
     def __init__(self, handed="LH", club_len=0.87, dt=0.0005, force_scale=1.0, ball_tol_m=0.0, max_s=2.0, post_contact_s=0.10, seed=0,
-                 fall_height=0.45, log_segments=True, tether=False):
+                 fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False):
         self.handed, self.club_len, self.force_scale = handed, club_len, force_scale
+        self._dt_arg = dt
+        self.tether_strength = tether_strength   # SOFT pelvis tether strength in [0,1] (curriculum aid, annealed to 0 = free). 0 at evaluation.
+        self.contact_tol = contact_tol           # lenient-contact inflation of the ball radius (m) for the swept test (curriculum, annealed to 0)
+        self.friction_rand = friction_rand
+        self._init_model(club_len)
+        self._finish_init(handed, force_scale, ball_tol_m, max_s, post_contact_s, seed, fall_height, log_segments, tether)
+
+    def _init_model(self, club_len):
+        handed, force_scale = self.handed, self.force_scale
+        self.club_len = club_len
         self.addr = load_address(handed, club_len)
-        self.m, _ = build_model(handed, club_len, dt=dt, force_scale=force_scale, addr=self.addr)
+        self.m, _ = build_model(handed, club_len, dt=self._dt_arg, force_scale=force_scale, addr=self.addr)
+        self._bind()
+
+    def set_club_len(self, club_len):
+        """Rebuild the model with a different club length (address JSON must exist: 0.87/0.95/1.05/1.15). Takes effect at the next reset."""
+        if abs(club_len - self.club_len) > 1e-9:
+            self._init_model(club_len); self.reset()
+
+    def _finish_init(self, handed, force_scale, ball_tol_m, max_s, post_contact_s, seed, fall_height, log_segments, tether):
+        m = self.m
+        self.ball_tol = ball_tol_m; self.max_s = max_s; self.post_s = post_contact_s; self.fall_h = fall_height
+        self.log_segments = log_segments; self.tether = tether
+        self.rng = np.random.default_rng(seed)
+        n_obs = 29 * 3 + 6 + 3 + 3 + 3 + 3 + 3 + 3 + 1
+        self.observation_space = spaces.Box(-np.inf, np.inf, (n_obs,), np.float32)
+        self.action_space = spaces.Box(-1.0, 1.0, (m.nu,), np.float32)
+        self.toe_sign, _, self.toe_dot = verify_toe_sign(m, self._fk_addr(), handed)
+        self.act_scale = np.full(m.nu, ACT_SCALE)
+        self.reset()
+
+    def _bind(self):
+        handed, force_scale = self.handed, self.force_scale
         self.d = mujoco.MjData(self.m)
         m = self.m
         self.dt = m.opt.timestep; self.sub = int(round(CTRL_DT / self.dt)); self.seg_every = max(1, int(round(0.005 / self.dt)))
@@ -65,16 +96,6 @@ class V5GolfEnv(gym.Env):
         self.sole_geoms = {s: m.geom(f"{s}_sole").id for s in ("left", "right")}
         self.floor = m.geom("floor").id
         self.lead_sh = [m.joint(f"{self.lead}_shoulder_{k}_joint").dofadr[0] for k in ("pitch", "roll", "yaw")]
-        self.ball_tol = ball_tol_m; self.max_s = max_s; self.post_s = post_contact_s; self.fall_h = fall_height
-        self.log_segments = log_segments; self.tether = tether   # tether = pelvis pinned to the address pose (PIPELINE TESTS ONLY, never for training)
-        self.pel_q0 = None
-        self.rng = np.random.default_rng(seed)
-        self.act_scale = np.full(m.nu, ACT_SCALE)
-        n_obs = 29 * 3 + 6 + 3 + 3 + 3 + 3 + 3 + 3 + 1
-        self.observation_space = spaces.Box(-np.inf, np.inf, (n_obs,), np.float32)
-        self.action_space = spaces.Box(-1.0, 1.0, (m.nu,), np.float32)
-        self.toe_sign, _, self.toe_dot = verify_toe_sign(m, self._fk_addr(), handed)
-        self.reset()
 
     def _fk_addr(self):
         d = mujoco.MjData(self.m); set_address(self.m, d, self.addr); return d
@@ -97,6 +118,18 @@ class V5GolfEnv(gym.Env):
     def _heading(self, body):
         x = self.d.xmat[body].reshape(3, 3)[:, 0]; return math.atan2(x[1], x[0])
 
+    def _soft_tether(self):
+        """Soft pelvis tether (curriculum aid, strength in [0,1], annealed to 0): spring-damper on pelvis position and orientation toward the address pose.
+        Max gains at strength 1: 4000 N/m, 250 N*s/m, 400 N*m/rad, 25 N*m*s/rad (external support force, NOT joint torque)."""
+        d = self.d; k = self.tether_strength
+        f = k * (4000 * (self.pel_q0[0:3] - d.qpos[0:3]) - 250 * d.qvel[0:3])
+        q, q0 = d.qpos[3:7], self.pel_q0[3:7]
+        qc = np.zeros(4); mujoco.mju_negQuat(qc, q); dq = np.zeros(4); mujoco.mju_mulQuat(dq, q0, qc)   # world-frame error rotation q0*q^-1
+        if dq[0] < 0: dq = -dq
+        ang = 2 * dq[1:4]
+        tq = k * (400 * ang - 25 * d.qvel[3:6])
+        d.xfrc_applied[self.pel, :3] = f; d.xfrc_applied[self.pel, 3:] = tq
+
     def _derate(self):
         qd = self.d.qvel[self.da]
         hi = self.tau * np.clip(1 - np.maximum(qd, 0) / self.vmax, 0, 1)
@@ -107,6 +140,8 @@ class V5GolfEnv(gym.Env):
         if seed is not None: self.rng = np.random.default_rng(seed)
         d, m = self.d, self.m
         set_address(m, d, self.addr)
+        if self.friction_rand:
+            self.m.geom_friction[self.floor, 0] = self.rng.uniform(0.5, 1.2)       # foot/floor sliding friction randomisation
         off = (self.rng.uniform(-1, 1, 2) * self.ball_tol) if self.ball_tol > 0 else np.zeros(2)
         self.tee = np.array(self.addr["ball_pos"], float); self.tee[:2] += off
         d.qpos[self.ball_q:self.ball_q + 3] = self.tee
@@ -181,6 +216,7 @@ class V5GolfEnv(gym.Env):
         d.ctrl[:] = tgt
         for k in range(self.sub):
             if k % 10 == 0: self._derate()
+            if self.tether_strength > 0: self._soft_tether()
             if not self.contact:
                 d.qpos[self.ball_q:self.ball_q + 3] = self.tee; d.qvel[self.ball_v:self.ball_v + 6] = 0
                 hp = d.site_xpos[self.head_site]; dist = np.linalg.norm(hp - self.tee); self.min_dist = min(self.min_dist, dist)
