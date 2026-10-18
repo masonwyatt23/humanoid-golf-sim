@@ -190,7 +190,7 @@ def main():
             d, st = c["modes"].get("deterministic", {}), c["modes"].get("stochastic", {})
             if "contact_rate" not in d or "contact_rate" not in st: continue
             ok = d["contact_rate"] >= 1 and st["contact_rate"] >= 1 and d["mean_carry"] >= 30 and d["lateral_std"] <= 2.73 and not d.get("launch_flat_flag")
-            Lq.append(f"| {'/'.join(c['names'])[:70]} | {'SCRIPTED (not learned)' if c.get('scripted') else 'LEARNED'} | {d['contact_rate']*100:.0f}% | {d['mean_carry']:.1f} | {d['lateral_std']:.2f} | {d['launch_elev_mean_deg']:.1f} | {st['contact_rate']*100:.0f}% | {st['mean_carry']:.1f} | {c.get('eval_seconds','-')} | {'PROVISIONAL YES' if ok else 'no'} |")
+            Lq.append(f"| {'/'.join(c['names'])[:70]} | {'SCRIPTED (not learned)' if c.get('scripted') else ('SCRIPT-DISTILLED' if any(x.startswith('imit') for x in c['names']) else 'LEARNED')} | {d['contact_rate']*100:.0f}% | {d['mean_carry']:.1f} | {d['lateral_std']:.2f} | {d['launch_elev_mean_deg']:.1f} | {st['contact_rate']*100:.0f}% | {st['mean_carry']:.1f} | {c.get('eval_seconds','-')} | {'PROVISIONAL YES' if ok else 'no'} |")
         (RES / "leaderboard_quick.md").write_text("\n".join(Lq) + "\n"); print("\n".join(Lq)); return
     (RES / "leaderboard_history.json").write_text(json.dumps(hist, indent=1))
 
@@ -314,8 +314,8 @@ def main():
         if c.get("verdict"): return c["verdict"] + " | " + ("SCRIPT-FREE IMITATION INIT" if False else "init policy's label applies")
         if c.get("hypo_demoted"): return "HYPOTHETICAL: effectively scripted (yaw-only residual under fs2 + impact gain %g); not a stock-motor policy" % ((c.get("env_kwargs") or {}).get("impact_gain") or ((c.get("env_kwargs") or {}).get("impact_model") or {}).get("gain", 0))
         ek = c.get("env_kwargs", {}) or {}; sw = ek.get("script_weight")
-        if sw == 0 and any(x.startswith("imit") for x in c["names"]): return "LEARNED, distilled from script (script-free imitation, script_weight 0)"
-        if sw not in (None, 1.0): return f"BLEND {round((1 - sw) * 100)}% learned / {round(sw * 100)}% scripted (imitation of the script)" if any(x.startswith("imit") for x in c["names"]) else f"BLEND {round((1 - sw) * 100)}/{round(sw * 100)}"
+        if sw == 0 and any(x.startswith("imit") for x in c["names"]): return "SCRIPT-DISTILLED policy (script-free imitation of the scripted swing, script_weight 0)"
+        if sw not in (None, 1.0): return f"SCRIPT-DISTILLED BLEND {round((1 - sw) * 100)}% policy / {round(sw * 100)}% scripted (imitation of the script)" if any(x.startswith("imit") for x in c["names"]) else f"BLEND {round((1 - sw) * 100)}/{round(sw * 100)}"
         return "LEARNED residual on scripted swing"
     stock_tr = [c for c in ranked if _fs(c) <= 1.0]; stock_sc = [c for c in ranked_all if c.get("scripted") and _fs(c) <= 1.0]
     hyp_tr = [c for c in ranked_ok if _fs(c) > 1.0]
@@ -376,7 +376,7 @@ def main():
         return ", ".join(f"sigma {k}: {v['mean_carry']:.0f} m ({v['mean_carry']/cl*100:.0f}%)" for k, v in sorted(nr.items())) or "noise not measured"
     pair = []
     for nm, why in (("imit9_w000_s51", "best lateral spread (script-free imitation of the scripted v3 swing; passes the 3-seed headline gate for s51/s52/s53) but NOISE-FRAGILE"),
-                    ("imit3_w050_s51", "best under observation/action noise (50% learned / 50% scripted blend)")):
+                    ("imit3_w050_s51", "best under observation/action noise (50% script-distilled policy / 50% scripted blend)")):
         c = _by(nm)
         if c: d_ = c["modes"]["deterministic"]; pair.append(f"{nm}: {why}: det carry {d_['mean_carry']:.1f} m / lat std {d_['lateral_std']:.2f} m; quick noise {_noise(c)} (10 eps, vs clean {d_['mean_carry']:.0f} m)")
     if pair:
@@ -434,7 +434,7 @@ def main():
             if j.exists():
                 JJ = json.loads(j.read_text()); ar = JJ.get("args", {}); ek = JJ.get("env_kwargs_full") or c.get("env_kwargs", {})
                 if "script_weight" in ek and ek["script_weight"] is not None and ek["script_weight"] != 1.0:   # imitation-distilled blend: script_weight = share of the scripted command in the executed action
-                    sw = float(ek["script_weight"]); return (("SCRIPT-FREE IMITATION of the scripted v3 swing: " if sw == 0 else "IMITATION OF THE SCRIPT, %d%% script: " % round(sw * 100)) if any(x.startswith("imit") for x in c["names"]) else "") + f"BLEND: executed command = {sw*100:.0f}% scripted + {(1-sw)*100:.0f}% learned (script_weight={sw}, learn_scale={ek.get('learn_scale')}); residual cap +-{ar.get('res_scale')} rad" + (" ; HYPOTHETICAL ACTUATORS force_scale %g" % ek["force_scale"] if ek.get("force_scale", 1) > 1 else "")
+                    sw = float(ek["script_weight"]); return (("SCRIPT-FREE IMITATION of the scripted v3 swing: " if sw == 0 else "IMITATION OF THE SCRIPT, %d%% script: " % round(sw * 100)) if any(x.startswith("imit") for x in c["names"]) else "") + f"BLEND: executed command = {sw*100:.0f}% scripted + {(1-sw)*100:.0f}% {"script-distilled policy" if any(x.startswith("imit") for x in c["names"]) else "learned"} (script_weight={sw}, learn_scale={ek.get('learn_scale')}); residual cap +-{ar.get('res_scale')} rad" + (" ; HYPOTHETICAL ACTUATORS force_scale %g" % ek["force_scale"] if ek.get("force_scale", 1) > 1 else "")
                 if "res_scale" in ar:
                     ts = ar.get("tempo_scale", "0.3 (env default)")
                     return f"residual on scripted swing: cap +-{ar['res_scale']} rad (shoulder, elbow, wrist, yaw) + tempo_scale {ts}; % of control from policy = not defined/unknown"

@@ -151,3 +151,11 @@ Key numbers: downswing 0 ms, backswing:downswing 0.65:1, X-factor peak 0.4 deg, 
 - Torso/pelvis pinned by the env each physics step (`pin_torso`): True (no pelvis translation or rotation, so the kinematic sequence cannot start at the pelvis, and the whole body cannot shift weight); equality constraints (hands grip only): [['0', 'left_hand', 'right_wrist']]
 - Foot geoms: 2, with collision enabled: 0 (no ground reaction force exists)
 - Model mass 32.25 kg; only one trunk rotation DOF (chest_yaw), pitch-only hips/knees/ankles.
+
+## Check of the 'pelvis = 0 / X-factor = 0' finding (raw-trace audit, 2026-10-17): NOT a recording error
+
+Rolled out one scripted v3 (fs1 q23 dz016), one scripted v3 (fs2) and one imit20 swing (seed 4000) and dumped raw MuJoCo state every 5 ms:
+- What the harness reads: pelvis = body `torso`, thorax = body `chest`, lead arm = body `right_elbow`, club = body `right_wrist`; speed = |`data.cvel[body][:3]`| (world angular velocity, rad/s) x 180/pi = deg/s. X-factor = joint `chest_yaw` (`qpos[20]`, rad, relative to the pelvis because the pelvis does not turn) x 180/pi = deg.
+- `pin_torso` really pins the pelvis: `env.pin_torso` is True (residual env default) and the env resets `qpos[7:14]` and `qvel[6:12]` every physics step; measured torso quaternion deviation 0.0, root qpos deviation 1.2e-5, root qvel max 0.05 (it is reset after each step, so the residual is sub-step noise).
+- Raw `chest_yaw`: total range 0.0095 deg (scripted fs1), 0.0138 deg (scripted fs2), 0.0096 deg (imit20); max |qvel| 0.62-0.69 deg/s, against a joint range of +-45 deg. The chest does not rotate in these swings (the scripts have `yaw_ff` 0.0 and the yaw channel is not driven), so X-factor ~ 0 deg and the thorax speed ~ 0.3-0.7 deg/s are real, not units or indexing errors. Even the yaw-residual PPO (ppo_v4yaw_s43) reaches only 0.07 deg and the older ppo_resid_v3_s0 0.37 deg.
+

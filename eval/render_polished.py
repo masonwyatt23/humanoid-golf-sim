@@ -384,7 +384,7 @@ def main():
     for kind, m, okq, fails in segs:
         name = m["names"][0]; d = m["modes"]["deterministic"]; sc = m.get("scripted", False)
         swt = (m.get("env_kwargs") or {}).get("script_weight")
-        blend = ("script-free imitation of the scripted v3 swing" if swt == 0.0 else f"{round((1 - swt) * 100)}% learned / {round(swt * 100)}% scripted") if (kind == "LEARNED" and swt is not None and swt < 1.0) else ""   # from the run's env kwargs (verified in results JSON), never guessed
+        blend = ("script-free imitation of the scripted v3 swing" if swt == 0.0 else f"{round((1 - swt) * 100)}% script-distilled policy / {round(swt * 100)}% scripted") if (kind == "LEARNED" and swt is not None and swt < 1.0) else ""   # from the run's env kwargs (verified in results JSON), never guessed
         dk = "SCRIPT-DISTILLED POLICY" if (kind == "LEARNED" and swt == 0.0) else "SCRIPT-DISTILLED BLEND" if (kind == "LEARNED" and swt is not None and 0.0 < swt < 1.0 and name.startswith("imit")) else kind   # display name: a script-free imitation is not a swing learned independently
         _ek = m.get("env_kwargs") or {}; _fs = _ek.get("force_scale") or 1.0; _g = _ek.get("impact_gain") or (_ek.get("impact_model") or {}).get("gain", 1.0) or 1.0
         mot = (", power tier hypothetical (impact gain %g)" % _g if _g > 1.05 else f", force_scale {_fs:g} hypothetical-strength" if _fs > 1.0 else ", stock motors (force_scale 1)") if dk != kind or kind == "LEARNED" else ""
@@ -455,7 +455,7 @@ def main():
     # end card
     e = ["Caveats", "- ACTUATORS: force_scale 2 rows = HYPOTHETICAL-strength actuators (boosted force caps), not real hardware; power tier = hypothetical, no spin model (backspin hand-set), impact gain 1.28 INFLATED (gain 1.20 smash ~1.46-1.48). Stock = force_scale 1.", f"- {lb['episodes']} episodes per mode, seeds {lb['seed_base']}+; flight tracker = MuJoCo ball only (no spin / sidespin model), so lateral spread is optimistic.",
          "- Carry is the first-landing distance; launch = ball velocity at club-ball separation; club speed = peak club-head geom speed (validated < 100 m/s).",
-         "- 'BLEND a/b' = executed command is a% learned / b% scripted (script_weight from the run's env kwargs). 'LEARNED' = trained policy (PPO residual on a scripted swing, or behaviour-cloned imitation: see segment label). 'SCRIPTED (not learned)' = zero residual, no learning. Scripted rows never count as learned.",
+         "- 'BLEND a/b' = executed command is a% script-distilled policy / b% scripted (script_weight from the run's env kwargs). 'LEARNED' = trained policy (PPO residual on a scripted swing, or behaviour-cloned imitation: see segment label). 'SCRIPTED (not learned)' = zero residual, no learning. Scripted rows never count as learned.",
          "- Learned strikes are regime-sensitive: one swing is not the average; see the leaderboard slides for all-episode stats. Address-noise outliers exist.",
          "- DTW style scores (leaderboard.md) are 2D-proxy, tempo +-15% indicative only; Mason v3 slow-mo refs are loose-tempo extras."]
     if noise_caveat(lm) and (lm.get("env_kwargs") or {}).get("script_weight") == 0.0: e.insert(1, "- " + noise_caveat(lm) + ". NOISE-FRAGILE: the distilled policy loses much of its carry under small observation/action noise (quick screen, my 80%-of-clean threshold).")

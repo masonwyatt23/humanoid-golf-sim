@@ -70,7 +70,7 @@ def build():
     best = lb["best_qualifying"] or []
     tr = []
     for i, (cr, carry, m, d, s, name, scripted, fs) in enumerate(rows, 1):
-        tag = '<span class="b sc">SCRIPTED (not learned)</span>' if scripted else '<span class="b ln">learned</span>'
+        tag = '<span class="b sc">SCRIPTED (not learned)</span>' if scripted else ('<span class="b ln">script-distilled</span>' if any(x.startswith('imit') for x in m['names']) else '<span class="b ln">learned</span>')
         hyp = '<span class="b hy">force_scale %g (hypothetical-strength actuators)</span>' % fs if fs and fs > 1 else ("" if fs else '<span class="b">default env</span>')
         if m.get("verdict"): tag = tag + ' <span class="b sc">' + e(m["verdict"]) + '</span>'
         _r = m.get("realism") or {}
@@ -101,7 +101,7 @@ table{{border-collapse:collapse;width:100%;background:#fff;font-size:13px}} th,t
 <div class="note"><b>Honest labels.</b> Every leaderboard row uses boosted actuators (force_scale &gt; 1) unless marked otherwise: <b>force_scale 2 (hypothetical-strength actuators)</b>, not a real robot. Rows tagged SCRIPTED are a hand-written swing, not learned. Leaderboard yards use the MuJoCo-physics ball (smash about 1.0, a known artifact). Launch-monitor and course numbers are <b>model-based</b> (analytic ball model / Monte Carlo), not measured.</div>
 <div class="note">{stock_note(lb)}</div>
 <div class="note"><b>Two models shown side by side, neither promoted as &quot;learned from Mason&quot;.</b> {side_by_side(lb)} Both imitate the scripted swing and run force_scale 2 (hypothetical-strength actuators).</div>
-<h2>Leaderboard (ranked by true contact, then mean carry; star = best qualifying learned model)</h2>
+<h2>Leaderboard (ranked by true contact, then mean carry; star = best qualifying model)</h2>
 <div class="note"><b>Smash flag.</b> Rows with smash (det mean ball mph / impact club mph) outside 1.30-1.49 are flagged (FAIL &gt;1.50, WARN &gt;1.49 or &lt;1.30; thresholds derived, not published) and cannot be the star/best/showcase row. Boosted v3 policies at ~0.9-1.0 are flagged.</div>
 <table><tr><th>#</th><th>Model</th><th>Contact det / stoch</th><th>Carry yd (det)</th><th>Total yd (det)</th><th>Lateral std m</th><th>Launch deg</th><th>Peak club mph</th><th>Smash (ball/impact club)</th><th>Smash flag (ok = 1.30-1.49)</th></tr>{''.join(tr)}</table>
 <p>Episodes per row: {lb['episodes']}, seed base {lb['seed_base']}. Total equals carry when the episode ends at first landing (no roll). Qualification: {e(json.dumps(lb['qualify_criterion']))}.</p>
