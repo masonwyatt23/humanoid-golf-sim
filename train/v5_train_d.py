@@ -1,8 +1,8 @@
 """Stage D (own policy, stock torque, 1.15 m club, public-only, arm_dist 0.6). Warm start from B4 s1 ckpt_3000000 (tether-free, contact 1.0, ~37 mph, but BACKWARD strike, carry 0).
 Changes vs Stage C (whose multiplicative speed gate removed the dense signal and let instability dominate):
- 1. Contact reward is ADDITIVE: (1 + 4*fwd)*(0.3+0.7q) where fwd = clip(head_v_x/|head_v|,0,1) at the contact substep (target direction = +x), so a backward strike earns ~1, a forward one ~5.
+ 1. Contact reward is ADDITIVE: (-1.5 + 6.5*fwd)*(0.3+0.7q), fwd = clip(v.n/|v|,0,1)*[v_x>0] (head velocity along the face normal toward target, +x) at contact, so a backward strike (diagnosed in D v1: head flicks up 0.6 m to arm, then drops back onto the ball moving -x) is ~ -1.5 (about a miss's -2), a forward one ~ +5.
  2. Speed bonus (additive, needs fwd): 4*clip((mph-lo)/(hi-lo),0,1)*fwd*valid*flail_ff, hi rises 30->60->85 mph (p 0->.3->.7), lo=hi-25. Carry bonus additive: 8*min(carry/100,1)*launch_window + 2*min(carry/30,1), lateral penalty.
- 3. Dense forward-strike shaping after the arm gate (head within 1 m of tee, before contact): 0.006*closing speed toward ball + 0.004*forward head speed.
+ 3. Dense forward-strike shaping after the arm gate (head within 1 m of tee, before contact): 0.004*forward head speed + 0.01*(v.face_normal) when within 0.6 m and v_x>0.
  4. Action-rate penalty 0.02*mean((a-a_prev)^2); lead-foot >2 BW penalty; fall/unstable -10; alive/upright bonus.
  5. Capped X-factor (40-65) + order + lag prior (additive, min(.,3)), times flail factor (1 up to 1.3x kseq-v2 100 mph segment peaks, 0 at 2.0x).
  6. Deterministic eval every 100k with tether 0 at arm_dist 0.6 AND 0 -> eval.jsonl (impact mph, carry no-roll, launch, lateral, forward-strike fraction).
@@ -31,7 +31,8 @@ class DEnv(BEnv):
         r = -0.02 * da
         rel = e.tee - e.d.site_xpos[hs]; dist = float(np.linalg.norm(rel))
         if e.armed and not e.contact and dist < 1.0:
-            r += 0.006 * max(0.0, float(np.dot(v, rel / max(dist, 1e-6)))) + 0.004 * max(0.0, float(v[0]))
+            nrm = e.d.geom_xmat[e.head_geom].reshape(3, 3)[:, 0]   # face normal (toward the ball)
+            r += 0.004 * max(0.0, float(v[0])) + (0.01 * max(0.0, float(np.dot(v, nrm))) if dist < 0.6 and v[0] > 0 else 0.0)
         if e.armed and not self.was_armed and not unstable: r += 1.0; self.was_armed = True
         fl, fr = e.foot_forces(); lead = (fl if e.lead == "left" else fr) / self.bw; self.lgpeak = max(self.lgpeak, lead); self.gpeak = max(self.gpeak, (fl + fr) / self.bw)
         r -= 0.03 * min(max(lead - 2.0, 0.0), 4.0)
@@ -42,10 +43,10 @@ class DEnv(BEnv):
         hi = hi_at(p)
         if e.contact and not was and not unstable:
             q = max(0.0, 1 - np.hypot(info["dy"], info["dz"]) / self.hit_tol); pv = e.prev_v
-            fwd = float(np.clip(pv[0] / max(float(np.linalg.norm(pv)), 1e-6), 0.0, 1.0)); self.fwd = fwd
+            nrm = np.asarray(e.ball_hit_info["face_normal"]); fwd = float(np.clip(np.dot(pv, nrm) / max(float(np.linalg.norm(pv)), 1e-6), 0.0, 1.0)) * (1.0 if pv[0] > 0 else 0.0); self.fwd = fwd
             mph = info["club_speed_mph"]; valid = float(np.clip(info["ball_speed_mph"] / max(1.2 * mph, 1e-6), 0.0, 1.0))
             lw = launch_win(info["launch_deg"]); qq = 0.3 + 0.7 * q
-            r += (1.0 + 4.0 * fwd) * qq
+            r += (-1.5 + 6.5 * fwd) * qq
             r += 4.0 * float(np.clip((mph - (hi - 25.0)) / 25.0, 0.0, 1.0)) * fwd * valid * ff
             r += (8.0 * min(info["carry_m_noroll"] / 100.0, 1.0) * lw + 2.0 * min(info["carry_m_noroll"] / 30.0, 1.0)) * qq
             r -= 3.0 * min(abs(info["lateral_carry_m"]) / 20.0, 1.0)
