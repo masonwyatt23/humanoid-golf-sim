@@ -1,7 +1,7 @@
 """Stage D (own policy, stock torque, 1.15 m club, public-only, arm_dist 0.6). Warm start from B4 s1 ckpt_3000000 (tether-free, contact 1.0, ~37 mph, but BACKWARD strike, carry 0).
 Changes vs Stage C (whose multiplicative speed gate removed the dense signal and let instability dominate):
  1. Contact reward is ADDITIVE: (-1.5 + 6.5*fwd)*(0.3+0.7q), fwd = clip(v.n/|v|,0,1)*[v_x>0] (head velocity along the face normal toward target, +x) at contact, so a backward strike (diagnosed in D v1: head flicks up 0.6 m to arm, then drops back onto the ball moving -x) is ~ -1.5 (about a miss's -2), a forward one ~ +5.
- 2. Speed bonus (additive, needs fwd): 4*clip((mph-lo)/(hi-lo),0,1)*fwd*valid*flail_ff, hi rises 30->60->85 mph (p 0->.3->.7), lo=hi-25. Carry bonus additive: 8*min(carry/100,1)*launch_window + 2*min(carry/30,1), lateral penalty.
+ 2. (v3: backward strike -3+8*fwd, worse than a miss; arm_back gate)  Speed bonus (additive, needs fwd): 4*clip((mph-lo)/(hi-lo),0,1)*fwd*valid*flail_ff, hi rises 30->60->85 mph (p 0->.3->.7), lo=hi-25. Carry bonus additive: 8*min(carry/100,1)*launch_window + 2*min(carry/30,1), lateral penalty.
  3. Dense forward-strike shaping after the arm gate (head within 1 m of tee, before contact): 0.004*forward head speed + 0.01*(v.face_normal) when within 0.6 m and v_x>0.
  4. Action-rate penalty 0.02*mean((a-a_prev)^2); lead-foot >2 BW penalty; fall/unstable -10; alive/upright bonus.
  5. Capped X-factor (40-65) + order + lag prior (additive, min(.,3)), times flail factor (1 up to 1.3x kseq-v2 100 mph segment peaks, 0 at 2.0x).
@@ -14,13 +14,15 @@ from train.v5_train_b import BEnv, newest
 from train.v5_train_c import CurrC, hi_at, launch_win, xf_win, flail_factor
 from env.v5_reward import episode_terms
 
+ARM_BACK = 0.35   # D v3: v2 diagnosis - policy 'backswings' toward +x (target side), arms, and hits with the back of the head moving -x; arming now requires head 0.35 m behind the tee (-x)
+
 class DEnv(BEnv):
     def __init__(self, dt=0.002, seed=0):
         super().__init__(dt=dt, seed=seed)
-        e = self.env; e.log_segments = True
+        e = self.env; e.log_segments = True; e.arm_back = ARM_BACK; self.back_max = 0.0
         self.bw = float(np.sum(e.m.body_mass)) * 9.81; self.z0 = None; self.gpeak = 0.0; self.lgpeak = 0.0; self.prev_a = None
     def reset(self, **kw):
-        o = super().reset(**kw); self.z0 = float(self.env.d.qpos[2]); self.gpeak = 0.0; self.lgpeak = 0.0; self.prev_a = None; return o
+        o = super().reset(**kw); self.z0 = float(self.env.d.qpos[2]); self.gpeak = 0.0; self.lgpeak = 0.0; self.prev_a = None; self.back_max = 0.0; return o
     def step(self, a):
         e = self.env; was = e.contact; p = self.progress; a = np.clip(np.asarray(a, float), -1, 1)
         da = 0.0 if self.prev_a is None else float(np.mean((a - self.prev_a) ** 2)); self.prev_a = a.copy()
@@ -30,6 +32,8 @@ class DEnv(BEnv):
         if unstable: v = np.zeros(3); term = True
         r = -0.02 * da
         rel = e.tee - e.d.site_xpos[hs]; dist = float(np.linalg.norm(rel))
+        if not e.armed and not e.contact:
+            bk = max(0.0, float(e.tee[0] - e.d.site_xpos[hs][0])); bk = min(bk, 0.5); r += 0.5 * max(0.0, bk - self.back_max); self.back_max = max(self.back_max, bk)   # dense backswing-direction shaping
         if e.armed and not e.contact and dist < 1.0:
             nrm = e.d.geom_xmat[e.head_geom].reshape(3, 3)[:, 0]   # face normal (toward the ball)
             r += 0.004 * max(0.0, float(v[0])) + (0.01 * max(0.0, float(np.dot(v, nrm))) if dist < 0.6 and v[0] > 0 else 0.0)
@@ -46,7 +50,7 @@ class DEnv(BEnv):
             nrm = np.asarray(e.ball_hit_info["face_normal"]); fwd = float(np.clip(np.dot(pv, nrm) / max(float(np.linalg.norm(pv)), 1e-6), 0.0, 1.0)) * (1.0 if pv[0] > 0 else 0.0); self.fwd = fwd
             mph = info["club_speed_mph"]; valid = float(np.clip(info["ball_speed_mph"] / max(1.2 * mph, 1e-6), 0.0, 1.0))
             lw = launch_win(info["launch_deg"]); qq = 0.3 + 0.7 * q
-            r += (-1.5 + 6.5 * fwd) * qq
+            r += (-3.0 + 8.0 * fwd) * qq
             r += 4.0 * float(np.clip((mph - (hi - 25.0)) / 25.0, 0.0, 1.0)) * fwd * valid * ff
             r += (8.0 * min(info["carry_m_noroll"] / 100.0, 1.0) * lw + 2.0 * min(info["carry_m_noroll"] / 30.0, 1.0)) * qq
             r -= 3.0 * min(abs(info["lateral_carry_m"]) / 20.0, 1.0)

@@ -46,6 +46,7 @@ class V5GolfEnv(gym.Env):
 
     def __init__(self, handed="LH", club_len=0.87, dt=0.0005, force_scale=1.0, ball_tol_m=0.0, max_s=2.0, post_contact_s=0.10, seed=0,
                  fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False, detail_info=False, arm_dist=0.0):
+        self.arm_back = 0.0   # >0 (with arm_dist>0): arming also requires the head to be >= arm_back m BEHIND the tee along -x (target is +x); default off
         self.arm_dist = arm_dist   # >0: ball contact is disabled until the club head has been >= arm_dist m from the tee (forces a real backswing; default 0 = off)
         self.detail_info = detail_info   # opt-in per-shot landing/impact logging (ENV_LANDING_LOGGING_SPEC); default off = info dict unchanged
         self.handed, self.club_len, self.force_scale = handed, club_len, force_scale
@@ -223,7 +224,7 @@ class V5GolfEnv(gym.Env):
             if not self.contact:
                 d.qpos[self.ball_q:self.ball_q + 3] = self.tee; d.qvel[self.ball_v:self.ball_v + 6] = 0
                 hp = d.site_xpos[self.head_site]; dist = np.linalg.norm(hp - self.tee); self.min_dist = min(self.min_dist, dist)
-                if not self.armed and dist >= self.arm_dist:
+                if not self.armed and dist >= self.arm_dist and (self.tee[0] - hp[0]) >= self.arm_back:
                     self.armed = True; m.geom_contype[self.ball_geom] = 2; m.geom_conaffinity[self.ball_geom] = 2
                 if dist < FAR and self.armed:
                     self.prev_v = self._vel_site(self.head_site)[3:].copy()
