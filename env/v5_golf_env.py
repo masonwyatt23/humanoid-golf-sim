@@ -45,7 +45,8 @@ class V5GolfEnv(gym.Env):
     metadata = {"render_modes": []}
 
     def __init__(self, handed="LH", club_len=0.87, dt=0.0005, force_scale=1.0, ball_tol_m=0.0, max_s=2.0, post_contact_s=0.10, seed=0,
-                 fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False, detail_info=False):
+                 fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False, detail_info=False, arm_dist=0.0):
+        self.arm_dist = arm_dist   # >0: ball contact is disabled until the club head has been >= arm_dist m from the tee (forces a real backswing; default 0 = off)
         self.detail_info = detail_info   # opt-in per-shot landing/impact logging (ENV_LANDING_LOGGING_SPEC); default off = info dict unchanged
         self.handed, self.club_len, self.force_scale = handed, club_len, force_scale
         self._dt_arg = dt
@@ -146,7 +147,8 @@ class V5GolfEnv(gym.Env):
         off = (self.rng.uniform(-1, 1, 2) * self.ball_tol) if self.ball_tol > 0 else np.zeros(2)
         self.tee = np.array(self.addr["ball_pos"], float); self.tee[:2] += off
         d.qpos[self.ball_q:self.ball_q + 3] = self.tee
-        m.geom_contype[self.ball_geom] = 2; m.geom_conaffinity[self.ball_geom] = 2
+        self.armed = self.arm_dist <= 0
+        m.geom_contype[self.ball_geom] = 2 if self.armed else 0; m.geom_conaffinity[self.ball_geom] = 2 if self.armed else 0
         d.ctrl[:] = self.q_addr
         mujoco.mj_forward(m, d)
         self.pel_q0 = d.qpos[0:7].copy()
@@ -221,7 +223,9 @@ class V5GolfEnv(gym.Env):
             if not self.contact:
                 d.qpos[self.ball_q:self.ball_q + 3] = self.tee; d.qvel[self.ball_v:self.ball_v + 6] = 0
                 hp = d.site_xpos[self.head_site]; dist = np.linalg.norm(hp - self.tee); self.min_dist = min(self.min_dist, dist)
-                if dist < FAR:
+                if not self.armed and dist >= self.arm_dist:
+                    self.armed = True; m.geom_contype[self.ball_geom] = 2; m.geom_conaffinity[self.ball_geom] = 2
+                if dist < FAR and self.armed:
                     self.prev_v = self._vel_site(self.head_site)[3:].copy()
                     pre_pos = d.geom_xpos[self.head_geom].copy(); pre_R = d.geom_xmat[self.head_geom].reshape(3, 3).copy(); swept = True
                 else: swept = False

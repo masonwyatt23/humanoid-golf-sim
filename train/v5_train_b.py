@@ -11,15 +11,16 @@ from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
 from train.v5_train import TrainEnv, Curr
 from env.v5_reward import episode_terms, prior_cap
 
+ARM_DIST = 0.6      # Stage B2: ball contact disabled until head >= 0.6 m from tee (Stage A tap = head started 0.06 m from ball and hit it in 80 ms, no backswing)
 PRIOR_SCALE = 6.0   # prior_total is capped to <=0.20 (annealed to 0.05) -> at most 1.2 reward, small vs contact terms ~10-20
 
 
 class BEnv(TrainEnv):
     def __init__(self, dt=0.002, seed=0):
-        super().__init__(dt=dt, seed=seed, )
-        self.env.log_segments = True; self.progress = 0.0; self.ball_tol_unused = 0.0
+        super().__init__(dt=dt, seed=seed, arm_dist=ARM_DIST)
+        self.env.log_segments = True; self.was_armed = False; self.progress = 0.0; self.ball_tol_unused = 0.0
     def reset(self, **kw):
-        o = super().reset(**kw); return o
+        o = super().reset(**kw); self.was_armed = False; return o
     def step(self, a):
         e = self.env; was = e.contact
         o, _, term, trunc, info = e.step(a)
@@ -29,6 +30,7 @@ class BEnv(TrainEnv):
         if unstable: v = np.zeros(3); term = True
         vf = max(0.0, float(v[0])); r = 0.01 * max(0.0, vf - self.peak); self.peak = max(self.peak, vf)
         if not e.contact and np.linalg.norm(e.d.site_xpos[hs] - e.tee) < 1.0: r += 0.01 * vf
+        if e.armed and not self.was_armed and not unstable: r += 1.0; self.was_armed = True    # one-off bonus for completing a backswing
         if e.contact and not was and not unstable:
             q = max(0.0, 1 - np.hypot(info["dy"], info["dz"]) / self.hit_tol)
             mph = info["club_speed_mph"]
@@ -54,7 +56,8 @@ class CurrB(Curr):
     """Tether stays 0, club 1.15 (Stage A final state); tolerance 0.03 -> 0.015; prior cap progress."""
     def _apply(self):
         p = (self.base + self.num_timesteps) / self.total_all
-        cur = (1.15, 0.0, round(0.03 - 0.015 * min(p, 1.0), 3))
+        tth = round(float(np.clip(1 - p / 0.3, 0, 1)), 2) if self.scratch_tether else 0.0
+        cur = (1.15, tth, round(0.03 - 0.015 * min(p, 1.0), 3))
         if cur != self.cur:
             self.cur = cur
             for i in range(self.training_env.num_envs):
@@ -76,7 +79,7 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(); ap.add_argument("--seed", type=int, default=0); ap.add_argument("--steps", type=int, default=3_000_000)
     ap.add_argument("--workers", type=int, default=2); ap.add_argument("--dt", type=float, default=0.002); ap.add_argument("--tag", default="stageB")
     ap.add_argument("--init", default=None, help="Stage A run dir to warm-start from (own policy)"); ap.add_argument("--ent", type=float, default=0.003)
-    ap.add_argument("--log_std", type=float, default=-1.0); ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--log_std", type=float, default=-1.0); ap.add_argument("--resume", action="store_true"); ap.add_argument("--scratch_tether", action="store_true")
     a = ap.parse_args()
     out = f"results/v5_runs/{a.tag}_s{a.seed}"; os.makedirs(out, exist_ok=True)
     venv = SubprocVecEnv([make(i, a.seed, a.dt) for i in range(a.workers)])
@@ -93,7 +96,7 @@ if __name__ == "__main__":
             model.policy.load_state_dict(src.policy.state_dict()); model.policy.log_std.data.fill_(a.log_std)
             old = VecNormalize.load(os.path.join(a.init, "final_vecnorm.pkl"), venv); venv.obs_rms = old.obs_rms   # obs stats only; reward norm fresh
     json.dump(vars(a), open(os.path.join(out, "args.json"), "w"))
-    cb = CurrB(a.steps, out, 100_000, a.tag); cb.base = 0; cb.total_all = a.steps; cb.last_ck = step0
+    cb = CurrB(a.steps, out, 100_000, a.tag); cb.base = 0; cb.total_all = a.steps; cb.scratch_tether = a.scratch_tether; cb.last_ck = step0
     if ck: cb.base = 0
     model.learn(a.steps - (model.num_timesteps if ck else 0), callback=cb, reset_num_timesteps=not ck)
     model.save(os.path.join(out, "final")); venv.save(os.path.join(out, "final_vecnorm.pkl"))
