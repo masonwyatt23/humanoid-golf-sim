@@ -1,9 +1,7 @@
 """Ball-flight adapter for the v5 env: MuJoCo club kinematics at first contact -> golfphys (vendored, Data Agent) -> ball state + shot.
 
 Implements docs/GOLF_PHYSICS_SIM.md section 5 (`env_contact_to_shot`). Env-specific findings (no edits to the vendored package):
- * LH SIGN BUG in golfphys.impact_vec: `up = toe x n` points DOWN for a left-hander, so a high-face strike (y_high>0) gives MORE backspin and
-   launches LOWER for LH, the opposite of RH [measured: tests/test_v5_stage0.py::test_golfphys_lh_up_axis_flip]. x_toe (draw/fade) is mirrored correctly.
-   Workaround here: pass dz_high = -dz for LH so a physically high strike behaves like the RH mirror.
+ * The LH 'up' axis sign bug found in Stage 0 was fixed upstream (golfphys-lh-fix 357bc0c, re-vendored); the adapter workaround was removed.
  * toe_sign: verified against the compiled club model by `verify_toe_sign` (head-box local +y is the toe for both LH and RH builds -> toe_sign=+1).
 """
 import math
@@ -41,7 +39,7 @@ def shot_from_contact(club_vel, face_normal, dy, dz_high, handed="LH", toe_sign=
     """club_vel: world velocity of the face-centre point just before contact; face_normal: world normal toward the ball; dy: contact offset along toe (+toe);
     dz_high: contact offset above face centre (m, physical +up). Returns dict with ball state and golfphys ShotResult fields (carry_m has no roll)."""
     p = params()
-    dz = -dz_high if handed.upper().startswith("L") else dz_high            # work around the LH 'up' axis flip in golfphys (see module docstring)
+    dz = dz_high                                                            # golfphys 357bc0c fixed the LH 'up' axis; no adapter workaround (it would flip twice)
     out = env_contact_to_shot(np.asarray(club_vel, float), np.asarray(face_normal, float), (dy, dz), handed=handed, toe_sign=toe_sign, p=p)
     v, om = np.asarray(out["v_ball"], float), np.asarray(out["omega_ball"], float)
     r = _run(tuple(v), tuple(om), p, turf, (0, 0, 0), 0.0, 15.0, 0.0, max(ball_z - R_BALL, 0.0), 0.01, roll)

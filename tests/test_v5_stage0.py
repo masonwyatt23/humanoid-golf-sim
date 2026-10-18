@@ -45,10 +45,10 @@ def test_toe_sign_verified_against_model():
         ts, _, dot = verify_toe_sign(m, d, h)
         assert ts == 1.0 and dot > 0.95
 
-def test_golfphys_lh_up_axis_flip_documented():
+def test_golfphys_lh_up_axis_fixed():
     from golfphys import impact, Delivery, Strike
     rh = impact(Delivery(50, 12, 0, handed="RH"), Strike(0, 0.01))["backspin_rpm"]; lh = impact(Delivery(50, 12, 0, handed="LH"), Strike(0, 0.01))["backspin_rpm"]
-    assert abs(rh - lh) > 1000      # vendored package bug: LH high strike behaves like RH low strike (env adapter compensates)
+    assert abs(rh - lh) < 1.0      # fixed upstream in golfphys-lh-fix 357bc0c: LH high strike now equals RH
 
 def test_adapter_mirror_flight():
     v = np.array([45.0, 1.0, 3.0]); n = np.array([math.cos(0.18), 0.02, math.sin(0.18)]); n /= np.linalg.norm(n)
