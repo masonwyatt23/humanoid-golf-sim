@@ -16,7 +16,29 @@ from .v5_shot import shot_from_contact, verify_toe_sign
 
 ACT_SCALE = 1.0
 NEAR = 0.12
+FAR = 0.30       # swept-contact / velocity-capture radius (m): head moves up to ~10 cm per substep at 110 mph, dt 0.002
 SEG_EVERY = 10   # log segment speeds every 10 substeps (5 ms at dt 0.0005)
+
+
+R_BALL_E = 0.021335
+
+
+def swept_hit(p0, R0, p1, R1, ball, half, r):
+    """Swept test of the (static) ball sphere against the head box moving between two substep poses. The ball centre is expressed in the head frame at both ends
+    and the straight local path is tested against the box inflated by r (slab method). Returns a world contact point (box surface point nearest the ball) or None."""
+    a = R0.T @ (ball - p0); b = R1.T @ (ball - p1); dvec = b - a; h = np.asarray(half, float) + r
+    t0, t1 = 0.0, 1.0
+    for k in range(3):
+        if abs(dvec[k]) < 1e-12:
+            if abs(a[k]) > h[k]: return None
+        else:
+            u0, u1 = (-h[k] - a[k]) / dvec[k], (h[k] - a[k]) / dvec[k]
+            if u0 > u1: u0, u1 = u1, u0
+            t0, t1 = max(t0, u0), min(t1, u1)
+            if t0 > t1: return None
+    loc = a + dvec * t0; cl = np.clip(loc, -np.asarray(half), np.asarray(half))
+    Rm = R0 if t0 < 0.5 else R1; pm = p0 if t0 < 0.5 else p1
+    return pm + Rm @ cl
 
 
 class V5GolfEnv(gym.Env):
@@ -162,13 +184,18 @@ class V5GolfEnv(gym.Env):
             if not self.contact:
                 d.qpos[self.ball_q:self.ball_q + 3] = self.tee; d.qvel[self.ball_v:self.ball_v + 6] = 0
                 hp = d.site_xpos[self.head_site]; dist = np.linalg.norm(hp - self.tee); self.min_dist = min(self.min_dist, dist)
-                if dist < NEAR:
+                if dist < FAR:
                     self.prev_v = self._vel_site(self.head_site)[3:].copy()
+                    pre_pos = d.geom_xpos[self.head_geom].copy(); pre_R = d.geom_xmat[self.head_geom].reshape(3, 3).copy(); swept = True
+                else: swept = False
+            else: swept = False
             mujoco.mj_step(m, d); self.sub_count += 1
             if self.tether:
                 d.qpos[0:7] = self.pel_q0; d.qvel[0:6] = 0
-            if not self.contact and np.linalg.norm(d.site_xpos[self.head_site] - self.tee) < NEAR:
+            if not self.contact and swept:
                 cp = self._check_contact()
+                if cp is None: cp = swept_hit(pre_pos, pre_R, d.geom_xpos[self.head_geom], d.geom_xmat[self.head_geom].reshape(3, 3), self.tee,
+                                              self.m.geom_size[self.head_geom], R_BALL_E)
                 if cp is not None: self._do_contact(cp)
             if self.log_segments and self.sub_count % self.seg_every == 0: self._log_seg()
         self.steps += 1
