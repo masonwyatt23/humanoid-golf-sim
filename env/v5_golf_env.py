@@ -46,6 +46,8 @@ class V5GolfEnv(gym.Env):
 
     def __init__(self, handed="LH", club_len=0.87, dt=0.0005, force_scale=1.0, ball_tol_m=0.0, max_s=2.0, post_contact_s=0.10, seed=0,
                  fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False, detail_info=False, arm_dist=0.0):
+        self.strike_gate_nx = None   # Stage G: if set, a head-ball contact only counts when face normal x >= this, head v_x > 0 and v.n > 0; otherwise it is a FOUL (ball disabled, episode terminates, info foul=True); default off
+        self.foul = False
         self.arm_back = 0.0   # >0 (with arm_dist>0): arming also requires the head to be >= arm_back m BEHIND the tee along -x (target is +x); default off
         self.arm_dist = arm_dist   # >0: ball contact is disabled until the club head has been >= arm_dist m from the tee (forces a real backswing; default 0 = off)
         self.detail_info = detail_info   # opt-in per-shot landing/impact logging (ENV_LANDING_LOGGING_SPEC); default off = info dict unchanged
@@ -158,7 +160,7 @@ class V5GolfEnv(gym.Env):
         self.log = dict(t=[], pelvis=[], thorax=[], lead_arm=[], club=[], xfactor_deg=[], lead_share=[]); self.peak_club_speed = 0.0
         self.max_weld_drift = 0.0; self.pre_contact_head_speed = 0.0
         self.sub_count = 0; self.min_dist = 9.0
-        self.ball_hit_info = None
+        self.ball_hit_info = None; self.foul = False
         return self._obs(), {}
 
     def _obs(self):
@@ -238,7 +240,12 @@ class V5GolfEnv(gym.Env):
                 cp = self._check_contact()
                 if cp is None: cp = swept_hit(pre_pos, pre_R, d.geom_xpos[self.head_geom], d.geom_xmat[self.head_geom].reshape(3, 3), self.tee,
                                               self.m.geom_size[self.head_geom], R_BALL_E)
-                if cp is not None: self._do_contact(cp)
+                if cp is not None:
+                    if self.strike_gate_nx is not None:
+                        n_ = d.geom_xmat[self.head_geom].reshape(3, 3)[:, 0]; v_ = self.prev_v
+                        if not (n_[0] >= self.strike_gate_nx and v_[0] > 0 and float(np.dot(v_, n_)) > 0):
+                            self.foul = True; m.geom_contype[self.ball_geom] = 0; m.geom_conaffinity[self.ball_geom] = 0; self.foul_info = dict(n=n_.tolist(), v=v_.tolist()); break
+                    self._do_contact(cp)
             if self.log_segments and self.sub_count % self.seg_every == 0: self._log_seg()
         self.steps += 1
         if self.contact: self.after = d.time - self.t_contact
@@ -246,9 +253,9 @@ class V5GolfEnv(gym.Env):
         # weld drift: distance between hand sites and grip sites
         for s, gs in ((self.lead, "grip_lead"), (self.trail, "grip_trail")):
             dd = np.linalg.norm(d.site_xpos[m.site(f"{s}_hand").id] - d.site_xpos[m.site(gs).id]); self.max_weld_drift = max(self.max_weld_drift, dd)
-        term = fell or (self.contact and self.after >= self.post_s)
+        term = fell or self.foul or (self.contact and self.after >= self.post_s)
         trunc = d.time >= self.max_s
-        info = dict(contact=self.contact, fell=bool(fell), weld_drift_max_m=self.max_weld_drift)
+        info = dict(contact=self.contact, fell=bool(fell), weld_drift_max_m=self.max_weld_drift, foul=bool(self.foul))
         if self.contact:
             sh = self.shot["shot"]
             info.update(carry_m_noroll=sh.carry_m, total_m_model=sh.total_m, lateral_carry_m=sh.lateral_carry_m, launch_deg=self.shot["launch_deg"],

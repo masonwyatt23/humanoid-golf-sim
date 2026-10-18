@@ -86,7 +86,7 @@ class CurrE(CurrC):
     def det_eval(self, n=12):
         vn = self.training_env; row = dict(step=self.num_timesteps, hi_gate=self.cur[3])
         for ad in (0.6, 0.0):
-            env = EEnv(seed=999); env.env.arm_dist = ad; env.hit_tol = self.cur[2]; env.target_len = 1.15; env.target_tether = 0.0; env.env.friction_rand = False
+            env = getattr(self, "env_cls", EEnv)(seed=999); env.env.arm_dist = ad; env.hit_tol = self.cur[2]; env.target_len = 1.15; env.target_tether = 0.0; env.env.friction_rand = False
             res = []
             for _ in range(n):
                 o, _i = env.reset(seed=4000 + len(res)); done = False; info = {}
