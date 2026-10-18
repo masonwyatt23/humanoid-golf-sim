@@ -437,3 +437,9 @@ See `docs/NEXT_DATA_SOURCES.md` for the ranked list of real data sources. Tests:
 The JSON also has a `mason_slowmo_v3` block: 4 verified slow-motion swings (`mason_v3_*_slowmo.npz`), median tempo ratio 3.75 (range 2.50-4.58); its single recommended swing has tempo 3.17. The slow-motion factor (~4.7x median) is only an order-of-magnitude estimate, and its event detector differs from the v2 one, so these tempo values are not directly comparable with the n=11 set above.
 
 Created as part of AshlrAI agentic engineering experiments.
+
+## License
+
+The code and original documentation in this repository are released under the [MIT License](LICENSE) (Copyright (c) 2026 Mason Wyatt / AshlrAI, Inc.).
+
+**Third-party data is not covered by the MIT license.** CMU Graphics Lab Motion Capture, MultiSense Golf, GolfDB and CaddieSet are under their own terms (see "Licensing & data provenance" above and `docs/UNIFIED_V1_LICENSE_AUDIT.md`); some are non-commercial or need counsel review. Those data files were untracked at the tip on 2026-10-18 but remain in git history. Mason-derived Instagram-feed data is likewise not licensed by this file. Engineering notes, not legal advice.
