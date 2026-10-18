@@ -3,7 +3,7 @@
 Highest-value next steps for the humanoid golf system:
 
 1. **Unitree G1 / H1 model** — Replace the simplified humanoid with a real humanoid MJCF for better morphology match and eventual sim-to-real.
-2. **WHAM / GVHMR reconstruction** — Swap MediaPipe for high-quality monocular 3D mesh recovery from PureGolf and Adam Scott videos.
+2. **WHAM / GVHMR reconstruction** — Swap MediaPipe for high-quality monocular 3D mesh recovery from PureGolf-style public swing videos.
 3. **Curriculum training at scale** — Run the staged curriculum (contact → style → ball flight) for 500k–2M steps on GPU with many parallel environments.
 4. **Ball spin and launch metrics** — Add clubface angle, path, and spin estimation so policies can be evaluated like Trackman data.
 5. **Proper IK retargeting** — Map reconstructed human motion onto the humanoid with contact-aware optimization.

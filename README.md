@@ -4,7 +4,7 @@
 
 Repository: <https://github.com/masonwyatt23/humanoid-golf-sim> (renamed 2026-10-18 from `humanoid-golf-scott`; GitHub redirects the old URL).
 
-Autonomous pipeline for training a simulated humanoid to swing a golf club, using pure/textbook pro-swing references (including Adam Scott-style synthetic references; see data provenance below) as style targets. This project is not affiliated with or endorsed by any named golfer.
+Autonomous pipeline for training a simulated humanoid to swing a golf club, using pure/textbook pro-swing references (including synthetic "style profile" references named `scott`, `scheffler`, `rory`; they are statistical style profiles, not models of any real person; see data provenance below) as style targets. This project is not affiliated with or endorsed by any named golfer.
 
 ## Status and honesty
 
@@ -92,7 +92,7 @@ The leaderboard also has a "Noise robustness + track_score" table (quick gate, 1
 - **UNVERIFIED Mason clips (flag only, sampling unchanged):** `mason_v2_p1_s11` (val split; handedness detected right, confidence 0.12, may not be Mason) and `mason_v2_p2_s10` (train split, weight 0.072 of 0.6) are marked `handedness_unverified` / `exclude_pending_verification` in `data/reference_sets/unified_v1.json`. They are still sampled and scored exactly as before, to keep recorded results reproducible. Verify or remove them before any public model release.
 - **CaddieSet:** MIT licence on the data repo, but dataset consent and commercial terms are unvetted. Counsel is needed before any use. Only a summary JSON (`data/references/caddieset_driver_event_features.json`) is committed; no policy uses it.
 - **Mason's own swings:** references in `data/references/mason_*` are derived from Mason's self-filmed / self-posted swings (`self_owned`). Raw videos are never committed. They are 2D-proxy angles from single-view video.
-- **Synthetic references:** Scott/Scheffler/Rory styles are generated (`data/generate_synthetic_scott.py`); they are not Adam Scott's real data.
+- **Synthetic references:** the `scott` / `scheffler` / `rory` style profiles are procedurally generated (`data/generate_synthetic_scott.py`) from textbook parameter ranges; they are not measurements of, and not endorsed by, any real golfer. File names keep the legacy labels.
 - Per-file tags and a table are in `docs/REFERENCE_PATHS.md`. Repository code is MIT-licensed (see `LICENSE` and the License section below); third-party data is not. Details of what trained each model: `docs/CHECKPOINT_RELEASE.md`. Audits (engineering diligence, not legal advice): [`docs/UNIFIED_V1_LICENSE_AUDIT.md`](docs/UNIFIED_V1_LICENSE_AUDIT.md) (licence tags of the unified reference set) and [`docs/PROVENANCE_AUDIT.md`](docs/PROVENANCE_AUDIT.md) (recorded training args per run). Evaluation protocol as implemented: [`docs/EVAL_PROTOCOL.md`](docs/EVAL_PROTOCOL.md). Related: [`docs/P1_S11_HANDEDNESS_CHECK.md`](docs/P1_S11_HANDEDNESS_CHECK.md), [`docs/IMPACT_FACE_PATH_AVAILABILITY.md`](docs/IMPACT_FACE_PATH_AVAILABILITY.md), [`docs/TRACKING_REWARD_REFERENCE_GAPS.md`](docs/TRACKING_REWARD_REFERENCE_GAPS.md), [`docs/MASON_KEYFRAME_TARGETS.md`](docs/MASON_KEYFRAME_TARGETS.md) (keyframe medians and tolerance bands from 8 left-handed clips, with a diagnosis of the tracking-score term; unverified 2-D proxies), [`docs/MASON_ELBOW_CAMERA_BIAS.md`](docs/MASON_ELBOW_CAMERA_BIAS.md) (bias-corrected address-elbow estimate; unverified, low confidence), [`docs/WRIST_ELBOW_EVENT_TARGETS.md`](docs/WRIST_ELBOW_EVENT_TARGETS.md) (wrist and elbow targets at top of backswing and impact from Mason's clips and CMU/MultiSense medians, plus arm-role and sign findings; unverified 2-D proxies), [`docs/FILMING_GUIDE_ONE_PAGE.md`](docs/FILMING_GUIDE_ONE_PAGE.md) (one-page filming checklist for a future session), [`docs/RELEASE_QUESTIONS_FOR_COUNSEL.md`](docs/RELEASE_QUESTIONS_FOR_COUNSEL.md) (open licence and release questions, not legal advice), versioned reference sets (`unified_v2`) in [`docs/REFERENCE_PATHS.md`](docs/REFERENCE_PATHS.md), and [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Known limits
@@ -301,13 +301,13 @@ None of this measures Mason (his 120+ mph is self-reported and unverified). Powe
 ## Features
 
 - MuJoCo humanoid + club + ball with proper address initialization
-- Synthetic Adam Scott / Scheffler / Rory / average style references
+- Synthetic "scott" / "scheffler" / "rory" / average style-profile references (generated; not real players' data)
 - Multi-swing reference dataset loader
 - Curriculum scaffolding (Address → Contact → Style → Ball flight)
 - Dense approach + contact + imitation + ball-flight rewards
 - PPO training (Stable-Baselines3)
 - Style comparison script (`eval/compare_styles.py`)
-- Public video proxy for Adam Scott pure swing footage
+- Catalog of public third-party swing footage used as a proxy (links only; no video is redistributed)
 
 ## Quick Start
 
