@@ -99,7 +99,7 @@ class CurrJ(CurrH):
             self.best_sc = sc; self.last_promo = self.num_timesteps; atomic_save(self.model, self.training_env, self.out, "best_det"); open(os.path.join(self.out, "best_det.json"), "w").write(json.dumps(row))
         open(os.path.join(self.out, "eval.jsonl"), "a").write(json.dumps(row) + "\n")
         json.dump(dict(T=self.T, last_promo=self.last_promo, anneal_start=self.anneal_start, best_sc=getattr(self, "best_sc", 0.0)), open(os.path.join(self.out, "curriculum.json"), "w"))
-        if row["contact"] >= 0.9 and row["carry_med"] > 30.0 and self.num_timesteps >= 200_000:
+        if row["contact"] >= 0.9 and row["carry_med"] > 30.0 and self.num_timesteps >= 200_000 and not getattr(self, "no_stop", False):
             self.stop = True; open(os.path.join(self.out, "STOP_REACHED"), "w").write(json.dumps(row))
         if self.num_timesteps - self.last_promo >= 1_000_000:      # steps since training START (num_timesteps is persisted across resumes); last_promo = last promotion/best-score gain
             self.stop = True; open(os.path.join(self.out, "STALLED"), "w").write(json.dumps(row))
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     ap.add_argument("--track_hold", type=int, default=400_000); ap.add_argument("--track_len", type=int, default=1_200_000); ap.add_argument("--track_end", type=float, default=0.2)
     ap.add_argument("--ent", type=float, default=0.003); ap.add_argument("--log_std", type=float, default=-1.0); ap.add_argument("--log_std_end", type=float, default=-1.6); ap.add_argument("--std_end", type=float, default=0.7)
     ap.add_argument("--rate_w", type=float, default=0.05); ap.add_argument("--resume", action="store_true"); ap.add_argument("--reset_stall", action="store_true"); ap.add_argument("--init_ck", default=None)
-    ap.add_argument("--T_step", type=float, default=5.0); ap.add_argument("--carry_min", type=float, default=0.0); ap.add_argument("--xf_hard", type=float, default=None); ap.add_argument("--grf_lo", type=float, default=None)
+    ap.add_argument("--no_stop", action="store_true"); ap.add_argument("--T_step", type=float, default=5.0); ap.add_argument("--carry_min", type=float, default=0.0); ap.add_argument("--xf_hard", type=float, default=None); ap.add_argument("--grf_lo", type=float, default=None)
     ap.add_argument("--grf_w", type=float, default=None); ap.add_argument("--xf_cap_lo", type=float, default=None); ap.add_argument("--xf_cap_w", type=float, default=None); ap.add_argument("--track_floor", type=float, default=None)
     a = ap.parse_args()
     keys = {tuple(k.split("|")): v for k, v in json.load(open(a.keys)).items()} if a.keys and a.keys != "none" else None
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         old = VecNormalize.load(a.init_ck + "_vecnorm.pkl", venv); venv.obs_rms = old.obs_rms
     json.dump(vars(a), open(os.path.join(out, "args.json"), "w"))
     cb = CurrJ(a.steps, out, 10**12, a.tag); cb.base = 0; cb.total_all = a.steps; cb.stop = False; cb.planar = False; cb.act_end, cb.prior_w, cb.rate_w = 1.0, 0.0, a.rate_w; cb.h_every = 100_000; cb.h_last = step0
-    cb.keys, cb.res_scale, cb.t_down = keys, a.res_scale, a.t_down; cb.extra = extra; cb.T_step, cb.carry_min = a.T_step, a.carry_min; cb.track_hold, cb.track_len, cb.track_end = a.track_hold, a.track_len, a.track_end
+    cb.keys, cb.res_scale, cb.t_down = keys, a.res_scale, a.t_down; cb.extra = extra; cb.no_stop = a.no_stop; cb.T_step, cb.carry_min = a.T_step, a.carry_min; cb.track_hold, cb.track_len, cb.track_end = a.track_hold, a.track_len, a.track_end
     cb.T, cb.last_promo, cb.anneal_start, cb.best_sc = a.T0, 0, None, 0.0
     cj = os.path.join(out, "curriculum.json")
     if ck and os.path.exists(cj): d_ = json.load(open(cj)); cb.T, cb.last_promo, cb.anneal_start, cb.best_sc = d_["T"], d_["last_promo"], d_.get("anneal_start"), d_.get("best_sc", 0.0)
