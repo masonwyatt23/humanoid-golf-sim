@@ -4,6 +4,9 @@ All notable changes to this project are documented here. Format follows [Keep a 
 
 ## [Unreleased]
 
+### Added
+- `docs/ARCHITECTURE.md` (simulator / training / evaluation mapping of existing paths, physics validation suite and gap list), `docs/FROM_SCRATCH_TRAINING_PLAN.md` (plan only), empty `sim/validation/` package marker and its import test. README 'Status and honesty' section. No files moved or renamed.
+
 ### Changed
 - **350 yd reading (docs only):** `docs/RECOMMENDED_350YD_PARAMS.md` now states a 350 yd total needs ~318-324 yd (291-296 m) carry at an assumed 1.08-1.10 total/carry ratio (Data Agent's roll note; assumed, not measured; carry only, no roll model); the loft -29 power preset (hypothetical tier, `force_scale` 2.0, ~318-323 yd carry, Trainer-reported, gate JSON held) is near it.
 - **Stage 25/26 and leaderboard port:** Trainer power loft25/27/29 gain-1.20 presets and scans, stock q23 dz016 scan, ppo15_anneal_s91 (failed); Evaluator smash-gate leaderboard, dashboard, style comparison, lead-arm track_score for new models. Gate JSONs stay held locally.

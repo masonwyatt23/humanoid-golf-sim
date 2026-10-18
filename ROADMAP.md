@@ -9,6 +9,8 @@ Highest-value next steps for the humanoid golf system:
 5. **Proper IK retargeting** — Map reconstructed human motion onto the humanoid with contact-aware optimization.
 6. **Multi-style policies** — Train and compare Scott, Scheffler, and Rory styles side-by-side with the compare_styles script.
 7. **Transfer to ashlrai org** — Move the repository into the AshlrAI GitHub organization once admin access is available.
+8. **Real physics simulator** — Organise around simulator / training / evaluation (`docs/ARCHITECTURE.md`); close the validation gaps listed there (calibrated roll, impact/club-face validation, stock-actuator evidence).
+9. **From-scratch swing training** — Stock `force_scale` 1.0, no scripted teacher, staged curriculum and honest gates (`docs/FROM_SCRATCH_TRAINING_PLAN.md`). Plan only; not started.
 
 ## Historical notes (commit 6bf1217; superseded)
 

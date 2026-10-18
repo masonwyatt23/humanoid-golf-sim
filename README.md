@@ -2,6 +2,13 @@
 
 Autonomous pipeline for training a simulated humanoid to swing a golf club in the style of Adam Scott and other pure/textbook swings.
 
+## Status and honesty
+
+- **Not learned from scratch.** Every committed policy is scripted or script-distilled (scripted swing, residual on a script, or imitation of a script). No from-scratch policy exists yet.
+- **Power-tier results are hypothetical.** They use `force_scale` 2.0 actuators and an inflated smash factor; they are not realistic hardware or human claims.
+- **Stock-actuator results** are only the figures already in the committed results files (`results/leaderboard.md`, `results/TRAINING_NOTES.md`); this section adds no new numbers.
+- **From-scratch effort in progress** (stock `force_scale` 1.0, no scripted teacher): see [docs/FROM_SCRATCH_TRAINING_PLAN.md](docs/FROM_SCRATCH_TRAINING_PLAN.md). Repo organisation (simulator / training / evaluation) and the physics validation gap list: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ## Status (simulation only; all numbers from committed files)
 
 > **Actuator strength (read first).** Every config under `configs/` (v1, v2, v3, v4, power tier) and every committed learned run, including v3, Stage 8, `imit3`, `imit5`, `imit9` and the Stage 17 seeds, records `force_scale` 2.0 (2x actuator force limits; the environment default is 1.0, the training scripts default to 2.0). These are **hypothetical-strength actuators, not stock ones**. So the 120+ mph club-speed gate passes, the Stage 6 scripted swing and every showcase pass in this README are on boosted actuators in simulation. They are not evidence of what a real human or humanoid can do.
