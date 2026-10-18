@@ -1,0 +1,255 @@
+{
+ "version": "lead_arm_keyframe_reward_v1",
+ "instagram_derived": true,
+ "status": "UNVERIFIED video proxies (2-D MediaPipe, ~30 fps feed screen recordings). Aggregates only (median/IQR over the clips_used of mason_keyframe_targets.json). Derived from Mason's Instagram swing references (aggregates only); Mason approved use of his own data (see docs/INSTAGRAM_DERIVED_MANIFEST.md).",
+ "source_files": [
+  "data/references/mason_keyframe_targets.json",
+  "data/references/wrist_sign_mapping.json"
+ ],
+ "n_clips": 8,
+ "handedness": "left (native); lead arm = env left_* joints; env right_* = TRAIL (docs/HANDEDNESS.md)",
+ "role_mapping": "Mason reference cols 0-3 (file names right_*) = anatomical right = LEAD arm for a left-hander -> env left_* ; ref col 4 (left_shoulder_pitch) = anatomical left = TRAIL shoulder -> env right_shoulder_pitch. Not interchangeable with the trail-arm targets in wrist_elbow_event_targets.json.",
+ "units": "degrees in the reference convention (shoulder pitch: 0 = arm hanging, negative = raised; elbow/wrist: unsigned flexion/deviation); *_rad = deg converted, same convention",
+ "sign_conventions": {
+  "env_wrist": "positive env right_wrist = cocked (docs/WRIST_SIGN_MAPPING.md); that is the TRAIL wrist. Lead wrist has no env joint. Stored lead 'wrist' values are unsigned hand-deviation magnitudes (0 = straight line); the +1*ref - 1.31 rad offset in wrist_sign_mapping.json (tolerance 0.15 rad) was fitted to the TRAIL wrist's contact geometry and must NOT be applied to the lead wrist.",
+  "mapping_constants_copied": {
+   "env_wrist_rad": "+1 * ref_rad + (-1.31)",
+   "sign": 1,
+   "offset_rad": -1.31
+  },
+  "shoulder_pitch": "reference: negative = raised. Env sign of left_shoulder_pitch NOT verified here (env/ read-only, nothing run); use the sign/offset-invariant normalised form y=(q-q_addr)/(q_top-q_addr) as env._load_keyframes already does, or confirm the sign with a one-step FK check before using absolute degrees.",
+  "elbow": "reference unsigned flexion; env left_elbow range -10..150 deg, assumed flexion-positive (UNVERIFIED)"
+ },
+ "joints": {
+  "left_shoulder_pitch": {
+   "reference_column": "right_shoulder_pitch",
+   "env_joint": "left_shoulder_pitch",
+   "env_status": "ACTUATED in v3/v4_power (motor gear 40, forcerange 3.75; v3)",
+   "weight": 0.6,
+   "role": "primary"
+  },
+  "left_shoulder_roll": {
+   "reference_column": "right_shoulder_roll",
+   "env_joint": "left_shoulder_roll",
+   "env_status": "PASSIVE hinge (no motor; damping 0.5); readable from qpos, reward-only",
+   "weight": 0.0,
+   "role": "excluded (low confidence video proxy; roll sign flips for left-handed env per docs/HANDEDNESS.md)"
+  },
+  "left_elbow": {
+   "reference_column": "right_elbow",
+   "env_joint": "left_elbow",
+   "env_status": "PASSIVE hinge (no motor; range -10..150 deg); readable from qpos, reward-only. Only follows if grip=True couples left_hand to right_wrist (default grip=False)",
+   "weight": 0.2,
+   "role": "secondary, reward-only; set 0 unless grip=True"
+  },
+  "lead_wrist_derived": {
+   "reference_column": "right_wrist",
+   "env_joint": null,
+   "env_status": "NO lead-wrist joint exists (left_hand is a 0.03 m sphere); reward-only DERIVED quantity (hand-deviation proxy), not computable from qpos without a defined construction",
+   "weight": 0.0,
+   "role": "excluded; do NOT confuse with env right_wrist (trail) -- see docs/WRIST_SIGN_MAPPING.md"
+  }
+ },
+ "events": {
+  "definition": "median offset-corrected joint-axis event times of clips_used from event_offsets_s (joint-axis time, i.e. video-time event minus the ~0.4 s joint_axis_offset_s; do not reuse the uncorrected t_top)",
+  "median_times_s": {
+   "takeaway_s": -0.025,
+   "top_s": 0.45,
+   "impact_s": 0.609,
+   "finish_s": 1.11
+  },
+  "median_durations_s": {
+   "backswing_s": 0.475,
+   "downswing_s": 0.159,
+   "follow_s": 0.501
+  },
+  "tempo_ratio_median": 3.061,
+  "tempo_ratio_band": [
+   2.88,
+   3.53
+  ],
+  "caveat": "Absolute seconds come from edited/possibly sped-up ~30 fps clips (0.48 s backswing is implausible); use PHASE (event-relative) indexing and the tempo-ratio band, not these seconds, as the timing target. NOT a speed target.",
+  "impact_note": "landmark impact is EARLY vs hand low point by 0.067 s (+-0.05); detect sim impact as club-low-point minus 0.067 s",
+  "finish_note": "finish = arm-speed settle heuristic; weak anchor",
+  "time_indexing": "event/phase in SIMULATED time; reference dt 0.01 s vs env control dt 0.02 s (docs/REFSET_TIMING_AUDIT.md)"
+ },
+ "phases": {
+  "address": {
+   "left_shoulder_pitch": {
+    "n": 8,
+    "median_deg": 20.8,
+    "q25_deg": 17.1,
+    "q75_deg": 24.6,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": 0.363
+   },
+   "left_shoulder_roll": {
+    "n": 8,
+    "median_deg": -66.2,
+    "q25_deg": -70.0,
+    "q75_deg": -64.7,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "low",
+    "median_rad": -1.155
+   },
+   "left_elbow": {
+    "n": 8,
+    "median_deg": 28.8,
+    "q25_deg": 21.6,
+    "q75_deg": 29.9,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": 0.503
+   },
+   "lead_wrist_derived": {
+    "n": 8,
+    "median_deg": 59.1,
+    "q25_deg": 55.2,
+    "q75_deg": 65.3,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": 1.031
+   }
+  },
+  "top": {
+   "left_shoulder_pitch": {
+    "n": 8,
+    "median_deg": -64.7,
+    "q25_deg": -68.9,
+    "q75_deg": -60.7,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": -1.129
+   },
+   "left_shoulder_roll": {
+    "n": 8,
+    "median_deg": -21.8,
+    "q25_deg": -24.1,
+    "q75_deg": -16.8,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "low",
+    "median_rad": -0.38
+   },
+   "left_elbow": {
+    "n": 8,
+    "median_deg": 47.8,
+    "q25_deg": 45.0,
+    "q75_deg": 51.4,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": 0.834
+   },
+   "lead_wrist_derived": {
+    "n": 8,
+    "median_deg": 13.9,
+    "q25_deg": 11.1,
+    "q75_deg": 14.9,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": 0.243
+   }
+  },
+  "impact": {
+   "left_shoulder_pitch": {
+    "n": 7,
+    "median_deg": -0.1,
+    "q25_deg": -4.0,
+    "q75_deg": 1.2,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": -0.002
+   },
+   "left_shoulder_roll": {
+    "n": 7,
+    "median_deg": -73.2,
+    "q25_deg": -73.8,
+    "q75_deg": -65.6,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "low",
+    "median_rad": -1.278
+   },
+   "left_elbow": {
+    "n": 7,
+    "median_deg": 59.2,
+    "q25_deg": 55.1,
+    "q75_deg": 63.1,
+    "sigma_suggested_deg": 8.3,
+    "confidence": "medium",
+    "median_rad": 1.033
+   },
+   "lead_wrist_derived": {
+    "n": 7,
+    "median_deg": 45.8,
+    "q25_deg": 44.6,
+    "q75_deg": 50.4,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": 0.799
+   }
+  },
+  "finish": {
+   "left_shoulder_pitch": {
+    "n": 8,
+    "median_deg": -83.8,
+    "q25_deg": -85.4,
+    "q75_deg": -79.9,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": -1.463
+   },
+   "left_shoulder_roll": {
+    "n": 8,
+    "median_deg": -6.0,
+    "q25_deg": -10.0,
+    "q75_deg": -4.3,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "low",
+    "median_rad": -0.105
+   },
+   "left_elbow": {
+    "n": 8,
+    "median_deg": 94.1,
+    "q25_deg": 84.6,
+    "q75_deg": 110.6,
+    "sigma_suggested_deg": 16.9,
+    "confidence": "medium",
+    "median_rad": 1.642
+   },
+   "lead_wrist_derived": {
+    "n": 8,
+    "median_deg": 24.5,
+    "q25_deg": 21.1,
+    "q75_deg": 42.4,
+    "sigma_suggested_deg": 8.0,
+    "confidence": "medium",
+    "median_rad": 0.428
+   }
+  }
+ },
+ "reward": {
+  "events_rewarded": [
+   "top",
+   "impact",
+   "finish"
+  ],
+  "address": "initial-state prior only, not rewarded",
+  "form": "r_lead = (1/K) * sum_{k in {top,impact,finish}} exp( - sum_j w_j * ((q_j(t_k) - mu_jk) / (s * sigma_jk))^2 / sum_j w_j ), weights from joints[*].weight; per-event gaussian in a window of +-0.06 s taking the best-matching sample (timing tolerance ~ +-1 frame at 30 fps)",
+  "normalised_variant": "for sign/offset robustness use y=(q-q_addr)/(q_top-q_addr) with sigma=sigma_deg/|top-addr| (same as env._load_keyframes)",
+  "sigma": "per-joint sigma_suggested_deg (max of MAD-sigma and the 8 deg floor); s curriculum 2.0 -> 1.0; s<1 not supported by the data",
+  "weights": {
+   "left_shoulder_pitch": 0.6,
+   "left_elbow": 0.2,
+   "others": 0.0,
+   "note": "lead-arm share of total tracking reward: suggest <= 0.3 of r_track since only 1 joint is actuated and the rest are proxies; weights are a judgment, not fitted"
+  },
+  "timing_tolerance_s": 0.06,
+  "wrist_command_lead": "docs/WRIST_PD_LAG.md recommends leading the TRAIL wrist command by ~0.06 s (probe: lag ~0.12 rad at impact -> +0.003 at lead 0.06; sim only, v3 fs2). It was measured for right_wrist only. The lead shoulder pitch PD lag was NOT measured; consider the same lead as a hypothesis (UNVERIFIED) and measure with data/wrist_pd_lag_probe.py-style step test before adopting. Score angles at the applied-target time, not the post-step command (20 ms offset)."
+ },
+ "caveats": [
+  "Aggregates over 7-8 clips, mostly down-the-line; view-dependent 2-D proxies.",
+  "impact keyframe has n=7 (one clip had no valid rows).",
+  "Lead elbow/roll are passive in the env, so the policy cannot directly control them; reward on them is only achievable via the grip coupling or body motion.",
+  "Instagram-derived: third-party content in source recordings never reviewed."
+ ]
+}
