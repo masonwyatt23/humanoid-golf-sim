@@ -18,7 +18,7 @@ from env.v5_ref import SwingRef
 EXTRA = 4
 
 class JEnv(HEnv):
-    res_scale = 1.0; track_w = 1.0; bs_floor = 1.0; xf_cap_w = 0.02; ord_w = 1.5; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
+    res_scale = 1.0; track_w = 1.0; bs_floor = 1.0; xf_cap_w = 0.08; xf_cap_lo = 60.0; ord_w = 1.5; track_floor = 0.3; grf_w = 0.15; ctr_w = 2.0; spin_w = 1.0; _cprev = False; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
     def __init__(self, dt=0.002, seed=0, keys=None, res_scale=1.0, t_down=0.27):
         super().__init__(dt=dt, seed=seed, planar=False); self.ref_keys = keys; self.res_scale = res_scale; self.t_down = t_down; self.ref = None
         self.target_len = 1.15; self.target_tether = 0.0; self.prior_w = 0.0; self.env.friction_rand = False; self.rng2 = np.random.default_rng(seed + 12345)
@@ -40,16 +40,20 @@ class JEnv(HEnv):
             if term or tr or e.contact or e.foul: ok = False; break
         if not ok:
             out = super().reset(**kw); e.q_addr = self.home.copy(); self.mode = 0
-        e.q_addr = r.q(e.d.time); self.nstep = 6; self.trk_sum = 0.0; self.trk_n = 0; self.prev_a = None
+        e.q_addr = r.q(e.d.time); self.nstep = 6; self.trk_sum = 0.0; self.trk_n = 0; self._cprev = False; self.prev_a = None
         return self._xobs(e._obs()), {}
     def step(self, a):
         e = self.env; r = self.ref; e.q_addr = r.q(e.d.time); e.act_scale[:] = 0.2 * self.res_scale
         o, rew, term, trunc, info = super().step(a)
         err = e.d.qpos[e.qa] - r.q(e.d.time); rmse = float(np.sqrt(np.mean(err ** 2))); self.trk_sum += rmse; self.trk_n += 1
-        t_ = e.d.time; tw = max(self.track_w, self.bs_floor) if t_ < r.t_dstart else self.track_w   # backswing/hold tracking floor (Stage J v3): full-swing episodes lost the backswing once tracking annealed to 0
+        t_ = e.d.time; tw = max(self.track_w, self.bs_floor) if t_ < r.t_dstart else max(self.track_w, self.track_floor)   # backswing/hold tracking floor (Stage J v3): full-swing episodes lost the backswing once tracking annealed to 0
         rew += 0.1 * tw * float(np.exp(-(rmse / 0.25) ** 2))
         if e.armed and not e.contact:   # X-factor cap: 82-112 deg seen in det evals; kseq-v2/public target 40-65
-            xf = abs(float(e.log["xfactor_deg"][-1])) if len(e.log["xfactor_deg"]) else 0.0; rew -= self.xf_cap_w * float(np.clip((xf - 65.0) / 20.0, 0.0, 2.0))
+            xf = abs(float(e.log["xfactor_deg"][-1])) if len(e.log["xfactor_deg"]) else 0.0; rew -= self.xf_cap_w * float(np.clip((xf - self.xf_cap_lo) / 20.0, 0.0, 2.0))
+        rew -= self.grf_w * float(np.clip(self.prev_lead - 2.0, 0.0, 4.0))   # extra lead-foot impulse penalty (harness measured 3.4-3.9 BW vs 0.8-1.7)
+        if e.contact and not self._cprev and not info.get('ep', {}).get('unstable'):   # centred strike + spin cap
+            q_ = max(0.0, 1 - np.hypot(info['dy'], info['dz']) / self.hit_tol); rew += self.ctr_w * q_ - self.spin_w * float(np.clip((info.get('spin_rpm', 0.0) - 3000.0) / 2000.0, 0.0, 1.0))
+        self._cprev = bool(e.contact)
         if "ep" in info and info["ep"].get("contact"): rew += self.ord_w * float(info["ep"].get("seq", 0.0))   # extra pelvis->thorax->arm->club order credit on real strikes
         if "ep" in info: info["ep"].update(track_rmse=self.trk_sum / max(self.trk_n, 1), mode=self.mode)
         e.q_addr = r.q(e.d.time)
@@ -105,7 +109,7 @@ if __name__ == "__main__":
     ap.add_argument("--res_scale", type=float, default=1.0); ap.add_argument("--t_down", type=float, default=0.27); ap.add_argument("--T0", type=float, default=30.0)
     ap.add_argument("--track_hold", type=int, default=400_000); ap.add_argument("--track_len", type=int, default=1_200_000); ap.add_argument("--track_end", type=float, default=0.2)
     ap.add_argument("--ent", type=float, default=0.003); ap.add_argument("--log_std", type=float, default=-1.0); ap.add_argument("--log_std_end", type=float, default=-1.6); ap.add_argument("--std_end", type=float, default=0.7)
-    ap.add_argument("--rate_w", type=float, default=0.05); ap.add_argument("--resume", action="store_true"); ap.add_argument("--reset_stall", action="store_true")
+    ap.add_argument("--rate_w", type=float, default=0.05); ap.add_argument("--resume", action="store_true"); ap.add_argument("--reset_stall", action="store_true"); ap.add_argument("--init_ck", default=None)
     a = ap.parse_args()
     keys = {tuple(k.split("|")): v for k, v in json.load(open(a.keys)).items()} if a.keys and a.keys != "none" else None
     out = f"results/v5_runs/{a.tag}_s{a.seed}"; os.makedirs(out, exist_ok=True)
@@ -117,6 +121,9 @@ if __name__ == "__main__":
         venv = VecNormalize(venv, norm_obs=True, norm_reward=True, clip_obs=10.0)
         model = PPO("MlpPolicy", venv, n_steps=1024, batch_size=512, n_epochs=8, learning_rate=3e-4, gamma=0.99, gae_lambda=0.95, ent_coef=a.ent, seed=a.seed,
                     policy_kwargs=dict(net_arch=[256, 256], log_std_init=a.log_std), device="cpu", verbose=0)
+    if a.init_ck and not ck:
+        src = PPO.load(a.init_ck + ".zip", device="cpu"); model.policy.load_state_dict(src.policy.state_dict()); model.policy.log_std.data.fill_(a.log_std)
+        old = VecNormalize.load(a.init_ck + "_vecnorm.pkl", venv); venv.obs_rms = old.obs_rms
     json.dump(vars(a), open(os.path.join(out, "args.json"), "w"))
     cb = CurrJ(a.steps, out, 10**12, a.tag); cb.base = 0; cb.total_all = a.steps; cb.stop = False; cb.planar = False; cb.act_end, cb.prior_w, cb.rate_w = 1.0, 0.0, a.rate_w; cb.h_every = 100_000; cb.h_last = step0
     cb.keys, cb.res_scale, cb.t_down = keys, a.res_scale, a.t_down; cb.track_hold, cb.track_len, cb.track_end = a.track_hold, a.track_len, a.track_end
