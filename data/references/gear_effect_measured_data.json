@@ -1,0 +1,88 @@
+{
+ "label": "Public measured off-centre driver data used for the golfphys gear-effect/bulge validation. Every row is transcribed from the cited page; 'read' says how: fetched_text = page text read in full, fetched_image = numbers read off a table image downloaded from the page, snippet = search-result excerpt only (not opened). Nothing here is Mason/Instagram data.",
+ "retrieved": "2026-10-17 (America/New_York)",
+ "datasets": {
+  "hotstix_2009": {
+   "what": "Hot Stix robot, one 460 cc 9.5 deg driver (unnamed), 100 mph clubhead speed, tee height varied so impact moves up/down the face. Vertical offset only, centre horizontally.",
+   "origin": "Golf Magazine Feb 2009 (not seen); numbers via Tutelman (launch, spin, distance) and Keiser Univ. College of Golf (spin, distance)",
+   "urls": ["https://tutelman.com/golf/ballflight/gearEffect2.php", "https://collegeofgolf.keiseruniversity.edu/maxing-driver-distance/"],
+   "read": "fetched_text (both pages)",
+   "club_speed_mph": 100,
+   "rows": [
+    {"H_in": -0.5, "launch_deg": 4.3, "backspin_rpm": 3165, "distance_yd": 243},
+    {"H_in": -0.25, "launch_deg": 5.3, "backspin_rpm": 2971, "distance_yd": 247},
+    {"H_in": 0.0, "launch_deg": 6.8, "backspin_rpm": 2564, "distance_yd": 254},
+    {"H_in": 0.25, "launch_deg": 8.4, "backspin_rpm": 2098, "distance_yd": 260},
+    {"H_in": 0.5, "launch_deg": 9.4, "backspin_rpm": 1862, "distance_yd": 264}
+   ],
+   "caveats": "Distance is presumably total (Tutelman's assumption). H is tee-height-derived offset from face centre, +/- accuracy not stated. Ball speed, AoA, dynamic loft not published. Robot data, one head."
+  },
+  "mygolfspy_2016_vertical": {
+   "what": "MyGolfSpy Most Wanted Driver test 2016: ~5700 shots, 20 golfers x 25 drivers, Foresight GC2 + HMT (HMT gives impact location). Bins: centre = within +/-4.5 mm of face centre; high / low = beyond. Mean offsets of the high/low bins are NOT published.",
+   "url": "https://mygolfspy.com/labs/mygolfspy-labs-the-impact-location-study/",
+   "table_images": ["https://uploads.mygolfspy.com/uploads/2016/09/MGS-IMPACT-STUDY-ALL-SWING-SPEEDS-1b.png", "https://uploads.mygolfspy.com/uploads/2016/09/MGS-IMPACT-STUDY-ABOVE-100-MPH-1b.png", "https://uploads.mygolfspy.com/uploads/2016/09/MGS-IMPACT-STUDY-BELOW-100-MPH-1b.png"],
+   "read": "fetched_text (page prose) + fetched_image (tables read visually)",
+   "groups": {
+    "all": {"center": {"chs": 102.95, "ball": 145.66, "launch": 13.88, "backspin": 2658, "total_yd": 259.92, "aoa": 3.19, "dyn_loft": 18.99},
+            "high": {"chs": 101.06, "ball": 139.64, "launch": 15.13, "backspin": 2177, "total_yd": 252.85, "aoa": 2.09, "dyn_loft": 17.13},
+            "low": {"chs": 101.72, "ball": 142.93, "launch": 12.48, "backspin": 3090, "total_yd": 247.15, "aoa": 3.61, "dyn_loft": 20.17}},
+    "over100": {"center": {"chs": 110.06, "ball": 155.56, "launch": 13.63, "backspin": 2771, "total_yd": 281.08, "aoa": 3.17, "dyn_loft": 18.64},
+                "high": {"chs": 109.45, "ball": 151.09, "launch": 14.95, "backspin": 2263, "total_yd": 280.4, "aoa": 2.56, "dyn_loft": 17.27},
+                "low": {"chs": 110.28, "ball": 154.64, "launch": 11.81, "backspin": 3193, "total_yd": 270.40, "aoa": 3.17, "dyn_loft": 19.21}},
+    "under100": {"center": {"chs": 91.78, "ball": 130.33, "launch": 14.26, "backspin": 2482, "total_yd": 207.09, "aoa": 3.21, "dyn_loft": 19.53},
+                 "high": {"chs": 90.68, "ball": 125.47, "launch": 15.35, "backspin": 2070, "total_yd": 197.44, "aoa": 1.51, "dyn_loft": 16.96},
+                 "low": {"chs": 91.75, "ball": 129.29, "launch": 13.26, "backspin": 2970, "total_yd": 201.18, "aoa": 4.12, "dyn_loft": 19.05}}
+   },
+   "caveats": "Player-hit shots: bins are confounded with swing speed, attack angle and tester. Reported 'dynamic loft' moves OPPOSITE to launch (high face: DL -1.9 deg, launch +1.25 deg), so it is not the impact-location loft TrackMan defines; do not use it as a model input without care. Amateurs (CHS 91-110 mph)."
+  },
+  "mygolfspy_2016_horizontal": {
+   "what": "Same 2016 dataset, heel/toe bins (centre +/-4.5 mm). Axis tilt: Foresight sign, negative = left-tilted axis (draw for a right-hander). Side angle + = right of target. Mean offsets of heel/toe bins NOT published.",
+   "url": "https://mygolfspy.com/labs/mgs-labs-horizontal-impact-study/",
+   "table_images": ["https://uploads.mygolfspy.com/uploads/2016/10/HORIZONTAL-IMPACT-STUDY-ALL-c.png", "https://uploads.mygolfspy.com/uploads/2016/10/Horizontal-Impact-ABOVE-100-MPH.png", "https://uploads.mygolfspy.com/uploads/2016/10/HORIZONTAL-IMPACT-STUDY-BELOW100-d.png"],
+   "read": "fetched_text (page prose) + fetched_image (tables read visually)",
+   "groups": {
+    "all": {"center": {"chs": 103.31, "aoa": 3.01, "dyn_loft": 18.69, "ball": 145.95, "launch": 13.86, "side": 2.63, "axis_tilt": -4.82, "spin": 2718, "carry_yd": 240.41, "total_yd": 260.85},
+            "heel": {"chs": 98.65, "aoa": 2.65, "dyn_loft": 18.94, "ball": 139.15, "launch": 13.07, "side": 0.84, "axis_tilt": 0.11, "spin": 2715, "carry_yd": 222.58, "total_yd": 242.75},
+            "toe": {"chs": 102.70, "aoa": 2.69, "dyn_loft": 18.42, "ball": 142.51, "launch": 14.48, "side": 3.64, "axis_tilt": -9.98, "spin": 2589, "carry_yd": 234.13, "total_yd": 255.23}},
+    "over100": {"center": {"chs": 109.88, "aoa": 3.09, "dyn_loft": 18.55, "ball": 154.83, "launch": 13.73, "side": 3.10, "axis_tilt": -5.78, "spin": 2823, "carry_yd": 259.75, "total_yd": 279.75},
+                "heel": {"chs": 107.81, "aoa": 3.33, "dyn_loft": 19.32, "ball": 151.62, "launch": 13.36, "side": 1.37, "axis_tilt": -2.37, "spin": 2902, "carry_yd": 251.64, "total_yd": 272.12},
+                "toe": {"chs": 110.96, "aoa": 2.69, "dyn_loft": 17.64, "ball": 153.94, "launch": 13.71, "side": 4.38, "axis_tilt": -9.80, "spin": 2647, "carry_yd": 258.02, "total_yd": 279.82}},
+    "under100": {"center": {"chs": 91.51, "aoa": 2.86, "dyn_loft": 18.94, "ball": 129.98, "launch": 14.07, "side": 1.78, "axis_tilt": -3.07, "spin": 2529, "carry_yd": 206.31, "total_yd": 226.86},
+                 "heel": {"chs": 89.06, "aoa": 1.93, "dyn_loft": 18.55, "ball": 126.10, "launch": 12.78, "side": 0.27, "axis_tilt": 2.70, "spin": 2592, "carry_yd": 192.15, "total_yd": 211.99},
+                 "toe": {"chs": 92.53, "aoa": 3.30, "dyn_loft": 19.39, "ball": 128.44, "launch": 15.42, "side": 2.72, "axis_tilt": -10.21, "spin": 2518, "carry_yd": 204.71, "total_yd": 224.95}}
+   },
+   "caveats": "Same confounds as the vertical study. Toe hits are usually also high on the face and heel hits low (MyGolfSpy says so), so launch/spin deltas mix horizontal and vertical effects. Heel bin has lower CHS because the HMT/GC2 club speed is measured at the face centre and heel strikes are slower swings (or the tester moves); heel smash equals centre smash, toe smash is 1.8% lower."
+  },
+  "golfdigest_robot_2026": {
+   "what": "Golf Digest / Golf Laboratories swing robot, 95 mph, square face/path, neutral AoA, Titleist Pro V1; March 2026 article: six mishit spots 0.75 in toe/heel x (low, middle, high); June 2026 article: 47 drivers x 9 zones x 6 shots (offsets not stated in that article). Carry yards. Field-average numbers only (per-head charts are images, not read).",
+   "urls": ["https://www.golfdigest.com/story/drivers-2026-robotic-testing-data-gear-questions", "https://www.golfdigest.com/story/driver-analysis-robot-testing-mishit-locations"],
+   "read": "fetched_text (both articles; charts not read)",
+   "numbers": {"mid_center_carry_avg_yd": 224.5, "low_heel_carry_avg_yd": 204.3, "high_face_zones_avg_yd": 217.6, "low_face_zones_avg_yd": 210.5,
+               "heel_penalty_typical_yd": [12, 15], "toe_penalty_top10_heads_yd_max": 5.1, "toe_vs_heel_same_height_yd": [6, 7], "low_heel_penalty_worst_heads_yd": [25, 35]},
+   "caveats": "47 modern heads with very different MOI/CG (draw-bias, low-spin). Toe 'about 5 yd' is stated for the top-10 toe performers only, not the field. Article says toe gives 'right-tilting sidespin' which contradicts MyGolfSpy/Tutelman (draw for a right-hander); treated as an editorial slip, not used."
+  },
+  "trackman_blog_2017": {
+   "what": "TrackMan definition note: for standard drivers a 10 mm impact toward the toe makes face angle ~2 deg more open at the impact location than at face centre; 10 mm low makes dynamic loft ~2 deg lower.",
+   "url": "https://www.trackman.com/blog/club-data-definitions", "read": "fetched_text",
+   "toe_10mm_face_open_deg": 2.0, "low_10mm_loft_deg": -2.0,
+   "caveats": "Stated as approximate, 'standard drivers'; not a measured data set."
+  },
+  "trackman_fundamentals": {
+   "what": "TrackMan '10 fundamentals' pdf: 92 mph club speed off-centre -> 129 mph ball, 196 yd carry; 88 mph centre -> 132 mph ball, 204 yd.",
+   "url": "https://www.troxhammargk.se/media/t4dn2xcy/trackman-s-10-fundamentals.pdf", "read": "snippet",
+   "pairs": [{"chs": 92, "ball": 129, "carry_yd": 196, "impact": "off-centre (offset unstated)"}, {"chs": 88, "ball": 132, "carry_yd": 204, "impact": "centre"}]
+  },
+  "upshaw_via_tutelman": {
+   "what": "Dana Upshaw launch-monitor data as quoted by Tutelman: ~3300 rpm spin difference for a 1.5 in height difference at ~140 mph ball speed.",
+   "url": "https://tutelman.com/golf/ballflight/gearEffect2.php", "read": "fetched_text (secondary quote, primary not seen)",
+   "spin_diff_rpm": 3300, "height_diff_in": 1.5, "ball_speed_mph": 140
+  },
+  "not_numeric_or_not_retrieved": {
+   "RA_USGA_R22_07": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf - mechanical golfer, 115 mph, vertical offsets only; fetched via WebFetch text but ball speed/spin/launch/carry are in figures (no table); the only numbers in text: centre 167 mph / 10.5 deg / ~3000 rpm, max ball speed ~2 mm above geometric centre. The PDF itself returned Access Denied to curl, so the figures could not be digitised. Not used.",
+   "tutelman_horizontal_table": "Tutelman appendix 'App 2' horizontal gear-effect table is MODEL output (TrajectoWare + his equation), not measurements; golfphys's 16.4 coefficient comes from that model, so it is circular and excluded.",
+   "Penner_2001_AJP": "model paper (convex face angle effect vs gear effect); abstract via search only; no measurements. For a 2 cm offset the model gives optimum radius 21.5 cm, no-sidespin threshold 14.1 cm (snippet). Not used as data.",
+   "Cross_2021_EJP": "Experimental study of the gear effect (ball-on-pendulum style, tangential restitution of two ball types); abstract via search only; no driver launch-monitor numbers retrieved.",
+   "Cochran_Stobbs_1968": "book; not accessible; only through Tutelman secondary descriptions."
+  }
+ }
+}

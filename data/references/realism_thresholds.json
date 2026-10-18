@@ -1,0 +1,568 @@
+{
+ "label": "Thresholds for realism/ (check_swing_realism, check_shot_realism). Every entry: value, source, tag. Tags: published (value printed in a source), derived (computed from published numbers), assumption (my choice, no source), extrapolated (outside every published population), model (golfphys output, not a measurement). No Mason / Instagram data.",
+ "generated": "2026-10-17 America/New_York",
+ "upstream": {
+  "kseq": "branch kseq-reference b78e5eb data/references/kinematic_sequence_torque_reference.json",
+  "launch_limits": "data/references/launch_targets_120_132_limits.json (golfphys branch ancestry)",
+  "golfphys": "branch golfphys 0c2bca2"
+ },
+ "measured_chs_range_mph": {
+  "value": [
+   88,
+   109
+  ],
+  "source": "Cheetham 2008 amateur 88 / pro 109 mph (Parker 103, Myers n/a)",
+  "tag": "published",
+  "note": "inside this range segment peaks are interpolated between measured groups; outside it they are extrapolated"
+ },
+ "sequence": {
+  "order": {
+   "value": [
+    "pelvis",
+    "thorax",
+    "arm",
+    "club"
+   ],
+   "source": "Cheetham 2008 (pros), Parker 2018, Tinmark 2007 (n=47)",
+   "tag": "published",
+   "note": "proximal-to-distal peak speed order"
+  },
+  "lead_before_club_peak_ms_pro": {
+   "value": {
+    "pelvis": 87,
+    "thorax": 68,
+    "arm": 65,
+    "club": 0
+   },
+   "source": "Cheetham 2008 Table (pros)",
+   "tag": "published",
+   "note": ""
+  },
+  "lead_before_club_peak_ms_amateur": {
+   "value": {
+    "pelvis": 78,
+    "thorax": 59,
+    "arm": 64,
+    "club": 0
+   },
+   "source": "Cheetham 2008 (amateurs; thorax/arm order swapped on average)",
+   "tag": "published",
+   "note": ""
+  },
+  "lead_band_ms_warn": {
+   "value": {
+    "pelvis": [
+     40,
+     140
+    ],
+    "thorax": [
+     25,
+     110
+    ],
+    "arm": [
+     15,
+     110
+    ]
+   },
+   "source": "derived: roughly +/-50 % around the Cheetham means",
+   "tag": "assumption",
+   "note": "warn outside; sim control rate 50 Hz gives only 20 ms resolution"
+  },
+  "tie_tolerance_ms": {
+   "value": 20,
+   "source": "env control dt = 0.02 s (docs/EVAL_PROTOCOL / env substeps)",
+   "tag": "assumption",
+   "note": "peaks closer than this are treated as simultaneous (warn, not fail)"
+  },
+  "swap_warn_ms": {
+   "value": 30,
+   "source": "Cheetham amateurs: arm/thorax order swapped by 5 ms on average",
+   "tag": "derived",
+   "note": "thorax/arm swapped by <= this: warn"
+  }
+ },
+ "peak_speed": {
+  "rows_by_chs": {
+   "value": [
+    {
+     "chs_mph": 90,
+     "segment_peak_deg_s": {
+      "pelvis": 402.9,
+      "thorax": 596.7,
+      "lead_arm": 783.3,
+      "club": 1833.9
+     },
+     "tag": "extrapolated",
+     "grip_torque_Nm": 20.6
+    },
+    {
+     "chs_mph": 100,
+     "segment_peak_deg_s": {
+      "pelvis": 442.1,
+      "thorax": 665.2,
+      "lead_arm": 886.0,
+      "club": 2054.2
+     },
+     "tag": "interpolated",
+     "grip_torque_Nm": 28.8
+    },
+    {
+     "chs_mph": 110,
+     "segment_peak_deg_s": {
+      "pelvis": 480.9,
+      "thorax": 733.9,
+      "lead_arm": 990.5,
+      "club": 2276.3
+     },
+     "tag": "interpolated",
+     "grip_torque_Nm": 36.9
+    },
+    {
+     "chs_mph": 120,
+     "segment_peak_deg_s": {
+      "pelvis": 519.2,
+      "thorax": 802.8,
+      "lead_arm": 1096.6,
+      "club": 2499.9
+     },
+     "tag": "extrapolated",
+     "grip_torque_Nm": 45.1
+    },
+    {
+     "chs_mph": 132,
+     "segment_peak_deg_s": {
+      "pelvis": 564.7,
+      "thorax": 885.7,
+      "lead_arm": 1225.9,
+      "club": 2770.2
+     },
+     "tag": "extrapolated",
+     "grip_torque_Nm": 54.9
+    }
+   ],
+   "source": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
+   "tag": "derived",
+   "note": "rows tagged extrapolated at 90, 120, 132 mph; 100 and 110 are between measured groups"
+  },
+  "pass_ratio": {
+   "value": [
+    0.7,
+    1.3
+   ],
+   "source": "published spread: pelvis 358-519 deg/s across studies (Cheetham/Parker/Myers), Parker SD 10-16 %; definitions (resultant vs yaw) differ",
+   "tag": "assumption",
+   "note": ""
+  },
+  "warn_ratio": {
+   "value": [
+    0.5,
+    1.7
+   ],
+   "source": "same",
+   "tag": "assumption",
+   "note": "outside warn_ratio = fail"
+  }
+ },
+ "x_factor": {
+  "top_of_backswing_deg": {
+   "value": {
+    "pass": [
+     40,
+     65
+    ],
+    "warn": [
+     28,
+     80
+    ],
+    "fail_outside": [
+     20,
+     90
+    ]
+   },
+   "source": "Parker 54.9+-7.9 (elite), Myers 44.2/49.5/59.1, Hume review 24-38 (long vs short hitters), Burden 70; kseq doc recommends 45-62",
+   "tag": "derived",
+   "note": "method dependent (joint-coordinate vs sensor)"
+  },
+  "stretch_deg": {
+   "value": "not checked",
+   "source": "Parker 2.9+-3.4; joint-coordinate studies 1-3 deg; Cheetham sensor method ~10+ deg",
+   "tag": "published",
+   "note": "small stretch must not be penalised (kseq recommendation 3)"
+  }
+ },
+ "actuators": {
+  "g1_tiers_tau_Nm_w_rad_s": {
+   "value": {
+    "stock": {
+     "pelvis_yaw": [
+      176,
+      32
+     ],
+     "waist_yaw": [
+      88,
+      32
+     ],
+     "waist_roll_pitch": [
+      50,
+      32
+     ],
+     "shoulder_axis": [
+      25,
+      37
+     ],
+     "elbow": [
+      25,
+      37
+     ],
+     "wrist_roll": [
+      25,
+      37
+     ],
+     "wrist_pitch_yaw": [
+      5,
+      22
+     ]
+    },
+    "elite": {
+     "pelvis_yaw": [
+      500,
+      45
+     ],
+     "waist_yaw": [
+      250,
+      45
+     ],
+     "waist_roll_pitch": [
+      250,
+      45
+     ],
+     "shoulder_axis": [
+      75,
+      55
+     ],
+     "elbow": [
+      75,
+      55
+     ],
+     "wrist_roll": [
+      30,
+      55
+     ],
+     "wrist_pitch_yaw": [
+      30,
+      55
+     ]
+    }
+   },
+   "source": "env/g1_golf_env.py tier table, read by kseq-reference",
+   "tag": "published",
+   "note": "stock = Unitree G1 rated; elite = HYPOTHETICAL"
+  },
+  "joint_to_limit_key": {
+   "value": {
+    "pelvis_yaw": "pelvis_yaw",
+    "waist_yaw_joint": "waist_yaw",
+    "waist_roll_joint": "waist_roll_pitch",
+    "waist_pitch_joint": "waist_roll_pitch",
+    "shoulder_pitch_joint": "shoulder_axis",
+    "shoulder_roll_joint": "shoulder_axis",
+    "shoulder_yaw_joint": "shoulder_axis",
+    "elbow_joint": "elbow",
+    "wrist_roll_joint": "wrist_roll",
+    "wrist_pitch_joint": "wrist_pitch_yaw",
+    "wrist_yaw_joint": "wrist_pitch_yaw"
+   },
+   "source": "env/g1_golf_env.py",
+   "tag": "published",
+   "note": "matched by suffix after left_/right_"
+  },
+  "torque_overshoot_fail_ratio": {
+   "value": 1.01,
+   "source": "env derates torque linearly to 0 at rated speed; exceeding the peak is a simulation/clipping bug",
+   "tag": "assumption",
+   "note": ""
+  },
+  "derate_overshoot_warn_ratio": {
+   "value": 1.05,
+   "source": "tau_avail = tau_max * (1 - |w|/w_rated)",
+   "tag": "assumption",
+   "note": ""
+  },
+  "feasibility_ratio_avg_by_tier_chs": {
+   "value": {
+    "stock": {
+     "100": {
+      "hips": 0.888,
+      "spine": 2.599,
+      "spine_all_axes": 1.217,
+      "shoulders": 0.256,
+      "elbows": 0.946,
+      "wrists": 0.465,
+      "wrists_pitch_only": 4.837
+     },
+     "120": {
+      "hips": 1.414,
+      "spine": 4.139,
+      "spine_all_axes": 1.937,
+      "shoulders": 0.407,
+      "elbows": 1.506,
+      "wrists": 0.74,
+      "wrists_pitch_only": 7.703
+     },
+     "132": {
+      "hips": 1.804,
+      "spine": 5.279,
+      "spine_all_axes": 2.471,
+      "shoulders": 0.519,
+      "elbows": 1.921,
+      "wrists": 0.944,
+      "wrists_pitch_only": 9.824
+     }
+    },
+    "elite": {
+     "100": {
+      "hips": 0.222,
+      "spine": 0.651,
+      "spine_all_axes": 0.217,
+      "shoulders": 0.057,
+      "elbows": 0.212,
+      "wrists": 0.107,
+      "wrists_pitch_only": 0.322
+     },
+     "120": {
+      "hips": 0.354,
+      "spine": 1.036,
+      "spine_all_axes": 0.345,
+      "shoulders": 0.091,
+      "elbows": 0.338,
+      "wrists": 0.171,
+      "wrists_pitch_only": 0.514
+     },
+     "132": {
+      "hips": 0.451,
+      "spine": 1.321,
+      "spine_all_axes": 0.44,
+      "shoulders": 0.116,
+      "elbows": 0.431,
+      "wrists": 0.218,
+      "wrists_pitch_only": 0.655
+     }
+    }
+   },
+   "source": "kseq-reference feasibility_g1_env (required avg power from Nesbit work scaled to CHS / 0.23 s over max available tau*w/4); groups hips, spine, spine_all_axes, shoulders, elbows, wrists, wrists_pitch_only",
+   "tag": "derived",
+   "note": "120/132 rows extrapolated; > 1 means infeasible on average, peak need ~2.5x average"
+  },
+  "feasibility_warn_fail_ratio": {
+   "value": [
+    1.0,
+    2.0
+   ],
+   "source": "kseq: ratio_avg > 1 infeasible; est. peak 2.5x",
+   "tag": "assumption",
+   "note": ""
+  },
+  "human_wrist_torque_cap_Nm": {
+   "value": 60,
+   "source": "Sprigings & Neal 2000 simulation limit (search summary only, unverified)",
+   "tag": "published",
+   "note": "S-tag in kseq doc; warn only"
+  }
+ },
+ "power_budget": {
+  "pelvis_yaw_avg_torque_Nm_downswing": {
+   "value": {
+    "pass": [
+     100,
+     350
+    ],
+    "warn": [
+     50,
+     500
+    ]
+   },
+   "source": "derived in kseq doc section 5: 150-300 N*m average at 100-116 mph (Barrentine/Hume shear couple + Nesbit hip work 423 J)",
+   "tag": "derived",
+   "note": "neither is a measured peak"
+  },
+  "downswing_window_s": {
+   "value": 0.23,
+   "source": "Nesbit/Hume elite downswing, held constant",
+   "tag": "assumption",
+   "note": ""
+  },
+  "grip_torque_Nm_by_chs": {
+   "value": [
+    [
+     90,
+     20.6
+    ],
+    [
+     100,
+     28.8
+    ],
+    [
+     110,
+     36.9
+    ],
+    [
+     120,
+     45.1
+    ],
+    [
+     132,
+     54.9
+    ]
+   ],
+   "source": "Nesbit 2005 linear fit through 4 swings, extrapolated >116 mph",
+   "tag": "derived",
+   "note": ""
+  },
+  "grip_torque_pass_ratio": {
+   "value": [
+    0.6,
+    1.6
+   ],
+   "source": "n=84 Nesbit 22-40 N*m about the fit; wide for definition differences",
+   "tag": "assumption",
+   "note": ""
+  }
+ },
+ "grf": {
+  "lead_vertical_bw": {
+   "value": {
+    "pass": [
+     0.8,
+     1.7
+    ],
+    "warn": [
+     0.5,
+     2.4
+    ],
+    "fail_outside": [
+     -0.02,
+     3.0
+    ]
+   },
+   "source": "Worsfold 2007 front 0.84; Han 2019 1.12+-0.22 (S); Hirano 2023 1.51; Hume review 1.6-2.0 (per foot or summed unclear); studies differ ~2x",
+   "tag": "derived",
+   "note": "no GRF target is defensible; this only catches non-physical traces (pulling down on the ground, > 3 BW)"
+  }
+ },
+ "shot": {
+  "smash_driver": {
+   "value": {
+    "fail_above": 1.5,
+    "warn_above": 1.49,
+    "warn_below": 1.3
+   },
+   "source": "launch_targets_120_132_limits.json gate_recommendation (TrackMan smash blog, R&A WLD, PGA Tour pdf)",
+   "tag": "published",
+   "note": "1.50 is a COR/mass ceiling; Burke 141 mph ~1.50 single shot"
+  },
+  "spin_rpm_driver": {
+   "value": {
+    "pass": [
+     1800,
+     3000
+    ],
+    "warn": [
+     1200,
+     4000
+    ],
+    "fail_outside": [
+     1200,
+     4000
+    ],
+    "note": "warn bands 1200-1800 and 3000-4000 per gate_recommendation (1500-1800/3000-3500 explicitly; the gap is warn)"
+   },
+   "source": "launch_targets_120_132_limits.json gate_recommendation",
+   "tag": "derived",
+   "note": "driver at 120-132 mph; tour average 2545-2686, WLD 2789"
+  },
+  "launch_deg_driver": {
+   "value": {
+    "pass": [
+     7.0,
+     16.0
+    ],
+    "warn": [
+     4.0,
+     20.0
+    ],
+    "fail_outside": [
+     2.0,
+     25.0
+    ]
+   },
+   "source": "TrackMan optimizer 7.8-9.3 at AoA 0 (120-132 mph), Foresight window 10-14, WLD 11.2, tour 10.4-11.2",
+   "tag": "derived",
+   "note": ""
+  },
+  "descent_deg_driver": {
+   "value": {
+    "pass": [
+     30,
+     48
+    ],
+    "warn": [
+     25,
+     55
+    ],
+    "fail_outside": [
+     18,
+     60
+    ]
+   },
+   "source": "tour 36-39 (snippet, roll_aoa_validation descent anchors); golfphys gives 33-50 over normal launch/spin",
+   "tag": "derived",
+   "note": ""
+  },
+  "total_over_carry": {
+   "value": {
+    "pass": [
+     1.04,
+     1.25
+    ],
+    "warn": [
+     0.99,
+     1.35
+    ],
+    "fail_outside": [
+     0.99,
+     1.45
+    ]
+   },
+   "source": "roll_aoa_validation (normal turf 1.07-1.13, firm ~1.2); TrackMan total optimizer 1.17-1.22",
+   "tag": "derived",
+   "note": "total < carry is impossible; 1% slack for averaged gate rows (env has no roll: ratio ~1.00 warns)"
+  },
+  "golfphys_carry_residual_yd": {
+   "value": {
+    "pass": 15,
+    "warn": 35
+   },
+   "source": "golfphys vs TrackMan chart within ~3 yd (consistency only); vs Foresight 14-33 yd lower at 120-145 mph (unresolved vendor disagreement)",
+   "tag": "model",
+   "note": "residual = reported carry - golfphys carry from reported ball speed/launch/spin"
+  },
+  "spin_axis_abs_deg": {
+   "value": {
+    "warn": 10,
+    "fail": 30
+   },
+   "source": "stock scatter spec; MyGolfSpy centre-bin axis tilt -3..-6 deg",
+   "tag": "assumption",
+   "note": "only when the shot dict carries spin_axis_deg"
+  },
+  "club_speed_range_mph": {
+   "value": [
+    60,
+    150
+   ],
+   "source": "R&A WLD 145 mph, record ball speed 241.6 mph (Berkshire) -> club speed ~165 mph; sim below 60 mph is not a driver swing",
+   "tag": "assumption",
+   "note": "warn outside"
+  }
+ }
+}

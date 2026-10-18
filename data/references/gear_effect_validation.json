@@ -1,0 +1,1234 @@
+{
+ "generated": "2026-10-17",
+ "mygolfspy_vertical_with_hotstix_fit": {
+  "all": {
+   "centre_dyn_loft_used": 16.01964901006226,
+   "centre_model": {
+    "ball": 151.45486748985465,
+    "backspin": 2826.585253784031,
+    "launch": 13.88,
+    "smash": 1.4711497570651253
+   },
+   "centre_meas": {
+    "ball": 145.66,
+    "backspin": 2658,
+    "launch": 13.88,
+    "smash": 1.4148615832928606
+   },
+   "high": {
+    "meas": {
+     "d_launch": 1.25,
+     "d_spin": -481,
+     "d_smash": -0.033108169479284744,
+     "d_ball": -6.02000000000001
+    },
+    "implied_offset_mm": {
+     "d_launch": 7,
+     "d_spin": 12
+    },
+    "model_at_implied": {
+     "d_launch": 1.262110685816749,
+     "d_spin": -464.59647221291107
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": 1.467243915854155,
+     "d_spin": -257.41113936201737,
+     "d_smash": -0.02676243641044751
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": 2.280649657710386,
+     "d_spin": -464.59647221291107,
+     "d_smash": -0.04252643267140255
+    }
+   },
+   "low": {
+    "meas": {
+     "d_launch": -1.4000000000000004,
+     "d_spin": 432,
+     "d_smash": -0.009729849120623024,
+     "d_ball": -2.7299999999999898
+    },
+    "implied_offset_mm": {
+     "d_launch": 7,
+     "d_spin": 10
+    },
+    "model_at_implied": {
+     "d_launch": -1.4043525168628612,
+     "d_spin": 443.3992058581143
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": -1.6162735086593578,
+     "d_spin": 331.25164321328066,
+     "d_smash": 0.005542666269793717
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": -2.4652383751143567,
+     "d_spin": 554.0762745413531,
+     "d_smash": 0.0012149510411134656
+    }
+   }
+  },
+  "over100": {
+   "centre_dyn_loft_used": 15.721824927560002,
+   "centre_model": {
+    "ball": 162.08664106730984,
+    "backspin": 2957.422245519053,
+    "launch": 13.630000000000003,
+    "smash": 1.47271162154561
+   },
+   "centre_meas": {
+    "ball": 155.56,
+    "backspin": 2771,
+    "launch": 13.63,
+    "smash": 1.4134108667999272
+   },
+   "high": {
+    "meas": {
+     "d_launch": 1.3199999999999985,
+     "d_spin": -508,
+     "d_smash": -0.03296317378942004,
+     "d_ball": -4.469999999999999
+    },
+    "implied_offset_mm": {
+     "d_launch": 7,
+     "d_spin": 11
+    },
+    "model_at_implied": {
+     "d_launch": 1.3499237222542781,
+     "d_spin": -523.2803852123284
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": 1.5555298142905851,
+     "d_spin": -353.0597174626182,
+     "d_smash": -0.0230783087746953
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": 2.3710996667436195,
+     "d_spin": -578.5497809223925,
+     "d_smash": -0.03854657224277491
+    }
+   },
+   "low": {
+    "meas": {
+     "d_launch": -1.8200000000000003,
+     "d_spin": 422,
+     "d_smash": -0.011162045617482574,
+     "d_ball": -0.9200000000000159
+    },
+    "implied_offset_mm": {
+     "d_launch": 9,
+     "d_spin": 7
+    },
+    "model_at_implied": {
+     "d_launch": -1.900379616965438,
+     "d_spin": 437.76445608941094
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": -1.6883090775407652,
+     "d_spin": 498.99926293939825,
+     "d_smash": 0.0033237678445059426
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": -2.537271495545225,
+     "d_spin": 740.5288229267885,
+     "d_smash": -0.0009373399237255775
+    }
+   }
+  },
+  "under100": {
+   "centre_dyn_loft_used": 16.474754647417505,
+   "centre_model": {
+    "ball": 134.79143635733658,
+    "backspin": 2603.8563886938055,
+    "launch": 14.259999999999996,
+    "smash": 1.4686362645166329
+   },
+   "centre_meas": {
+    "ball": 130.33,
+    "backspin": 2482,
+    "launch": 14.26,
+    "smash": 1.420026149487906
+   },
+   "high": {
+    "meas": {
+     "d_launch": 1.0899999999999999,
+     "d_spin": -412,
+     "d_smash": -0.03636933431366707,
+     "d_ball": -4.860000000000014
+    },
+    "implied_offset_mm": {
+     "d_launch": 7,
+     "d_spin": 15
+    },
+    "model_at_implied": {
+     "d_launch": 1.1527765438193391,
+     "d_spin": -416.2953766251012
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": 1.3572399856240942,
+     "d_spin": -100.30568226387004,
+     "d_smash": -0.031718435329150196
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": 2.1675932917163596,
+     "d_spin": -284.92836117332627,
+     "d_smash": -0.04787634109269545
+    }
+   },
+   "low": {
+    "meas": {
+     "d_launch": -1.0,
+     "d_spin": 488,
+     "d_smash": -0.010870836136407602,
+     "d_ball": -1.0400000000000205
+    },
+    "implied_offset_mm": {
+     "d_launch": 5,
+     "d_spin": 13
+    },
+    "model_at_implied": {
+     "d_launch": -0.8966305381907915,
+     "d_spin": 484.21764582920923
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": -1.5318255167564914,
+     "d_spin": 233.91260808020252,
+     "d_smash": 0.008307478353748232
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": -2.3807907589960937,
+     "d_spin": 434.9118439634726,
+     "d_smash": 0.003954052763378568
+    }
+   }
+  }
+ },
+ "model": "golfphys@0c2bca2 coefficients (unchanged)",
+ "hotstix": {
+  "centre_delivery": {
+   "dyn_loft_deg": 8.791663955756741,
+   "aoa_deg": -3.1764166257746393,
+   "note": "solved so the centre row launch and spin match exactly (2 eq, 2 unknowns); the 4 offset rows are then genuine predictions of roll + gear terms"
+  },
+  "baseline_rows": [
+   {
+    "H_in": -0.5,
+    "launch_meas": 4.3,
+    "launch_model": 4.801524082142425,
+    "d_launch": 0.5015240821424252,
+    "spin_meas": 3165,
+    "spin_model": 3895.566084645919,
+    "d_spin": 730.5660846459191,
+    "ddist_meas": -11,
+    "ddist_model_total": -18.9599983197362,
+    "ddist_model_carry": -7.066149218603357,
+    "ball_mph": 146.96089525072085
+   },
+   {
+    "H_in": -0.25,
+    "launch_meas": 5.3,
+    "launch_model": 5.805281439878481,
+    "d_launch": 0.5052814398784813,
+    "spin_meas": 2971,
+    "spin_model": 3235.0800788903093,
+    "d_spin": 264.0800788903093,
+    "ddist_meas": -7,
+    "ddist_model_total": -9.536612841796682,
+    "ddist_model_carry": -1.3734411320519087,
+    "ball_mph": 147.7458674983102
+   },
+   {
+    "H_in": 0.0,
+    "launch_meas": 6.8,
+    "launch_model": 6.799999999999998,
+    "d_launch": -1.7763568394002505e-15,
+    "spin_meas": 2564,
+    "spin_model": 2564.0,
+    "d_spin": 0.0,
+    "ddist_meas": 0,
+    "ddist_model_total": 0.0,
+    "ddist_model_carry": 0.0,
+    "ball_mph": 147.588377822874
+   },
+   {
+    "H_in": 0.25,
+    "launch_meas": 8.4,
+    "launch_model": 7.7809787525650815,
+    "d_launch": -0.6190212474349188,
+    "spin_meas": 2098,
+    "spin_model": 1899.6951254159349,
+    "d_spin": -198.30487458406515,
+    "ddist_meas": 6,
+    "ddist_model_total": 7.0433898831445845,
+    "ddist_model_carry": -4.119319456087766,
+    "ball_mph": 146.48407048071613
+   },
+   {
+    "H_in": 0.5,
+    "launch_meas": 9.4,
+    "launch_model": 8.743457694301298,
+    "d_launch": -0.6565423056987019,
+    "spin_meas": 1862,
+    "spin_model": 1259.22055320607,
+    "d_spin": -602.77944679393,
+    "ddist_meas": 10,
+    "ddist_model_total": 10.692926024309315,
+    "ddist_model_carry": -15.036138485462232,
+    "ball_mph": 144.4627817934077
+   }
+  ],
+  "baseline_summary": {
+   "rms_launch": 0.5746892295846782,
+   "rms_spin": 501.53090055912264,
+   "rms_ddist_total": 4.223884079931188
+  },
+  "slopes": {
+   "launch_deg_per_in": {
+    "meas": 5.3199999999999985,
+    "model": 3.943825814801736
+   },
+   "spin_rpm_per_in": {
+    "meas": -1391.6000000000001,
+    "model": -2643.2304065416297
+   }
+  },
+  "loo": [
+   {
+    "held_H_in": -0.5,
+    "roll_radius_in": 8.483950413127152,
+    "gear_v": 20.268558258299223,
+    "heldout_d_launch_fit": -0.3187144710633736,
+    "heldout_d_spin_fit": 176.27237094346447,
+    "heldout_d_launch_baseline": 0.5015240821424252,
+    "heldout_d_spin_baseline": 730.5660846459191
+   },
+   {
+    "held_H_in": -0.25,
+    "roll_radius_in": 9.028353048899366,
+    "gear_v": 18.54475243886077,
+    "heldout_d_launch_fit": 0.1787769383893778,
+    "heldout_d_spin_fit": -56.96141122835115,
+    "heldout_d_launch_baseline": 0.5052814398784813,
+    "heldout_d_spin_baseline": 264.0800788903093
+   },
+   {
+    "held_H_in": 0.25,
+    "roll_radius_in": 9.114099638179637,
+    "gear_v": 18.26242229153508,
+    "heldout_d_launch_fit": -0.30619034912178833,
+    "heldout_d_spin_fit": 128.9287226937431,
+    "heldout_d_launch_baseline": -0.6190212474349188,
+    "heldout_d_spin_baseline": -198.30487458406515
+   },
+   {
+    "held_H_in": 0.5,
+    "roll_radius_in": 8.842734028410133,
+    "gear_v": 18.709258221489183,
+    "heldout_d_launch_fit": 0.04434592337247523,
+    "heldout_d_spin_fit": 34.49970318477085,
+    "heldout_d_launch_baseline": -0.6565423056987019,
+    "heldout_d_spin_baseline": -602.77944679393
+   }
+  ],
+  "loo_rms": {
+   "launch_fit": 0.23940509527794385,
+   "spin_fit": 114.15931431822926,
+   "launch_baseline": 0.5746892295846782,
+   "spin_baseline": 501.53090055912264
+  },
+  "fit_all_offset_rows": {
+   "roll_radius_in": 8.904257402145943,
+   "gear_v_rpm_per_mph_in": 18.831029987998754,
+   "rows": [
+    {
+     "H_in": -0.5,
+     "launch_meas": 4.3,
+     "launch_model": 4.113177416478084,
+     "d_launch": -0.1868225835219155,
+     "spin_meas": 3165,
+     "spin_model": 3268.679394063342,
+     "d_spin": 103.67939406334199,
+     "ddist_meas": -11,
+     "ddist_model_total": -10.493547019583502,
+     "ddist_model_carry": -13.841286396470537,
+     "ball_mph": 147.2950173310217
+    },
+    {
+     "H_in": -0.25,
+     "launch_meas": 5.3,
+     "launch_model": 5.460436757875125,
+     "d_launch": 0.16043675787512512,
+     "spin_meas": 2971,
+     "spin_model": 2919.9835772698834,
+     "d_spin": -51.016422730116574,
+     "ddist_meas": -7,
+     "ddist_model_total": -4.207000721942961,
+     "ddist_model_carry": -5.043832136729861,
+     "ball_mph": 147.9403021332929
+    },
+    {
+     "H_in": 0.0,
+     "launch_meas": 6.8,
+     "launch_model": 6.799999999999998,
+     "d_launch": -1.7763568394002505e-15,
+     "spin_meas": 2564,
+     "spin_model": 2564.0,
+     "d_spin": 0.0,
+     "ddist_meas": 0,
+     "ddist_model_total": 0.0,
+     "ddist_model_carry": 0.0,
+     "ball_mph": 147.588377822874
+    },
+    {
+     "H_in": 0.25,
+     "launch_meas": 8.4,
+     "launch_model": 8.124385087819904,
+     "d_launch": -0.27561491218009593,
+     "spin_meas": 2098,
+     "spin_model": 2214.005713977008,
+     "d_spin": 116.00571397700787,
+     "ddist_meas": 6,
+     "ddist_model_total": 3.3039282889555466,
+     "ddist_model_carry": 1.5314684810423955,
+     "ball_mph": 146.2390110028726
+    },
+    {
+     "H_in": 0.5,
+     "launch_meas": 9.4,
+     "launch_model": 9.426002083612502,
+     "d_launch": 0.02600208361250189,
+     "spin_meas": 1862,
+     "spin_model": 1882.9512539578263,
+     "d_spin": 20.95125395782634,
+     "ddist_meas": 10,
+     "ddist_model_total": 4.0271775238218765,
+     "ddist_model_carry": -0.21397078324253016,
+     "ball_mph": 143.92863164187153
+    }
+   ]
+  },
+  "tutelman_y_correction_variant": [
+   {
+    "H_in": -0.5,
+    "y_eff_in": -0.5998021034420721,
+    "spin": 4150.20952537326,
+    "launch": 4.402977888469642
+   },
+   {
+    "H_in": -0.25,
+    "y_eff_in": -0.37066850036800914,
+    "spin": 3553.3995805631043,
+    "launch": 5.325971222391068
+   },
+   {
+    "H_in": 0.0,
+    "y_eff_in": -0.14138613886450882,
+    "spin": 2940.486503652967,
+    "launch": 6.243757428238121
+   },
+   {
+    "H_in": 0.25,
+    "y_eff_in": 0.08812465069906843,
+    "spin": 2324.5006703330077,
+    "launch": 7.153008336993271
+   },
+   {
+    "H_in": 0.5,
+    "y_eff_in": 0.31794431120180144,
+    "spin": 1718.7373879010252,
+    "launch": 8.050325077650275
+   }
+  ]
+ },
+ "mygolfspy_vertical": {
+  "all": {
+   "centre_dyn_loft_used": 16.01964901006226,
+   "centre_model": {
+    "ball": 151.45486748985465,
+    "backspin": 2826.585253784031,
+    "launch": 13.88,
+    "smash": 1.4711497570651253
+   },
+   "centre_meas": {
+    "ball": 145.66,
+    "backspin": 2658,
+    "launch": 13.88,
+    "smash": 1.4148615832928606
+   },
+   "high": {
+    "meas": {
+     "d_launch": 1.25,
+     "d_spin": -481,
+     "d_smash": -0.033108169479284744,
+     "d_ball": -6.02000000000001
+    },
+    "implied_offset_mm": {
+     "d_launch": 9,
+     "d_spin": 6
+    },
+    "model_at_implied": {
+     "d_launch": 1.1879178230874778,
+     "d_spin": -448.0266145635319
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": 1.0367970948562242,
+     "d_spin": -653.7708220332756,
+     "d_smash": -0.023159636390669425
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": 1.6377875089883194,
+     "d_spin": -1056.0160607727908,
+     "d_smash": -0.03687031085880621
+    }
+   },
+   "low": {
+    "meas": {
+     "d_launch": -1.4000000000000004,
+     "d_spin": 432,
+     "d_smash": -0.009729849120623024,
+     "d_ball": -2.7299999999999898
+    },
+    "implied_offset_mm": {
+     "d_launch": 9,
+     "d_spin": 5
+    },
+    "model_at_implied": {
+     "d_launch": -1.3401048643924387,
+     "d_spin": 413.2887074790001
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": -1.1821779632157305,
+     "d_spin": 734.0324575392774,
+     "d_smash": 0.0030807277917235254
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": -1.8149441298712805,
+     "d_spin": 1156.1452608872764,
+     "d_smash": -0.0021505060172839485
+    }
+   }
+  },
+  "over100": {
+   "centre_dyn_loft_used": 15.721824927560002,
+   "centre_model": {
+    "ball": 162.08664106730984,
+    "backspin": 2957.422245519053,
+    "launch": 13.630000000000003,
+    "smash": 1.47271162154561
+   },
+   "centre_meas": {
+    "ball": 155.56,
+    "backspin": 2771,
+    "launch": 13.63,
+    "smash": 1.4134108667999272
+   },
+   "high": {
+    "meas": {
+     "d_launch": 1.3199999999999985,
+     "d_spin": -508,
+     "d_smash": -0.03296317378942004,
+     "d_ball": -4.469999999999999
+    },
+    "implied_offset_mm": {
+     "d_launch": 9,
+     "d_spin": 6
+    },
+    "model_at_implied": {
+     "d_launch": 1.2759485769614578,
+     "d_spin": -560.0437887105431
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": 1.1244237450180066,
+     "d_spin": -783.7301011325039,
+     "d_smash": -0.01964729783795427
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": 1.7271754387125853,
+     "d_spin": -1221.1997007954903,
+     "d_smash": -0.03314499440497487
+    }
+   },
+   "low": {
+    "meas": {
+     "d_launch": -1.8200000000000003,
+     "d_spin": 422,
+     "d_smash": -0.011162045617482574,
+     "d_ball": -0.9200000000000159
+    },
+    "implied_offset_mm": {
+     "d_launch": 12,
+     "d_spin": 4
+    },
+    "model_at_implied": {
+     "d_launch": -1.8870891277542992,
+     "d_spin": 471.5263607425336
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": -1.2542950183167676,
+     "d_spin": 935.4486816765389,
+     "d_smash": 0.000829368720928203
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": -1.8870891277542992,
+     "d_spin": 1392.9314642627987,
+     "d_smash": -0.0043512722411551685
+    }
+   }
+  },
+  "under100": {
+   "centre_dyn_loft_used": 16.474754647417505,
+   "centre_model": {
+    "ball": 134.79143635733658,
+    "backspin": 2603.8563886938055,
+    "launch": 14.259999999999996,
+    "smash": 1.4686362645166329
+   },
+   "centre_meas": {
+    "ball": 130.33,
+    "backspin": 2482,
+    "launch": 14.26,
+    "smash": 1.420026149487906
+   },
+   "high": {
+    "meas": {
+     "d_launch": 1.0899999999999999,
+     "d_spin": -412,
+     "d_smash": -0.03636933431366707,
+     "d_ball": -4.860000000000014
+    },
+    "implied_offset_mm": {
+     "d_launch": 9,
+     "d_spin": 8
+    },
+    "model_at_implied": {
+     "d_launch": 1.078296600317536,
+     "d_spin": -454.2867602739843
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": 0.9277450232350315,
+     "d_spin": -454.2867602739843,
+     "d_smash": -0.027885173186579904
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": 1.5262610069254965,
+     "d_spin": -813.0752803257383,
+     "d_smash": -0.041878841473804496
+    }
+   },
+   "low": {
+    "meas": {
+     "d_launch": -1.0,
+     "d_spin": 488,
+     "d_smash": -0.010870836136407602,
+     "d_ball": -1.0400000000000205
+    },
+    "implied_offset_mm": {
+     "d_launch": 7,
+     "d_spin": 7
+    },
+    "model_at_implied": {
+     "d_launch": -0.9399774885195633,
+     "d_spin": 501.09368333972134
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_launch": -1.0976988244956996,
+     "d_spin": 597.28735292292,
+     "d_smash": 0.005858077408209983
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_launch": -1.730453782914676,
+     "d_spin": 978.0753185055482,
+     "d_smash": 0.0006073181319279364
+    }
+   }
+  }
+ },
+ "mygolfspy_horizontal": {
+  "all": {
+   "centre_dyn_loft_used": 16.03299099503096,
+   "centre_model": {
+    "ball": 151.87014479322536,
+    "spin": 2878.4817431571873,
+    "launch": 13.860000000000003,
+    "smash": 1.4700430238430486
+   },
+   "centre_meas": {
+    "ball": 145.95,
+    "spin": 2718,
+    "launch": 13.86,
+    "smash": 1.4127383602749006,
+    "axis": -4.82,
+    "side": 2.63
+   },
+   "toe": {
+    "meas": {
+     "d_axis_draw": 5.16,
+     "d_hla_left": -1.0100000000000002,
+     "d_smash": -0.025104475172661234,
+     "d_spin": -129,
+     "d_launch": 0.620000000000001
+    },
+    "implied_offset_mm": {
+     "d_axis_draw": 6,
+     "d_hla_left": 5,
+     "d_smash": 11
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_axis_draw": 7.0077439764414,
+     "d_hla_left": -1.5490298643629827,
+     "d_smash": -0.01415140847517038,
+     "d_spin": 76.86969081008328,
+     "d_launch": -0.0797273208465139
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_axis_draw": 10.216801981444139,
+     "d_hla_left": -2.3175323670005152,
+     "d_smash": -0.029233518860340535,
+     "d_spin": 105.37706874336209,
+     "d_launch": -0.11022335379815473
+    },
+    "sign_axis_ok": true,
+    "sign_hla_ok": true
+   },
+   "heel": {
+    "meas": {
+     "d_axis_draw": -4.930000000000001,
+     "d_hla_left": 1.79,
+     "d_smash": -0.0021960389368367306,
+     "d_spin": -3,
+     "d_launch": -0.7899999999999991
+    },
+    "implied_offset_mm": {
+     "d_axis_draw": 6,
+     "d_hla_left": 9,
+     "d_smash": 0
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_axis_draw": -6.984927421602788,
+     "d_hla_left": 1.5489761650297742,
+     "d_smash": -0.014385866882273612,
+     "d_spin": -31.467994705338697,
+     "d_launch": -0.08670736500941167
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_axis_draw": -10.183907637478592,
+     "d_hla_left": 2.3174512082987433,
+     "d_smash": -0.029465403272729285,
+     "d_spin": -4.1726004966785695,
+     "d_launch": -0.11727610500408048
+    },
+    "sign_axis_ok": true,
+    "sign_hla_ok": true
+   }
+  },
+  "over100": {
+   "centre_dyn_loft_used": 15.85924201608686,
+   "centre_model": {
+    "ball": 161.68756385981686,
+    "spin": 3002.8866635267614,
+    "launch": 13.729999999999992,
+    "smash": 1.471492208407507
+   },
+   "centre_meas": {
+    "ball": 154.83,
+    "spin": 2823,
+    "launch": 13.73,
+    "smash": 1.4090826356024757,
+    "axis": -5.78,
+    "side": 3.1
+   },
+   "toe": {
+    "meas": {
+     "d_axis_draw": 4.0200000000000005,
+     "d_hla_left": -1.2799999999999998,
+     "d_smash": -0.021735843965849933,
+     "d_spin": -176,
+     "d_launch": -0.019999999999999574
+    },
+    "implied_offset_mm": {
+     "d_axis_draw": 4,
+     "d_hla_left": 7,
+     "d_smash": 10
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_axis_draw": 7.113237077425991,
+     "d_hla_left": -1.5481161794353133,
+     "d_smash": -0.014590156532792387,
+     "d_spin": 150.04800724239158,
+     "d_launch": -0.09311939414899228
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_axis_draw": 10.369105311672362,
+     "d_hla_left": -2.3161731076479573,
+     "d_smash": -0.02968335969825797,
+     "d_spin": 181.28347468984566,
+     "d_launch": -0.12322127605797206
+    },
+    "sign_axis_ok": true,
+    "sign_hla_ok": true
+   },
+   "heel": {
+    "meas": {
+     "d_axis_draw": -3.41,
+     "d_hla_left": 1.73,
+     "d_smash": -0.0027195895028560013,
+     "d_spin": 79,
+     "d_launch": -0.370000000000001
+    },
+    "implied_offset_mm": {
+     "d_axis_draw": 4,
+     "d_hla_left": 9,
+     "d_smash": 5
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_axis_draw": -7.507205019691859,
+     "d_hla_left": 1.5489622593934145,
+     "d_smash": -0.010980372173156727,
+     "d_spin": -83.16670243448652,
+     "d_launch": 0.018110724625707064
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_axis_draw": -10.936170779538644,
+     "d_hla_left": 2.3174518502919113,
+     "d_smash": -0.026113200765613964,
+     "d_spin": -51.16771571944673,
+     "d_launch": -0.010832170280110631
+    },
+    "sign_axis_ok": true,
+    "sign_hla_ok": true
+   }
+  },
+  "under100": {
+   "centre_dyn_loft_used": 16.318235840227583,
+   "centre_model": {
+    "ball": 134.29020875898524,
+    "spin": 2633.3708607415674,
+    "launch": 14.070000000000002,
+    "smash": 1.4674921730847474
+   },
+   "centre_meas": {
+    "ball": 129.98,
+    "spin": 2529,
+    "launch": 14.07,
+    "smash": 1.4203912140749644,
+    "axis": -3.07,
+    "side": 1.78
+   },
+   "toe": {
+    "meas": {
+     "d_axis_draw": 7.140000000000001,
+     "d_hla_left": -0.9400000000000002,
+     "d_smash": -0.0323008649989891,
+     "d_spin": -11,
+     "d_launch": 1.3499999999999996
+    },
+    "implied_offset_mm": {
+     "d_axis_draw": 8,
+     "d_hla_left": 5,
+     "d_smash": 14
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_axis_draw": 7.190036767737222,
+     "d_hla_left": -1.5513866509089766,
+     "d_smash": -0.009722496593403074,
+     "d_spin": -33.20908740976074,
+     "d_launch": 0.052000816601214694
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_axis_draw": 10.479031517690585,
+     "d_hla_left": -2.321058192609115,
+     "d_smash": -0.024825224375263133,
+     "d_spin": -6.839025117300025,
+     "d_launch": 0.021964972996775245
+    },
+    "sign_axis_ok": true,
+    "sign_hla_ok": true
+   },
+   "heel": {
+    "meas": {
+     "d_axis_draw": -5.77,
+     "d_hla_left": 1.51,
+     "d_smash": -0.004491820407773739,
+     "d_spin": 63,
+     "d_launch": -1.290000000000001
+    },
+    "implied_offset_mm": {
+     "d_axis_draw": 7,
+     "d_hla_left": 8,
+     "d_smash": 0
+    },
+    "model_at_8mm": {
+     "offset_mm": 8,
+     "d_axis_draw": -6.443812954901334,
+     "d_hla_left": 1.5495066494289509,
+     "d_smash": -0.017952742252135945,
+     "d_spin": 122.7899517594874,
+     "d_launch": -0.18774299993315502
+    },
+    "model_at_12mm": {
+     "offset_mm": 12,
+     "d_axis_draw": -9.402296042529853,
+     "d_hla_left": 2.3182168810057027,
+     "d_smash": -0.03296510707222877,
+     "d_spin": 145.57327820790442,
+     "d_launch": -0.220275374633788
+    },
+    "sign_axis_ok": true,
+    "sign_hla_ok": true
+   }
+  }
+ },
+ "horizontal_gear_scale": {
+  "rows": [
+   {
+    "group": "all",
+    "bin": "toe",
+    "offset_from_HLA_mm": 5.209954059592536,
+    "gear_scale_k": 1.0546271061706392,
+    "d_hla_left_meas": -1.0100000000000002,
+    "d_axis_draw_meas": 5.16
+   },
+   {
+    "group": "all",
+    "bin": "heel",
+    "offset_from_HLA_mm": 9.251277991284212,
+    "gear_scale_k": 0.8194278508876319,
+    "d_hla_left_meas": 1.79,
+    "d_axis_draw_meas": -4.930000000000001
+   },
+   {
+    "group": "over100",
+    "bin": "toe",
+    "offset_from_HLA_mm": 6.6101529185266505,
+    "gear_scale_k": 0.8486688416319932,
+    "d_hla_left_meas": -1.2799999999999998,
+    "d_axis_draw_meas": 4.0200000000000005
+   },
+   {
+    "group": "over100",
+    "bin": "heel",
+    "offset_from_HLA_mm": 8.93960203686281,
+    "gear_scale_k": 0.7219055174372357,
+    "d_hla_left_meas": 1.73,
+    "d_axis_draw_meas": -3.41
+   },
+   {
+    "group": "under100",
+    "bin": "toe",
+    "offset_from_HLA_mm": 4.840921287253146,
+    "gear_scale_k": 1.292584863806671,
+    "d_hla_left_meas": -0.9400000000000002,
+    "d_axis_draw_meas": 7.140000000000001
+   },
+   {
+    "group": "under100",
+    "bin": "heel",
+    "offset_from_HLA_mm": 7.795210001936007,
+    "gear_scale_k": 0.961573439529701,
+    "d_hla_left_meas": 1.51,
+    "d_axis_draw_meas": -5.77
+   }
+  ],
+  "k_mean": 0.949797936577312,
+  "k_min": 0.7219055174372357,
+  "k_max": 1.292584863806671,
+  "n": 6
+ },
+ "trackman_geometry": {
+  "model_toe_10mm_face_open_deg": 2.254574965935033,
+  "published_toe_10mm_deg": 2.0,
+  "model_low_10mm_loft_deg": 1.8778774472853594,
+  "published_low_10mm_deg": 2.0,
+  "note": "golfphys tilts the local face normal by x/R_bulge and y/R_roll (10 in / 12 in); TrackMan says ~2 deg per 10 mm for standard drivers. Implied radii for exactly 2.0 deg: 11.3 in"
+ },
+ "vertical_param_grid": {
+  "mygolfspy_ratio_rpm_per_deg": {
+   "values": [
+    -384.8,
+    -308.5714285714285,
+    -384.84848484848527,
+    -231.86813186813183,
+    -377.98165137614683,
+    -488.0
+   ],
+   "mean": -362.67828277736544,
+   "min": -488.0,
+   "max": -231.86813186813183
+  },
+  "hotstix_ratio_rpm_per_deg": -261.57894736842115,
+  "grid": [
+   {
+    "roll_in": 8,
+    "gear_v": 14,
+    "hotstix_rms_launch": 0.29940511276865545,
+    "hotstix_rms_spin": 349.2899259471167,
+    "model_ratio_rpm_per_deg": -90.67608310517983
+   },
+   {
+    "roll_in": 8,
+    "gear_v": 16,
+    "hotstix_rms_launch": 0.29940511276865545,
+    "hotstix_rms_spin": 238.85875946950281,
+    "model_ratio_rpm_per_deg": -140.14555234371602
+   },
+   {
+    "roll_in": 8,
+    "gear_v": 18,
+    "hotstix_rms_launch": 0.29940511276865545,
+    "hotstix_rms_spin": 136.7571718848916,
+    "model_ratio_rpm_per_deg": -189.6150215822517
+   },
+   {
+    "roll_in": 8,
+    "gear_v": 20,
+    "hotstix_rms_launch": 0.29940511276865545,
+    "hotstix_rms_spin": 83.36968050840976,
+    "model_ratio_rpm_per_deg": -239.08449082078764
+   },
+   {
+    "roll_in": 8,
+    "gear_v": 22,
+    "hotstix_rms_launch": 0.29940511276865545,
+    "hotstix_rms_spin": 147.6395803085043,
+    "model_ratio_rpm_per_deg": -288.5539600593236
+   },
+   {
+    "roll_in": 8,
+    "gear_v": 25,
+    "hotstix_rms_launch": 0.29940511276865545,
+    "hotstix_rms_spin": 306.4978195535576,
+    "model_ratio_rpm_per_deg": -362.7581639171274
+   },
+   {
+    "roll_in": 9,
+    "gear_v": 14,
+    "hotstix_rms_launch": 0.18679695439530816,
+    "hotstix_rms_spin": 285.13283917673925,
+    "model_ratio_rpm_per_deg": -134.25951039476297
+   },
+   {
+    "roll_in": 9,
+    "gear_v": 16,
+    "hotstix_rms_launch": 0.18679695439530816,
+    "hotstix_rms_spin": 177.8637832144733,
+    "model_ratio_rpm_per_deg": -189.98974806600876
+   },
+   {
+    "roll_in": 9,
+    "gear_v": 18,
+    "hotstix_rms_launch": 0.18679695439530816,
+    "hotstix_rms_spin": 92.66264590318745,
+    "model_ratio_rpm_per_deg": -245.71998573725483
+   },
+   {
+    "roll_in": 9,
+    "gear_v": 20,
+    "hotstix_rms_launch": 0.18679695439530816,
+    "hotstix_rms_spin": 110.24181455433029,
+    "model_ratio_rpm_per_deg": -301.4502234085012
+   },
+   {
+    "roll_in": 9,
+    "gear_v": 22,
+    "hotstix_rms_launch": 0.18679695439530816,
+    "hotstix_rms_spin": 205.7576257899587,
+    "model_ratio_rpm_per_deg": -357.18046107974715
+   },
+   {
+    "roll_in": 9,
+    "gear_v": 25,
+    "hotstix_rms_launch": 0.18679695439530816,
+    "hotstix_rms_spin": 370.8311082487888,
+    "model_ratio_rpm_per_deg": -440.77581758661626
+   },
+   {
+    "roll_in": 10,
+    "gear_v": 14,
+    "hotstix_rms_launch": 0.2964955531349327,
+    "hotstix_rms_spin": 234.66824591071787,
+    "model_ratio_rpm_per_deg": -177.9141230768929
+   },
+   {
+    "roll_in": 10,
+    "gear_v": 16,
+    "hotstix_rms_launch": 0.2964955531349327,
+    "hotstix_rms_spin": 132.8356639645271,
+    "model_ratio_rpm_per_deg": -239.9130151830178
+   },
+   {
+    "roll_in": 10,
+    "gear_v": 18,
+    "hotstix_rms_launch": 0.2964955531349327,
+    "hotstix_rms_spin": 82.7631112024193,
+    "model_ratio_rpm_per_deg": -301.91190728914296
+   },
+   {
+    "roll_in": 10,
+    "gear_v": 20,
+    "hotstix_rms_launch": 0.2964955531349327,
+    "hotstix_rms_spin": 150.60691386465305,
+    "model_ratio_rpm_per_deg": -363.9107993952677
+   },
+   {
+    "roll_in": 10,
+    "gear_v": 22,
+    "hotstix_rms_launch": 0.2964955531349327,
+    "hotstix_rms_spin": 255.23213630867457,
+    "model_ratio_rpm_per_deg": -425.90969150139256
+   },
+   {
+    "roll_in": 10,
+    "gear_v": 25,
+    "hotstix_rms_launch": 0.2964955531349327,
+    "hotstix_rms_spin": 422.8037255396457,
+    "model_ratio_rpm_per_deg": -518.9080296605799
+   },
+   {
+    "roll_in": 12,
+    "gear_v": 14,
+    "hotstix_rms_launch": 0.5737221763563992,
+    "hotstix_rms_spin": 162.1466116735827,
+    "model_ratio_rpm_per_deg": -265.42156005121547
+   },
+   {
+    "roll_in": 12,
+    "gear_v": 16,
+    "hotstix_rms_launch": 0.5737221763563992,
+    "hotstix_rms_spin": 85.13487450699887,
+    "model_ratio_rpm_per_deg": -339.98161219899623
+   },
+   {
+    "roll_in": 12,
+    "gear_v": 18,
+    "hotstix_rms_launch": 0.5737221763563992,
+    "hotstix_rms_spin": 121.85493627973601,
+    "model_ratio_rpm_per_deg": -414.5416643467766
+   },
+   {
+    "roll_in": 12,
+    "gear_v": 20,
+    "hotstix_rms_launch": 0.5737221763563992,
+    "hotstix_rms_spin": 221.5706650088676,
+    "model_ratio_rpm_per_deg": -489.10171649455714
+   },
+   {
+    "roll_in": 12,
+    "gear_v": 22,
+    "hotstix_rms_launch": 0.5737221763563992,
+    "hotstix_rms_spin": 331.63647137720324,
+    "model_ratio_rpm_per_deg": -563.6617686423376
+   },
+   {
+    "roll_in": 12,
+    "gear_v": 25,
+    "hotstix_rms_launch": 0.5737221763563992,
+    "hotstix_rms_spin": 501.2728922098653,
+    "model_ratio_rpm_per_deg": -675.501846864008
+   }
+  ]
+ },
+ "golfdigest_95mph": {
+  "center_dyn_loft_used": 15.29251001890158,
+  "center_model": {
+   "ball_mph": 138.3049357050819,
+   "launch": 12.724122734401584,
+   "spin": 3098.0612202370203,
+   "carry": 219.42715532338883
+  },
+  "rows": [
+   {
+    "vertical_offset_assumed_in": 0.25,
+    "toe_0p75_dcarry": -17.45265065711112,
+    "heel_0p75_dcarry": -17.45265065711112,
+    "low_heel_dcarry": -20.18766145295794,
+    "high_face_avg_dcarry": -11.63097695038735,
+    "low_face_avg_dcarry": -14.775108680613755,
+    "toe_minus_heel": 0.0
+   },
+   {
+    "vertical_offset_assumed_in": 0.5,
+    "toe_0p75_dcarry": -17.45265065711112,
+    "heel_0p75_dcarry": -17.45265065711112,
+    "low_heel_dcarry": -26.456734015867028,
+    "high_face_avg_dcarry": -15.37244647784675,
+    "low_face_avg_dcarry": -21.51738911543893,
+    "toe_minus_heel": 0.0
+   },
+   {
+    "vertical_offset_assumed_in": 0.75,
+    "toe_0p75_dcarry": -17.45265065711112,
+    "heel_0p75_dcarry": -17.45265065711112,
+    "low_heel_dcarry": -35.29186737290331,
+    "high_face_avg_dcarry": -23.376496862819607,
+    "low_face_avg_dcarry": -30.717760276545363,
+    "toe_minus_heel": 0.0
+   }
+  ],
+  "published": {
+   "low_heel_dcarry_field_avg": -20.19999999999999,
+   "high_face_avg_dcarry": -6.900000000000006,
+   "low_face_avg_dcarry": -14.0,
+   "heel_dcarry_typical": [
+    -15,
+    -12
+   ],
+   "toe_dcarry_top10_heads": [
+    -5.1,
+    0.0
+   ],
+   "toe_minus_heel": [
+    6,
+    7
+   ]
+  }
+ },
+ "upshaw_secondary": {
+  "model_spin_diff_1p5in_rpm": 3685.850255087657,
+  "measured_diff_rpm": 3300,
+  "ball_speed_model_mph": [
+   134.82602654676694,
+   138.34369980903102
+  ],
+  "note": "Upshaw's delivery is unknown; used CHS = 140/1.47, AoA +2, DL for 12 deg launch (assumed). Secondary quote only."
+ },
+ "trackman_smash_pair": {
+  "measured_smash_ratio": 0.9347826086956522,
+  "implied_offset_mm": 23,
+  "model_ratio_at_implied": 0.9346129937205431,
+  "note": "Only a plausibility figure: the pair differs in club speed too and the offset is not stated."
+ }
+}
