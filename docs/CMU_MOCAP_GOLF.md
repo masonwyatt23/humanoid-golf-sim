@@ -165,3 +165,5 @@ through the env will `KeyError` until the env tolerates a missing club target.
   the finish (relative to address) is bigger than Tour norms; includes the follow-through.
 * No ball: the capture is of a practice swing, so no contact dynamics.
 * 10 trials from one person; it's one body's kinematics, not a distribution of styles.
+
+> **Update 2026-10-18:** the data files this document describes (CMU `cmu_64_*.npz`, `multisense_*`, `mason*.npz`, CaddieSet converter/features JSON, `results/imit_private/` gates, as applicable) were untracked at the tip (`git rm --cached`; held locally; `.gitignore`d). They **remain in git history** (no rewrite). Rows citing them are [data/gate held locally].

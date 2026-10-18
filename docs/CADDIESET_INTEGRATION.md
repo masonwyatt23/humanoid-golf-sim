@@ -40,3 +40,5 @@ Cannot: supply Adam Scott's style (no pros, no per-frame joints, no club/wrist d
 - Units/conventions undocumented in the README (see above); verify in the paper before hard-coding.
 - No raw coordinates, so this cannot feed `ReferenceDataset` / imitation reward directly.
 - MIT covers the dataset repo; it does not grant rights to anyone's underlying videos (not distributed here).
+
+> **Update 2026-10-18:** the data files this document describes (CMU `cmu_64_*.npz`, `multisense_*`, `mason*.npz`, CaddieSet converter/features JSON, `results/imit_private/` gates, as applicable) were untracked at the tip (`git rm --cached`; held locally; `.gitignore`d). They **remain in git history** (no rewrite). Rows citing them are [data/gate held locally].

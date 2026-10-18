@@ -57,3 +57,5 @@ A run has **complete provenance** only if it has: an args block, a seed, a git c
 - Have `auto_loop.py` record the attempt number and the `init_model` path for each stage.
 - Make `eval_gate.py` copy the training run's `git_head`/args reference into the gate JSON.
 - Regenerate this table with `python scripts/audit_provenance.py --json`.
+
+> **Update 2026-10-18:** the data files this document describes (CMU `cmu_64_*.npz`, `multisense_*`, `mason*.npz`, CaddieSet converter/features JSON, `results/imit_private/` gates, as applicable) were untracked at the tip (`git rm --cached`; held locally; `.gitignore`d). They **remain in git history** (no rewrite). Rows citing them are [data/gate held locally].

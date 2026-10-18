@@ -54,3 +54,5 @@ From the local checkout status: 3 raw screen recordings `data/mason_swings/mason
 
 ## 5. Caveats
 Classification is by path pattern plus read-in npz metadata; the sha256 values are the first 16 hex chars. Whether any frame contains someone else is unknown. Recommendations are engineering suggestions, not legal conclusions.
+
+> **Update 2026-10-18:** the data files this document describes (CMU `cmu_64_*.npz`, `multisense_*`, `mason*.npz`, CaddieSet converter/features JSON, `results/imit_private/` gates, as applicable) were untracked at the tip (`git rm --cached`; held locally; `.gitignore`d). They **remain in git history** (no rewrite). Rows citing them are [data/gate held locally].

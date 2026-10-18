@@ -81,3 +81,5 @@ Related docs from the Data Agent (kept as separate files): [`P1_S11_HANDEDNESS_C
 - **Flags honored in a new set:** `unified_v2` excludes the two unverified Mason clips from train and val; `unified_v1` still samples them, so imit2/imit3 remain reproducible. Existing results were not re-evaluated.
 
 > **Update (2026-10, CMU tag audit):** the `cmu` row above describes the manifest tag at audit time (`cmu_permissive`, `commercial_ok: true`). It has since been retagged to `needs_counsel` / `commercial_ok: false` / `counsel_required: true`, in `data/provenance.py`, in all 10 `cmu_64_*.npz` embedded keys and in `unified_v1.json`. Not legal advice.
+
+> **Update 2026-10-18:** the data files this document describes (CMU `cmu_64_*.npz`, `multisense_*`, `mason*.npz`, CaddieSet converter/features JSON, `results/imit_private/` gates, as applicable) were untracked at the tip (`git rm --cached`; held locally; `.gitignore`d). They **remain in git history** (no rewrite). Rows citing them are [data/gate held locally].

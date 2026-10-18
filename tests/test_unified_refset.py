@@ -11,7 +11,11 @@ def test_files_exist_tracked_and_commercial():
     tracked = set(subprocess.run(["git", "ls-files", "data/references"], cwd=ROOT, capture_output=True, text=True).stdout.split())
     for e in M["entries"]:
         assert (ROOT / e["path"]).exists()
-        if tracked:
+        # CMU/MultiSense/mason*.npz were untracked at the tip on 2026-10-18 (still in git
+        # history, held locally), so they are no longer required to be git-tracked.
+        if e["source"] == "multisense" or e["source"] == "cmu" or "/mason" in e["path"]:
+            assert e["path"] not in tracked
+        elif tracked:
             assert e["path"] in tracked
         assert e["handedness"] == "left"
         if e["source"] == "multisense":
