@@ -291,12 +291,19 @@ def info_total_over_carry_speed_matched(ball_mph, actual_total_over_carry):
     why = [f"actual total/carry {actual_total_over_carry:.3f} vs golfphys speed-matched minimum {b['min_total_over_carry']:.3f} at {ball_mph:.1f} mph ball speed (launch {b['at_launch_deg']:.0f} deg, backspin {b['at_backspin_rpm']:.0f} rpm); " + SM_CAVEAT] if b else ["sweep returned no carry; " + SM_CAVEAT]
     return SM_KEY, dict(status=INFO, passed=False, values=vals, why=why, ref=ref, tag="info_only", gating=False)
 
-# ---- PROVISIONAL gating checks (Orchestrator-approved 2026-10-19; bands pending Data Agent sourcing) -----------------------------------------------------
-PROV = "PROVISIONAL, pending Data Agent sourcing"
-START_AZ_DEG = (4.0, 8.0)          # |launch azimuth vs target|: pass <=4, warn <=8, fail >8
-START_LAT_PER100 = (7.0, 14.0)     # |lateral at landing| per 100 yd of carry: pass <=7, warn <=14, fail >14
-FOOT_LIFT_CM = (3.0, 6.0)          # lead-foot max vertical lift, top of backswing -> impact
-FOOT_SLIP_CM = (5.0, 10.0)         # lead-foot max horizontal slip, top of backswing -> impact
+# ---- PROVISIONAL gating checks (Orchestrator-approved 2026-10-19; Data Agent bands 2026-10-19) ---------------------------------------------------------------
+# Start-direction: USGA/R&A R22-01 Tables 6-7 (~2 SD of PGA Tour / male Cat 1). Lead-foot: Data Agent judgement (no public cm data). Both stay PROVISIONAL.
+PROV = "PROVISIONAL"
+START_AZ_DEG = (7.0, 9.0)          # |launch azimuth|: pass <=7, warn <=9, fail >9 (R22 ~2 SD tour 3.3 / Cat1 3.4; medium confidence)
+START_LAT_PER100 = (13.5, 17.0)    # |lateral at landing| yd per 100 yd carry: pass <=13.5, warn <=17, fail >17 (2 x tour 6.7 / Cat1 8.3; medium confidence)
+FOOT_LENGTH_M = 0.20               # G1 sole geom length = 2 * size[0] 0.10 (env/v5_body.py); slip fail = 25% of this
+FOOT_SLIP_FAIL_FRAC = 0.25         # slip FAIL if >25% of foot length (UNSOURCED; Data Agent judgement, low confidence)
+FOOT_TURN_FAIL_DEG = 20.0          # yaw FAIL if >20 deg vs address (UNSOURCED; low confidence)
+FOOT_AIR_CTRL_STEPS = 3            # whole-foot airborne FAIL if >=3 consecutive control steps (CTRL_DT) before impact (UNSOURCED)
+FOOT_WARN_FRAC = 0.60              # WARN at 60% of each fail limit
+FOOT_GRF_EPS_N = 1.0               # lead GRF <= this (N) counts as zero / off the ground
+FOOT_Z_EPS_M = 0.005               # both heel and toe above address + this => no foot contact (geometry backup)
+CTRL_DT = 0.02                     # env control step (env/v5_body.py); airborne duration is measured in these units
 TOP_FALLBACK_S = 0.6               # without a logged top time: top = min club angular speed in [club peak - 0.6 s, club peak]
 _W = {"pass": 0, "warn": 1, "fail": 2, "skip": -1}
 
@@ -307,14 +314,23 @@ def _worst(*st): return max(st, key=lambda s: _W[s])
 
 def check_start_direction(az_abs_deg, lat_per100):
     """(key, row) mine/start_direction from median |launch azimuth| (deg vs target line, 0 = at target) and median |lateral at landing| per 100 yd carry
-    (golfphys no-roll flight). Status = worst of the two. Skip when no contact shot carries azimuth/lateral data."""
-    ref = f"Orchestrator 2026-10-19 bands ({PROV}): |az| pass<=4 warn<=8 deg; lateral pass<=7 warn<=14 yd per 100 yd carry"
+    (golfphys no-roll flight). Status = worst of the two. Skip when no contact shot carries azimuth/lateral data.
+    Bands: USGA/R&A R22-01 Tables 6-7, ~2 SD of PGA Tour (3.3 deg / 6.7 yd/100) and male Cat 1 (3.4 / 8.3); PROVISIONAL, medium confidence."""
+    ref = (f"USGA/R&A R22-01 Tables 6-7 (~2 SD of PGA Tour launch-dir SD 3.3 deg / carry-side 6.7 yd per 100 yd carry, and male Cat 1 3.4 / 8.3); "
+           f"|az| pass<={START_AZ_DEG[0]:g} warn<={START_AZ_DEG[1]:g} deg; lateral pass<={START_LAT_PER100[0]:g} warn<={START_LAT_PER100[1]:g} yd/100 yd; "
+           f"{PROV}; medium confidence")
     if az_abs_deg is None and lat_per100 is None:
         return _mine("start_direction", False, [f"no azimuth / golfphys lateral logged; {PROV}"], None, ref, status="skip")
     parts = []; st = []
-    if az_abs_deg is not None: s_ = band_status(az_abs_deg, START_AZ_DEG); st.append(s_); parts.append(f"|azimuth| {az_abs_deg:.2f} deg ({s_}; pass <=4, warn <=8)")
-    if lat_per100 is not None: s_ = band_status(lat_per100, START_LAT_PER100); st.append(s_); parts.append(f"lateral {lat_per100:.2f} yd/100 yd carry ({s_}; pass <=7, warn <=14)")
-    s = _worst(*st); return _mine("start_direction", s == "pass", ["; ".join(parts) + f"; worst of the two; bands {PROV}"], dict(azimuth_abs_deg=az_abs_deg, lateral_yd_per_100yd=lat_per100), ref, status=s)
+    if az_abs_deg is not None:
+        s_ = band_status(az_abs_deg, START_AZ_DEG); st.append(s_)
+        parts.append(f"|azimuth| {az_abs_deg:.2f} deg ({s_}; pass <={START_AZ_DEG[0]:g}, warn <={START_AZ_DEG[1]:g})")
+    if lat_per100 is not None:
+        s_ = band_status(lat_per100, START_LAT_PER100); st.append(s_)
+        parts.append(f"lateral {lat_per100:.2f} yd/100 yd carry ({s_}; pass <={START_LAT_PER100[0]:g}, warn <={START_LAT_PER100[1]:g})")
+    s = _worst(*st)
+    return _mine("start_direction", s == "pass", ["; ".join(parts) + f"; worst of the two; {PROV}; medium confidence"],
+                 dict(azimuth_abs_deg=az_abs_deg, lateral_yd_per_100yd=lat_per100), ref, status=s)
 
 def top_index(t, club_dps, impact_idx, t_top=None):
     """Index of the top of the backswing: the worker's logged top time (JEnv reference downswing start) if given, else the minimum club angular speed in
@@ -324,22 +340,99 @@ def top_index(t, club_dps, impact_idx, t_top=None):
     c = np.abs(np.asarray(club_dps, float)[:i_imp + 1]); ipk = int(np.argmax(c)); lo = int(np.searchsorted(t, t[ipk] - TOP_FALLBACK_S))
     return lo + int(np.argmin(c[lo:ipk + 1])), "fallback_min_club_speed"
 
+def _max_run_duration(t, mask):
+    """Longest consecutive True run in mask, as time span t[end]-t[start] (inclusive samples)."""
+    t = np.asarray(t, float); m = np.asarray(mask, bool)
+    if not m.any(): return 0.0
+    best = 0.0; i = 0; n = len(m)
+    while i < n:
+        if not m[i]: i += 1; continue
+        j = i
+        while j + 1 < n and m[j + 1]: j += 1
+        best = max(best, float(t[j] - t[i])); i = j + 1
+    return best
+
+def lead_foot_plant_metrics(t, foot, grf_lead, impact_idx, i_top, foot_length_m=None):
+    """Lead-foot plant metrics, top of backswing -> impact, referenced to the ADDRESS pose (sample 0).
+    foot rows: [x, y, z, heel_z, toe_z] or [..., yaw_rad] (yaw optional; turn skipped when absent).
+    grf_lead: lead-foot vertical GRF (N), same length as t.
+    Returns dict or None when inputs are missing. Post-impact not judged. No weight-share metric."""
+    if foot is None or grf_lead is None: return None
+    t = np.asarray(t, float); F = np.asarray(foot, float); g = np.asarray(grf_lead, float).reshape(-1)
+    i_imp = int(impact_idx); i_top = int(i_top)
+    if len(F) == 0 or i_imp <= 0 or i_top < 0 or i_top > i_imp: return None
+    n = min(len(t), len(F), len(g), i_imp + 1)
+    t, F, g = t[:n], F[:n], g[:n]; i_imp = n - 1
+    if i_top > i_imp: return None
+    L = float(foot_length_m) if foot_length_m else FOOT_LENGTH_M
+    # address = first sample (eval rsi=(1,0,0) starts a full swing from address)
+    xy0 = F[0, :2]; yaw0 = float(F[0, 5]) if F.shape[1] > 5 else None
+    z_h0, z_t0 = float(F[0, 3]), float(F[0, 4])
+    sl = slice(i_top, i_imp + 1); tw, Fw, gw = t[sl], F[sl], g[sl]
+    if len(tw) == 0: return None
+    # whole-foot airborne: zero lead GRF, or both heel and toe clear of address (heel-only / toe-only lift is NOT airborne)
+    grf_air = gw <= FOOT_GRF_EPS_N
+    heel_up = Fw[:, 3] > (z_h0 + FOOT_Z_EPS_M); toe_up = Fw[:, 4] > (z_t0 + FOOT_Z_EPS_M)
+    geom_air = heel_up & toe_up
+    air = grf_air | geom_air
+    air_s = _max_run_duration(tw, air)
+    air_steps = air_s / CTRL_DT
+    # slip / turn vs ADDRESS (not vs top)
+    slip_m = float(np.max(np.hypot(Fw[:, 0] - xy0[0], Fw[:, 1] - xy0[1])))
+    slip_frac = slip_m / L
+    if yaw0 is not None and Fw.shape[1] > 5:
+        dy = np.degrees(Fw[:, 5] - yaw0); dy = (dy + 180.0) % 360.0 - 180.0
+        turn_deg = float(np.max(np.abs(dy)))
+    else:
+        turn_deg = None
+    return dict(airborne_max_s=air_s, airborne_max_ctrl_steps=air_steps, slip_m=slip_m, slip_frac=slip_frac,
+                turn_deg=turn_deg, foot_length_m=L, n_window=int(len(tw)))
+
+def _frac_band_status(x, fail_at, warn_frac=FOOT_WARN_FRAC, fail_ge=False):
+    """WARN at warn_frac*fail_at. If fail_ge: FAIL when x >= fail_at (airborne >= N steps); else FAIL when x > fail_at (slip/turn)."""
+    if x is None: return "skip"
+    w = warn_frac * fail_at
+    if fail_ge:
+        return "pass" if x < w else "warn" if x < fail_at else "fail"
+    return "pass" if x <= w else "warn" if x <= fail_at else "fail"
+
 def lead_foot_motion(t, foot, impact_idx, i_top):
-    """Max vertical lift and horizontal slip (cm) of the lead sole between top (i_top) and impact, relative to its pose at the top.
-    foot rows: [x, y, z, heel_z, toe_z] (sole site centre + sole ends). Lift = max rise of centre/heel/toe; slip = max horizontal centre displacement.
-    Post-impact motion is not judged."""
+    """Back-compat: max lift / slip (cm) top->impact vs the pose AT THE TOP (old placeholder metric). Prefer lead_foot_plant_metrics."""
     F = np.asarray(foot, float)[i_top:int(impact_idx) + 1]
     if len(F) == 0: return None, None
     z0 = F[0, [2, 3, 4]]; lift = float(np.max(F[:, [2, 3, 4]] - z0)); slip = float(np.max(np.hypot(F[:, 0] - F[0, 0], F[:, 1] - F[0, 1])))
     return 100.0 * max(lift, 0.0), 100.0 * slip
 
-def check_lead_foot_plant(lift_cm, slip_cm, n_eps=None, top_method=None):
-    ref = f"Orchestrator 2026-10-19 bands ({PROV}): lift pass<=3 warn<=6 cm; slip pass<=5 warn<=10 cm; top of backswing -> impact only"
-    if lift_cm is None or slip_cm is None:
-        return _mine("lead_foot_plant", False, [f"lead-foot positions not logged by this worker; {PROV}"], None, ref, status="skip")
-    a, b = band_status(lift_cm, FOOT_LIFT_CM), band_status(slip_cm, FOOT_SLIP_CM); s = _worst(a, b)
-    why = [f"lead foot top->impact: max lift {lift_cm:.2f} cm ({a}; pass <=3, warn <=6), max slip {slip_cm:.2f} cm ({b}; pass <=5, warn <=10); median over {n_eps} contact eps; top = {top_method}; post-impact not judged; bands {PROV}"]
-    return _mine("lead_foot_plant", s == "pass", why, dict(lift_cm=lift_cm, slip_cm=slip_cm), ref, status=s)
+def check_lead_foot_plant(metrics, n_eps=None, top_method=None):
+    """(key, row) mine/lead_foot_plant. Window: top -> impact. Reference: address. No weight-share gating.
+    FAIL: whole lead foot airborne (zero lead GRF or both heel+toe up) for >=3 control steps; slip >25% foot length; turn >20 deg.
+    WARN at 60% of each fail limit. Heel-only / toe-only lift allowed. PROVISIONAL, low confidence (no public cm data)."""
+    ref = (f"Data Agent judgement 2026-10-19 (no public lead-foot cm data; Scheffler/Nicklaus/Reed descriptive exceptions): "
+           f"top->impact vs address; airborne FAIL >={FOOT_AIR_CTRL_STEPS:g} ctrl steps (WARN at {FOOT_WARN_FRAC:.0%}); "
+           f"slip FAIL >{FOOT_SLIP_FAIL_FRAC:.0%} of sole length {FOOT_LENGTH_M*100:.0f} cm; turn FAIL >{FOOT_TURN_FAIL_DEG:g} deg; "
+           f"heel/toe-only lift allowed; no weight-share gate; {PROV}; low confidence")
+    if metrics is None:
+        return _mine("lead_foot_plant", False, [f"lead-foot / GRF not logged by this worker; {PROV}"], None, ref, status="skip")
+    air_fail = FOOT_AIR_CTRL_STEPS; air_st = _frac_band_status(metrics["airborne_max_ctrl_steps"], air_fail, fail_ge=True)
+    slip_st = _frac_band_status(metrics["slip_frac"], FOOT_SLIP_FAIL_FRAC)
+    turn_st = _frac_band_status(metrics.get("turn_deg"), FOOT_TURN_FAIL_DEG) if metrics.get("turn_deg") is not None else "skip"
+    parts = [
+        f"airborne max {metrics['airborne_max_ctrl_steps']:.2f} ctrl steps / {metrics['airborne_max_s']*1000:.0f} ms ({air_st}; fail >={air_fail:g}, warn >={FOOT_WARN_FRAC*air_fail:g})",
+        f"slip {metrics['slip_m']*100:.1f} cm = {metrics['slip_frac']*100:.1f}% of foot ({slip_st}; fail >{FOOT_SLIP_FAIL_FRAC:.0%}, warn >{FOOT_WARN_FRAC*FOOT_SLIP_FAIL_FRAC:.0%})",
+    ]
+    st = [air_st, slip_st]
+    if turn_st != "skip":
+        parts.append(f"turn {metrics['turn_deg']:.1f} deg ({turn_st}; fail >{FOOT_TURN_FAIL_DEG:g}, warn >{FOOT_WARN_FRAC*FOOT_TURN_FAIL_DEG:g})")
+        st.append(turn_st)
+    else:
+        parts.append("turn not logged (yaw absent; skipped)")
+    s = _worst(*st)
+    why = [f"lead foot top->impact vs address: " + "; ".join(parts) +
+           f"; median over {n_eps} contact eps; top = {top_method}; heel/toe-only lift allowed; post-impact not judged; {PROV}; low confidence"]
+    vals = dict(airborne_max_ctrl_steps=metrics["airborne_max_ctrl_steps"], airborne_max_s=metrics["airborne_max_s"],
+                slip_m=metrics["slip_m"], slip_frac=metrics["slip_frac"], turn_deg=metrics.get("turn_deg"),
+                foot_length_m=metrics["foot_length_m"])
+    return _mine("lead_foot_plant", s == "pass", why, vals, ref, status=s)
 
 def summarize(C):
     st = [c["status"] for c in C.values()]; n_pass, n_warn, n_fail, n_skip = (st.count(x) for x in ("pass", "warn", "fail", "skip")); n_info = st.count(INFO)   # info rows: excluded from verdict and n_checks

@@ -22,8 +22,8 @@ bw = float(sum(e.m.body_mass[i] for i in range(e.m.nbody) if e.m.body(i).name no
 grf = []; sub = []; foot = []; orig = e._log_seg
 def seg():
     orig(); fl, fr = e.foot_forces(); grf.append((fl, fr)); sub.append(int(e.sub_count))
-    sid = e.m.site(f"{e.lead}_sole_site").id; P = e.d.site_xpos[sid]; R = e.d.site_xmat[sid].reshape(3, 3); hx = float(e.m.site_size[sid][0])   # lead sole: centre xyz + both ends' z (same samples as t)
-    foot.append([float(P[0]), float(P[1]), float(P[2]), float((P - hx * R[:, 0])[2]), float((P + hx * R[:, 0])[2])])
+    sid = e.m.site(f"{e.lead}_sole_site").id; P = e.d.site_xpos[sid]; R = e.d.site_xmat[sid].reshape(3, 3); hx = float(e.m.site_size[sid][0])   # lead sole: centre xyz + heel/toe z + yaw (atan2 of sole +x in world xy)
+    yaw = float(np.arctan2(R[1, 0], R[0, 0])); foot.append([float(P[0]), float(P[1]), float(P[2]), float((P - hx * R[:, 0])[2]), float((P + hx * R[:, 0])[2]), yaw])
 e._log_seg = seg
 eps = []; SEG_DEF = int(e.seg_every)   # default logging cadence (2 substeps = 4 ms at dt 0.002), captured once before any seg1 override
 for i in range(n):
@@ -36,7 +36,7 @@ for i in range(n):
     shx = {}
     if e.contact and getattr(e, "shot", None):
         _s = e.shot; _r = _s["shot"]; shx = dict(azimuth_deg=_s.get("azimuth_deg"), backspin_rpm=_s.get("backspin_rpm"), sidespin_rpm=_s.get("sidespin_rpm"), env_carry_m=_r.carry_m, env_total_m=_r.total_m, env_descent_deg=_r.descent_deg, env_lateral_m=_r.lateral_carry_m)
-    eps.append(dict(shot_extra=shx, t=L_["t"], pelvis_dps=L_["pelvis"], thorax_dps=L_["thorax"], arm_dps=L_["lead_arm"], club_dps=L_["club"], xfactor_deg=L_["xfactor_deg"], lead_share=L_["lead_share"],
+    eps.append(dict(shot_extra=shx, foot_length_m=0.20, t=L_["t"], pelvis_dps=L_["pelvis"], thorax_dps=L_["thorax"], arm_dps=L_["lead_arm"], club_dps=L_["club"], xfactor_deg=L_["xfactor_deg"], lead_share=L_["lead_share"],
                     grf=[list(map(float, g)) for g in grf], lead_foot=[list(f_) for f_ in foot], t_top=None, lead=e.lead, impact_idx=imp, contact=bool(e.contact), ep=info.get("ep"), foul=bool(info.get("foul", False)), seed=seed0 + i, t_contact=tc, sub=list(sub), seg_every=int(e.seg_every), seg_every_default=int(seg_def),
                     shot={k: info.get(k) for k in ("club_speed_mph", "ball_speed_mph", "launch_deg", "spin_rpm", "smash", "carry_m_noroll", "total_m_model", "lateral_carry_m")}))
-json.dump(dict(strike_gate_nx=GATE, arm_dist=ARM, env_class=("BEnv" if ARM > 0 else "TrainEnv"), bw_N=bw, dt=float(e.dt) * SEG_DEF, dt_note="declared = sim dt x default seg_every (4 ms at dt 0.002); the harness MEASURES the interval from t (dt fix 2026-10-19; was hard-coded 0.005)", club_len=L, eps=eps), open(out, "w"))
+json.dump(dict(strike_gate_nx=GATE, arm_dist=ARM, env_class=("BEnv" if ARM > 0 else "TrainEnv"), bw_N=bw, dt=float(e.dt) * SEG_DEF, dt_note="declared = sim dt x default seg_every (4 ms at dt 0.002); the harness MEASURES the interval from t (dt fix 2026-10-19; was hard-coded 0.005)", club_len=L, foot_length_m=0.20, eps=eps), open(out, "w"))
