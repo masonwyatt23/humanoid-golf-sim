@@ -151,4 +151,65 @@ Verification: `tests/test_golfphys_total.py` against the 45+ TrackMan carry/tota
 | stageK_s0 ckpt_800000 | 32.3 | 75.4 | 2.331 | 2.312 | 11.0 | FAIL (7 PASS / 4 WARN / 4 FAIL) |
 Caveat: the ratio is a real golfphys roll output, driven by the shallow descent (11-13 deg vs ~37 deg for a driver shot): the roll model is validated only against ~30-40 deg descents, so 2.1-2.3 is a model extrapolation, not a measured roll. It is not waived: the check stays FAIL until descent/launch are in the driver range.
 
-Not committed: on branch scott-e `results/overnight/` is untracked (the earlier result commits such as 9b44bb1 sit on `backup-scott-e-pre-c4186d3`), so a commit here would add the whole folder to scott-e; left for the Orchestrator to decide.
+Added 2026-10-18 ~9:15 PM ET, overnight watch (club_len 1.15, arm_dist 0.6, 24 deterministic eps, strike gate OFF via `results/overnight/_run_j_gateoff_gp.py`: the Trainer's JEnv adapter plus the golfphys total/carry worker; scoring code unmodified). All are reference-guided residual policies with tracking assistance (`train.v5_train_j`, `stageK_ref/tuned_keys.json`). New runs: `stageK2_s0` (stopped at 600k, 8:37 PM; snapshot `_snap/K2_s0_600k` has the same best_det md5) and `stageK3_s0/s1` (warm-started from that K2 snapshot at 8:53 PM, launch/descent/dynamic-loft/spin terms; s1 has double the launch and descent weights; both still training, 300k at 9:03 PM). stageK_s1 kept training with `--no_stop` up to 1.5M (0 contact at 1.5M in the Trainer's eval); its best_det is still step 800k (already scored). Harness club mph matches the Trainer's eval.jsonl at every scored step (62.8, 62.5, 63.0, 61.3, 52.4).
+
+| checkpoint | contact | impact mph (median) | carry / total yd (golfphys) | failing checks |
+|---|---|---|---|---|
+| stageK3_s1 best_det (200k) | 24/24 | 62.8 | 67.6 / 84.4 (ratio 1.25, descent 28.4 deg) | GRF (2.93 BW peak, band 0.8-1.7), spin 5154. Seq order PASS, X-factor 63.6 PASS, total/carry 1.25 PASS (first Stage K pass of this check); launch 19.2 WARN, smash 1.12 WARN, pelvis timing WARN. 10 PASS / 3 WARN / 2 FAIL |
+| stageK3_s1 ckpt_300000 | 24/24 | 61.3 | 54.4 / 78.3 (1.44, descent 21.2) | spin 4785, total/carry 1.44. Seq order PASS, launch 15.5 PASS, X-factor 62.7 PASS; GRF 1.79 BW WARN, smash 1.08 WARN. 10 PASS / 3 WARN / 2 FAIL |
+| stageK3_s0 best_det (300k) | 24/24 | 62.5 | 54.8 / 92.6 (1.69, descent 16.2) | GRF (2.56 BW), spin 4098, total/carry 1.69. Seq order WARN (pelvis/thorax one sample), launch 12.0 PASS, X-factor 64.3 PASS. 8 PASS / 4 WARN / 3 FAIL |
+| stageK2_s0 best_det (600k) | 24/24 | 63.0 | 47.8 / 87.3 (1.83, descent 15.3) | total/carry 1.83 only. GRF 1.02 BW PASS, launch 11.9 PASS, X-factor 63.9 PASS; seq order WARN, spin 3744 WARN, smash 1.06 WARN, pelvis peak 0.67x WARN. 9 PASS / 5 WARN / 1 FAIL |
+| stageK_s1 ckpt_1400000 | 24/24 | 52.4 | 35.4 / 97.1 (2.74, descent 9.1) | seq order (thorax/arm), total/carry 2.74; club speed 52.4 WARN, GRF 2.13 BW WARN, smash 1.27 WARN; spin 2689 and launch 7.8 PASS |
+
+No checkpoint passes all checks. The descent-angle terms in K3 moved total/carry into range for s1 best_det (descent 28 deg) but that came with high spin (4800-5200 rpm), low smash (1.08-1.12) and, on best_det, lead-foot GRF 2.9 BW.
+
+Added 2026-10-18 ~10:15 PM ET, overnight watch (club_len 1.15, arm_dist 0.6, 24 deterministic eps, strike gate OFF via `results/overnight/_run_j_gateoff_gp.py`: Trainer's JEnv adapter plus golfphys total/carry; scoring code unmodified). All are reference-guided residual policies with tracking assistance (`train.v5_train_j`). `stageK3_s1` stopped at 1.0M (9:33 PM; best_det moved to 600k). New `stageK4_s0/s1` warm-started from `_snap/K3b_s0_500k` at 9:50 PM (spin, dynamic-loft, launch and smash terms; s1 adds `--spd_w 3`), both at 500k and still training at 10:10 PM. The moving K4 `best_det`/`ckpt_500000` files were copied to `results/overnight/_evalsnap/` before scoring (md5 checked). K3b_s0 500k was already scored (`*_snap500k_gateoff_gp_*`). Harness club mph matches the Trainer's best_det.json at every best_det scored (65.7, 63.5, 61.0).
+
+| checkpoint | contact | impact mph (median) | carry / total yd (golfphys) | failing checks |
+|---|---|---|---|---|
+| stageK4_s0 best_det (100k) | 24/24 | 61.0 | 97.1 / 117.2 (1.21, descent 31.9) | spin 4087 only. Seq order PASS, X-factor 55.4, GRF 1.58 BW, smash 1.35, club speed, total/carry PASS; launch 19.8 WARN, pelvis timing WARN. 12 PASS / 2 WARN / 1 FAIL (ties the best count; first with seq order and total/carry both PASS and spin the only FAIL) |
+| stageK4_s0 ckpt_500000 | 24/24 | 61.6 | 75.8 / 108.9 (1.44, descent 20.5) | total/carry 1.44 only. Spin 3889 WARN, smash 1.26 WARN, pelvis timing WARN; seq order, X-factor 63.3, GRF 1.41, launch 13.6 PASS. 11 PASS / 3 WARN / 1 FAIL |
+| stageK4_s1 best_det (400k) | 24/24 | 63.5 | 75.6 / 107.5 (1.42, descent 21.7) | spin 4384, total/carry 1.42. Seq order WARN (thorax/arm one sample), smash 1.24 WARN, pelvis peak 0.65x WARN; X-factor 55.6, GRF 1.34, launch 14.7 PASS. 10 PASS / 3 WARN / 2 FAIL |
+| stageK4_s1 ckpt_500000 | 24/24 | 60.7 | 69.2 / 123.2 (1.78, descent 14.0) | spin 4127, total/carry 1.78. Seq order, X-factor 57.4, GRF 1.25, smash 1.36, launch 9.4 PASS. 11 PASS / 2 WARN / 2 FAIL |
+| stageK3_s1 best_det (600k) | 24/24 | 65.7 | 91.4 / 108.4 (1.19, descent 31.4) | seq order (thorax peaks before pelvis), spin 5309. X-factor 57.8, GRF 1.41, total/carry PASS; smash 1.26 and launch 19.0 WARN. 9 PASS / 4 WARN / 2 FAIL |
+| stageK3_s1 ckpt_1000000 (final) | 0/24 | - (whiff) | - | arm peak speed 1.73x target; no shot checks computable |
+
+No checkpoint passes all checks. Pattern: when descent is driver-like (~31 deg) total/carry passes but spin is 4100-5300 rpm and launch ~19-20 deg (too much dynamic loft); when spin/launch come down, descent drops to 14-21 deg and total/carry fails (1.4-1.8). Spin and descent are trading off against each other through loft rather than through lower spin loft / higher ball speed.
+
+Added 2026-10-18 ~11:10 PM ET, overnight watch (club_len 1.15, arm_dist 0.6, 24 deterministic eps, strike gate OFF via `results/overnight/_run_j_gateoff_gp.py`: Trainer's JEnv adapter plus golfphys total/carry; scoring code unmodified). All are reference-guided residual policies with tracking assistance (`train.v5_train_j`). New `stageK4b_s0/s1` (started 10:14 PM; s0 warm-started from `_snap/K4_s0_100k`, s1 from `_snap/K3b_s0_500k` with `--spd_w 2`; spin_hi 2900, xf_hard 66, grf_lo 1.7). Checkpoints 100k/200k were saved at 10:18/10:22 PM; the processes were restarted at 10:59 PM and were still running at 11:08 PM. The 200k best_det and 100k files were copied to `results/overnight/_evalsnap/K4b_*` (with args.json) before scoring. `_stageK4a_s0/s1` are underscore-prefixed (abandoned) and were skipped. Harness club mph matches the Trainer's best_det.json (62.2, 47.5).
+
+| checkpoint | contact | impact mph (median) | carry / total yd (golfphys) | failing checks |
+|---|---|---|---|---|
+| stageK4b_s1 best_det (200k) | 24/24 | 47.5 | 56.8 / 95.3 (1.68, descent 18.3) | total/carry 1.68 only. Seq order PASS, spin 2245 PASS (first in-band spin of Stage K), smash 1.42 PASS, launch 14.5, X-factor 57.8, GRF 1.33 PASS; club speed 47.5 WARN (below the 60 mph driver floor), pelvis timing WARN. 12 PASS / 2 WARN / 1 FAIL |
+| stageK4b_s0 best_det (200k) | 24/24 | 62.2 | 40.7 / 89.5 (2.20, descent 11.4) | seq order (thorax peaks after arm), total/carry 2.20. X-factor 65.7 WARN, GRF 2.22 BW WARN, smash 1.08 WARN, spin 3988 WARN, pelvis timing WARN; launch 9.1 PASS. 8 PASS / 5 WARN / 2 FAIL |
+| stageK4b_s0 ckpt_100000 | 24/24 | 60.3 | 27.2 / 69.2 (2.55, descent 10.3) | seq order (thorax/arm), total/carry 2.55. X-factor 59.8, GRF 1.56, launch 8.9 PASS; smash 0.95 and spin 3505 WARN. 10 PASS / 3 WARN / 2 FAIL |
+| stageK4b_s1 ckpt_100000 | 0/24 | - (whiff) | - | seq order (arm/club), GRF 3.35 BW; no shot checks computable |
+
+No checkpoint passes all checks. K4b s1 best_det fixed spin and smash (2245 rpm, 1.42) but at 47.5 mph and an 18 deg descent, so total/carry stays 1.68; K4b s0 regressed from its K4_s0 100k start (spin-only FAIL, descent 32 deg) to a low descent (11 deg) with sequence order broken.
+
+### Oct 19 ~00:15 ET: Stage K4b s1 300k-1.4M and Stage K4c s0 100k-1.1M (gate off, golfphys total/carry, BEnv arm_dist 0.6, 24 det. eps)
+Reference-guided residual with tracking assistance (JEnv adapter). All 23 FAIL.
+- Near misses: K4c_s0 ckpt_900000 (61.8 mph, 24/24): only lead-leg GRF 3.15 BW fails; seq order PASS, total/carry 1.34 WARN, spin 3560 WARN.
+- K4b_s1 ckpt_1000000 (63.3 mph, 24/24): only seq order fails (arm peaks before thorax); spin 3992 WARN, total/carry 1.32 WARN.
+- K4b_s1 ckpt_700000 (62.2 mph): only seq order fails; spin/launch/total-carry WARN.
+- K4b_s1 1.1M / 1.2M, K4c_s0 600k/700k/800k: only total/carry fails (1.45-2.65).
+- Whiffs (0/24): K4b_s1 300k, 900k; K4c_s0 300k, 400k.
+
+### Oct 19 ~01:20 ET: Stage K4c s0 1.2M-2.5M, K4b s1 1.5M/1.6M, K5 s2 100k-700k, K3b s0 100k-400k (gate off, golfphys total/carry, BEnv arm_dist 0.6, 24 det. eps)
+Reference-guided residual with tracking assistance (JEnv adapter). All 27 FAIL (none passes every check).
+- Best of project: K5_s2 ckpt_700000 (= best_det/final step, 60.8 mph, 24/24): 14 PASS / 0 WARN / 1 FAIL; only total/carry 1.36 fails (gate 1.04-1.25). Seq order + timing PASS, X-factor 57.9, lead GRF 1.31 BW, smash 1.43, spin 2949 (window 1800-3000), launch 15.98 (window 7-16), carry 103 yd vs golfphys 104. Spin, launch and club speed (floor 60) all sit right at their edges.
+- Only total/carry fails: K5_s2 200k (1.89), 300k (1.37), 500k (1.49), 600k (1.54); K4c_s0 1.4M (=best_det, 1.58), 1.8M (2.14); K3b_s0 200k (2.55).
+- K4c_s0 after 1.4M mostly breaks sequence order and drifts in speed (26-68 mph); 2.0M is fastest (68.2 mph) but fails seq, spin 4964, launch 20.9.
+- Whiffs (0/24): K4c_s0 1.2M, 1.7M; K4b_s1 1.6M (= final; harness overall WARN only because shot checks skip with no contact; run marked STALLED).
+
+### Oct 19 ~02:20 ET: Stage K6 s3/s4 100k-700k, K4c s0 2.6M/2.7M (gate off, golfphys total/carry, BEnv arm_dist 0.6, 24 det. eps)
+Reference-guided residual with tracking assistance (JEnv adapter). All 16 FAIL (none passes every check). All 16 make contact 24/24 (no whiffs).
+- Best: K6_s4 ckpt_200000 (= best_det, 64.5 mph): 13 PASS / 1 WARN / 1 FAIL; only total/carry 1.44 fails. Seq order + timing PASS, spin 2843, launch 13.6, smash 1.37, GRF 1.50 BW, X-factor 58.0. WARN is pelvis peak speed 265 deg/s (0.66x an extrapolated target).
+- K6_s3 600k (65.5 mph): only spin 4480 fails; total/carry 1.33 WARN (closest to the gate this batch).
+- Only total/carry fails: K6_s3 100k (1.45), 200k (1.44), 300k (1.52), 700k (1.49); K6_s4 100k (1.44), 300k (1.45), 400k (1.35), 500k (1.36), 600k (2.20, 45.7 mph), 700k (1.64, 47.3 mph).
+- K6_s3 400k fails spin 4479 + t/c 1.57; K6_s3 500k fails GRF 2.41 BW, spin 5606, t/c 1.47.
+- K4c_s0 2.6M fails spin 5254 + t/c 1.76; 2.7M fails GRF 2.61 BW + t/c 2.82 (launch 5.0).
+- Every K6 checkpoint WARNs on pelvis peak speed (180-280 deg/s) and most on sequence timing (pelvis peaks ~175-205 ms before club).
+
+### What is committed (repo port, 2026-10-19)
+Committed to the public repo: this README and the 20 slim per-checkpoint JSONs in `results/v5_runs/stageJK_harness_summary/` (aggregate check verdicts and medians, no per-episode data), which cover the Stage J/J4 and Stage K s0/s1 rows above. Not committed (held locally by the Evaluator): every other `results/overnight/` output named in this file (the raw `realism_v5_*.json` / `.txt` harness outputs with per-episode data, including all K2-K6 rows above), the `_evalsnap/` checkpoint copies and the `_run_j_gateoff*.py` local wrapper scripts (machine-specific paths). Numbers in the K2-K6 tables are therefore Evaluator-reported [harness JSON held locally]. All rows are reference-guided residual policies (script-distilled init + residual), NOT from-scratch; none passes every check.
