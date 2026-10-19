@@ -1,0 +1,26 @@
+
+REALISM WARN  K7_s6_800k/ckpt_800000  [v5 (G1, club_len 1.15, tether 0, strike gate OFF, arm_dist 0.6 [BEnv, as B2-B4/C train])]  episodes 24 (true contact 24)  pass 12 warn 3 fail 0 skip 8 info 1 (not gating)
+  PASS  swing/kinematic_sequence_order
+  WARN  swing/kinematic_sequence_timing_ms_before_club_peak  - outside band: {'pelvis': 180} (pro means 87/68/65 ms, amateur 78/59/64)
+  PASS  swing/peak_speed_pelvis_deg_s
+  PASS  swing/peak_speed_thorax_deg_s
+  PASS  swing/peak_speed_arm_deg_s
+  PASS  swing/peak_speed_club_deg_s
+  PASS  swing/x_factor_top_deg
+  SKIP  swing/actuator_torque_speed_limits
+  SKIP  swing/pelvis_yaw_avg_torque_Nm
+  PASS  swing/grf_lead_vertical_bw
+  PASS  shot/smash
+  PASS  shot/club_speed_mph
+  WARN  shot/spin_rpm  - driver spin gate (published windows, derived thresholds)
+  PASS  shot/launch_deg
+  SKIP  shot/descent_deg
+  WARN  shot/total_over_carry  - total/carry (normal turf 1.07-1.13, firm to ~1.2; env without roll gives 1.0)
+  PASS  shot/carry_vs_golfphys_yd
+  PASS  mine/segments_rotate
+  SKIP  mine/ground_contact_weight_shift
+  SKIP  mine/joint_limits
+  SKIP  mine/torque_saturation_smoothness
+  SKIP  mine/tempo
+  SKIP  mine/carry_vs_trackman_band
+  INFO  mine/total_over_carry_speed_matched (golfphys model, info only, not gating)  - actual total/carry 1.344 vs golfphys speed-matched minimum 1.271 at 94.9 mph ball speed (launch 16 deg, backspin 3000 rpm); golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict
