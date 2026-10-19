@@ -129,3 +129,18 @@ Harness JSONs: results/v5_runs/stageJ_harness/<name>.json. Open blockers for a f
 - K13 ref (stageK13_ref, ES from K11d with pelvis 60-120 ms weight 15, arm 10-30 ms before club bounded, thorax before arm): open-loop 78.5 mph, launch 14.9, spin 2996, descent 28.0, t/c 1.25, smash 1.33, pelvis 112 ms, thorax 20 ms before arm, but arm-club still 0 ms (same sample); GRF 1.07, XF 61.7.
 - K13b s20: K12 s18 400k fine-tuned on the K13 ref (same terms as K13a), 300k cap — running.
 
+
+## K13 result (2026-10-19 ~08:15 ET) — no full pass
+- K13b s20 had finished at its 300k cap (not dead; eval.jsonl has 100k-300k). Harness: 100k 11/3/1, 200k 12/2/1, 300k 12/2/1 at 79-80 mph; all FAIL order (arm on the early hump at 1.54 s, before thorax 1.60 s); pelvis 160-165 ms although the K13 open-loop ref has 112 ms (the residual moves the pelvis peak earlier).
+- Conclusion K12-K13: with sep_w >= 2 the arm peak jumps to its early hump (order fail); with sep_w <= 0.5 it stays on the club sample (order warn). Pelvis peak in closed loop is 145-165 ms on every ref (open loop 96-116 ms).
+
+## BEST-CHECKPOINT LIST (updated 08:15 ET; results/v5_runs/_snap/<name>/ckpt_<N>, each with _vecnorm.pkl + args.json naming its ref)
+| rank | checkpoint | P/W/F | mph | notes |
+| 1 | K12_s18_400000 | 12/3/0 | 80.4 | spin pass; warns order arm/club same sample, pelvis 145 ms, t/c 1.284; ref stageK11d_ref_s1 |
+| 2 | K12_s18_100000 | 12/3/0 | 80.7 | Evaluator-scored |
+| 3 | K13a_s19_200000 | 12/3/0 | 79.3 | warns order (arm after club), pelvis 155, t/c 1.284; ref stageK11d_ref_s1 |
+| 4 | K12_s17_400000 | 12/3/0 | 79.1 | warns order, pelvis 155, t/c 1.27; ref stageK11c_ref_s1 |
+| 5 | K11_s16_500000 | 13/1/1 | 80.0 | all shot checks pass; FAIL order; ref stageK11b_ref_s1 |
+| 6 | K9_s9_300000 | 12/3/0 | 71.8 | ref stageK8_ref_s1 |
+| 7 | K8_s8_400000 | 12/3/0 | 72.0 | ref stageK8_ref_s1 |
+
