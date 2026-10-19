@@ -71,7 +71,7 @@ def test_robustness_pass_warn_fail():
 
 def test_robustness_records_seeds_and_magnitudes():
     v = RG.robustness_row([_ep()] * 24, RG.default_perturb(), list(range(7000, 7024)))["values"]
-    assert v["seeds"][0] == 7000 and v["seeds"][-1] == 7023 and v["perturb"]["joint_deg"] == 1.5 and v["perturb"]["ball_tol_m"] == 0.01 and v["perturb"]["friction_rand"] is False and v["perturb"]["friction_range"] == [0.9, 1.1]
+    assert v["seeds"][0] == 7000 and v["seeds"][-1] == 7023 and v["perturb"]["joint_deg"] == 1.5 and v["perturb"]["ball_tol_m"] == 0.01 and v["perturb"]["friction_rand"] is False and v["perturb"]["friction_range"] == [0.7, 1.05]
 
 def test_shot_status_uses_harness_bands():
     assert RG.shot_status("spin_rpm", 2600) == "pass" and RG.shot_status("spin_rpm", 3500) == "warn" and RG.shot_status("spin_rpm", 4500) == "fail"
@@ -104,7 +104,7 @@ def test_explicit_options_override_harness_defaults():
     assert a.grf_method == "sustain3" and a.robustness == 8
 
 def test_gate_friction_narrow_and_wide_info_variant():
-    p, w = RG.default_perturb(), RG.wide_perturb()
+    p, w = RG.default_perturb("v3b"), RG.wide_perturb("v3b")
     assert p["friction_rand"] is False and p["friction_range"] == [0.9, 1.1] and "U(0.9,1.1)" in RG.friction_desc(p)
     assert w["friction_rand"] is True and w["friction_range"] is None and "U(0.5,1.2)" in RG.friction_desc(w)
     for k in ("joint_deg", "joint_vel", "ball_tol_m", "seed0", "n"): assert p[k] == w[k]
@@ -128,3 +128,36 @@ def test_worker_reasserts_perturbation_against_jenv_reset_override():
         import pytest; pytest.skip("v3 worker (results/overnight/_j_worker_gp_v3.py) is held locally, not tracked")
     src = open(w).read()
     assert "def _reset_pert" in src and "e.reset = _reset_pert" in src and "e.friction_rand = _fr_; e.ball_tol = _bt_" in src
+
+
+# ---- v3c ----
+def test_v3c_gate_friction_and_source():
+    p = RG.default_perturb(); assert p["friction_range"] == [0.7, 1.05] and p["friction_rand"] is False
+    for t in ("turf_friction_NOTES.md", "Worsfold", "2006", "PMC3794489", "0.62", "PMC3761538", "0.61-0.63", "PROVISIONAL", "MEDIUM-LOW"): assert t in p["friction_source"]
+    assert "/workspace" not in p["friction_source"] and "U(0.7,1.05)" in RG.friction_desc(p)
+
+def test_v3c_info_variants_share_noise_and_seeds():
+    p, w, s = RG.default_perturb(), RG.wide_perturb(), RG.stress_perturb()
+    assert w["friction_rand"] is True and w["friction_range"] is None and s["friction_range"] == [1.1, 1.1] and "fixed at 1.1" in RG.friction_desc(s)
+    for k in ("joint_deg", "joint_vel", "ball_tol_m", "seed0", "n"): assert p[k] == w[k] == s[k]
+
+def test_v3c_default_and_v3b_v2_flags():
+    a = RC.resolve_harness(_ns(harness="v3c")); assert a.grf_method == "butter" and a.robustness == 24 and a.robust_wide_info
+    assert RG.gate_friction_range("v3b") == (0.9, 1.1) and RG.gate_friction_range("v3c") == (0.7, 1.05)
+    import subprocess, sys
+    h = subprocess.run([sys.executable, "-m", "eval.realism_check", "--help"], capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))).stdout
+    h = " ".join(h.split()); assert "{v3c,v3b,v2}" in h and "v3c (default)" in h
+
+def test_shear_ratio_filters_and_masks_low_vertical():
+    t = np.arange(0, 1.0, 0.002); v = np.full_like(t, 1.0); h = np.full_like(t, 0.5)
+    v[:100] = 0.0; h[:100] = 0.3                                   # unloaded samples must be ignored (ratio would blow up)
+    h2 = h.copy(); h2[300] = 5.0                                   # single-sample spike is attenuated by the 50 Hz filter
+    r = RG.shear_ratio(t, h2, v, 150, 450)
+    assert r["n_used"] == 301 and 0.5 <= r["p95"] < 0.53 and r["peak"] < 2.5
+    r0 = RG.shear_ratio(t, h, v, 0, 450); assert 300 < r0["n_used"] < 451   # unloaded samples (filtered vertical < 0.1 BW) dropped
+
+def test_shear_row_is_info_and_reports_reference():
+    row = RG.shear_row([dict(peak=0.8, p95=0.6, n_used=10), dict(peak=0.5, p95=0.4, n_used=10), None])
+    assert row["status"] == "info" and row["gating"] is False and row["values"]["peak_max"] == 0.8 and row["values"]["frac_eps_peak_above_075"] == 0.5
+    assert "0.65" in row["ref"] and "0.75" in row["ref"] and "PMC3794489" in row["ref"]
+    assert RG.shear_row([None])["status"] == "skip"

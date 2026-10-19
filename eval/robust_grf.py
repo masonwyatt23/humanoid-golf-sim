@@ -27,22 +27,38 @@ PROV = "PROVISIONAL"
 JOINT_DEG = 1.5; JOINT_VEL = 0.05; BALL_TOL_M = 0.01
 # v3b (Orchestrator-approved 2026-10-19): gate friction U(0.9, 1.1), PROVISIONAL, no turf source, centred on the model floor mu 1.0 (env/v5_body.py:86).
 # The env's own U(0.5, 1.2) (env/v5_golf_env.py:149, a Stage A training randomisation, off in the J trainer) is kept as the INFO row mine/robustness_wide_friction_info.
-FRICTION_RAND = False; FRICTION_RANGE = (0.9, 1.1); WIDE_FRICTION_RANGE = (0.5, 1.2)
+FRICTION_RAND = False; FRICTION_RANGE_V3B = (0.9, 1.1); WIDE_FRICTION_RANGE = (0.5, 1.2)
+# v3c (Orchestrator-approved 2026-10-19): gate friction U(0.7, 1.05) per episode; deterministic rows stay at the model nominal 1.0.
+FRICTION_RANGE_V3C = (0.7, 1.05); STRESS_FRICTION = 1.1
+FRICTION_RANGE = FRICTION_RANGE_V3C
+FRICTION_SOURCE_V3C = ("PROVISIONAL, MEDIUM-LOW confidence: turf_friction_NOTES.md (Data Agent 2026-10-19). Worsfold, Smith, Dyson 2006 (J Turfgrass Sports Surf Sci 82, abstract only) "
+    "limiting slip coefficients on natural grass: spiked 0.91-0.97 forefoot / 1.01 whole foot, spikeless flat 0.66 / 0.88 -> range 0.7-1.05; "
+    "utilized COF in real swings 0.62 +/- 0.03 (Worsfold 2007, PMC3794489) and driver front foot 0.61-0.63 (PMC3761538). 1.1 kept only as a non-gating stress value.")
+SHEAR_REF = (0.65, 0.75); SHEAR_MIN_VERT_BW = 0.1
 ROBUST_SEED0 = 7000; ROBUST_N = 24
 REQ_CONTACT = 0.95; REQ_SD = 0.90; REQ_FOOT = 0.90
 SUSTAIN_S = 0.006           # 3 x 2 ms
 _W = {"skip": -1, "info": -1, "pass": 0, "warn": 1, "fail": 2}
 
-def default_perturb():
-    return dict(joint_deg=JOINT_DEG, joint_vel=JOINT_VEL, ball_tol_m=BALL_TOL_M, friction_rand=FRICTION_RAND, friction_range=list(FRICTION_RANGE), seed0=ROBUST_SEED0, n=ROBUST_N)
+def gate_friction_range(harness="v3c"):
+    return FRICTION_RANGE_V3B if harness == "v3b" else FRICTION_RANGE_V3C
 
-def wide_perturb():
+def default_perturb(harness="v3c"):
+    return dict(joint_deg=JOINT_DEG, joint_vel=JOINT_VEL, ball_tol_m=BALL_TOL_M, friction_rand=FRICTION_RAND, friction_range=list(gate_friction_range(harness)), seed0=ROBUST_SEED0, n=ROBUST_N,
+                friction_source=(FRICTION_SOURCE_V3C if harness != "v3b" else "PROVISIONAL, no turf source; centred on model mu 1.0"))
+
+def wide_perturb(harness="v3c"):
     """INFO variant: same joint/ball noise and seeds, floor friction from the env's own friction_rand U(0.5, 1.2)."""
-    return dict(default_perturb(), friction_rand=True, friction_range=None)
+    return dict(default_perturb(harness), friction_rand=True, friction_range=None, friction_source="env friction_rand U(0.5, 1.2) (Stage A training randomisation)")
+
+def stress_perturb():
+    """v3c INFO variant: same joint/ball noise and seeds, floor friction fixed at 1.1 (above any golf-shoe value in the notes)."""
+    return dict(default_perturb("v3c"), friction_range=[STRESS_FRICTION, STRESS_FRICTION], friction_source="stress value 1.1, non-gating (turf_friction_NOTES.md)")
 
 def friction_desc(p):
     r = p.get("friction_range")
-    return (f"floor friction U({r[0]:g},{r[1]:g}) (PROVISIONAL, no turf source, centred on model mu 1.0; worker rng seed+0xF41C)" if r else
+    if r and r[0] == r[1]: return f"floor friction fixed at {r[0]:g} ({p.get('friction_source', '')})"
+    return (f"floor friction U({r[0]:g},{r[1]:g}) ({p.get('friction_source', 'PROVISIONAL')}; worker rng seed+0xF41C)" if r else
             "floor friction U(0.5,1.2) (env friction_rand)" if p.get("friction_rand") else "floor friction fixed at model nominal")
 
 FLOOR_MU_NOTE = ("floor_mu_nominal = floor geom friction of a freshly compiled model (env/v5_body.py build_model, floor friction [1.0, 0.005, 0.0001]), "
@@ -54,6 +70,36 @@ def nominal_floor_mu(build_model, handed, club_len, dt, force_scale, addr):
     import mujoco
     m, _ = build_model(handed, club_len, dt=dt, force_scale=force_scale, addr=addr)
     return float(m.geom_friction[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, "floor"), 0])
+
+# ---------------- v3c INFO: lead-foot utilized shear ratio ----------------
+def _bw(x, dt, cutoff=None, order=None):
+    from scipy.signal import butter, filtfilt
+    nyq = 0.5 / dt; b, a = butter(int(order or BUTTER_ORDER), float(cutoff or BUTTER_CUTOFF_HZ) / nyq); return filtfilt(b, a, x)
+
+def shear_ratio(t, h, v, i_top, i_imp, min_v=SHEAR_MIN_VERT_BW):
+    """Lead-foot horizontal/vertical GRF ratio, top of backswing -> impact. Both components filtered (4th-order zero-lag Butterworth 50 Hz, whole trace)
+    before the ratio; samples with filtered vertical < min_v BW are ignored. Returns dict(peak, p95, n_used) or None."""
+    t = np.asarray(t, float); h = np.asarray(h, float).reshape(-1); v = np.asarray(v, float).reshape(-1)
+    n = min(len(t), len(h), len(v))
+    if n < 16: return None
+    t, h, v = t[:n], h[:n], v[:n]; dt = float(np.median(np.diff(t)))
+    if BUTTER_CUTOFF_HZ >= 0.5 / dt: return None
+    hf, vf = _bw(h, dt), _bw(v, dt); i_imp = min(int(i_imp), n - 1); i_top = max(0, min(int(i_top), i_imp))
+    hw, vw = hf[i_top:i_imp + 1], vf[i_top:i_imp + 1]; m = vw >= min_v
+    if not m.any(): return dict(peak=None, p95=None, n_used=0)
+    r = np.abs(hw[m]) / vw[m]; return dict(peak=float(r.max()), p95=float(np.percentile(r, 95)), n_used=int(m.sum()))
+
+def shear_row(per_ep):
+    E = [e for e in per_ep if e and e.get("peak") is not None]
+    ref = ("INFO only, not gating. Utilized COF (shear/vertical) in real swings 0.62 +/- 0.03 (Worsfold 2007, PMC3794489); driver front foot 0.61-0.63 (PMC3761538); "
+           f"suggested ceiling <= {SHEAR_REF[0]}-{SHEAR_REF[1]} (turf_friction_NOTES.md). Filter 4th-order zero-lag Butterworth {BUTTER_CUTOFF_HZ} Hz on both components; "
+           f"samples with vertical < {SHEAR_MIN_VERT_BW} BW ignored; window top of backswing -> impact.")
+    if not E: return dict(status="skip", passed=False, values=None, why=["no per-substep horizontal GRF logged (needs the v3c worker)"], ref=ref, tag="info_only", gating=False)
+    pk = [e["peak"] for e in E]; p95 = [e["p95"] for e in E]
+    vals = dict(peak_median=float(np.median(pk)), peak_max=float(max(pk)), p95_median=float(np.median(p95)), p95_max=float(max(p95)), n_eps=len(E),
+                frac_eps_peak_above_075=float(np.mean([x > SHEAR_REF[1] for x in pk])), ref_ceiling=list(SHEAR_REF))
+    why = [f"lead-foot shear/vertical top->impact: peak median {vals['peak_median']:.3f} (max {vals['peak_max']:.3f}), p95 median {vals['p95_median']:.3f}; reference <= {SHEAR_REF[0]}-{SHEAR_REF[1]}"]
+    return dict(status="info", passed=False, values=vals, why=why, ref=ref, tag="info_only", gating=False)
 
 # ---------------- B) GRF ----------------
 GRF_NOTES = "grf_filter_window_NOTES.md (Data Agent 2026-10-19; held locally, not in git)"

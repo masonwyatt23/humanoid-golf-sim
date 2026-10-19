@@ -71,7 +71,7 @@ def _robust_ep(r, bw):
 
 def resolve_harness(a):
     """Fill unset v3 options from --harness: v3b -> butter + 24 robustness eps (+ wide info row); v2 -> legacy GRF, no robustness."""
-    v2 = getattr(a, "harness", "v3b") == "v2"
+    v2 = getattr(a, "harness", "v3c") == "v2"
     if getattr(a, "grf_method", None) is None: a.grf_method = "legacy" if v2 else "butter"
     if getattr(a, "robustness", None) is None: a.robustness = 0 if v2 else 24
     a.robust_wide_info = (not v2) and a.robustness > 0
@@ -115,7 +115,7 @@ def legacy_view(r):
     so the default (20 ms tie tolerance) rows of a --timing-res-ms run are computed from exactly the default traces."""
     if r.get("seg_every", None) in (None, r.get("seg_every_default")) or not r.get("sub"): return r
     k = int(r["seg_every_default"]); keep = [i for i, s in enumerate(r["sub"]) if s % k == 0]; q = dict(r)
-    for f in ("t", "pelvis_dps", "thorax_dps", "arm_dps", "club_dps", "xfactor_deg", "lead_share", "grf", "sub", "lead_foot"):
+    for f in ("t", "pelvis_dps", "thorax_dps", "arm_dps", "club_dps", "xfactor_deg", "lead_share", "grf", "grf_h", "sub", "lead_foot"):
         if f in r: q[f] = [r[f][i] for i in keep]
     t = np.array(q["t"]); tc = r.get("t_contact")
     q["impact_idx"] = int(np.argmax(t >= tc)) if tc is not None and (t >= tc).any() else len(t) - 1; q["seg_every"] = k
@@ -184,6 +184,9 @@ def run_v5(a):
             pk_, mn_, k_ = RG.despike_peak(tr, gr, it, ir, a.grf_method, a.grf_cutoff_hz or RG.BUTTER_CUTOFF_HZ, a.grf_order or RG.BUTTER_ORDER, post_s=post)
             sens_ = {hz: RG.despike_peak(tr, gr, it, ir, "butter", hz, RG.BUTTER_ORDER, post_s=post)[0] for hz in RG.SENS_CUTOFFS_HZ} if a.grf_method == "butter" else {}
             out[-1].update(grf_v3=(pk_, mn_), grf_k=k_, grf_sens=sens_, grf_raw_whole=float((grf[:n, lead_i] / bw).max()))
+            if r_raw.get("grf_h"):   # v3c INFO: lead-foot shear/vertical ratio, top -> impact
+                gh = np.array(r_raw["grf_h"], float).reshape(-1, 2)[:, lead_i] / bw
+                out[-1]["shear"] = RG.shear_ratio(tr, gh, gr, it, ir)
         if tres:
             rows_f, dt_f = timing_res_rows(r_raw, tres, club); out[-1].update(da_tres=rows_f, dt_fine=dt_f, seg_every_fine=r_raw.get("seg_every"), dt_logged_default=float(np.median(np.diff(np.array(r["t"], float)))))
     ok = [e for e in out if e["true_contact"]] or out; C = {}
@@ -213,14 +216,19 @@ def run_v5(a):
         sens = {hz: [e["grf_sens"][hz] for e in ok if e.get("grf_sens") and e["grf_sens"].get(hz) is not None] for hz in RG.SENS_CUTOFFS_HZ} if a.grf_method == "butter" else None
         row, info = RG.grf_rows([e["grf_v3"] for e in ok if e.get("grf_v3") and e["grf_v3"][0] is not None], a.grf_method, src, band, [e["grf_raw_whole"] for e in ok if e.get("grf_raw_whole") is not None], sens)
         C["swing/grf_lead_vertical_bw"] = row; C["mine/grf_lead_vertical_raw_info"] = info
+        if getattr(a, "harness", None) == "v3c": C["mine/lead_foot_shear_ratio_info"] = RG.shear_row([e.get("shear") for e in ok])
     ROB = None
+    from eval import robust_grf as RG
     if getattr(a, "robustness", 0):
-        C["mine/robustness"], ROB = run_robustness(a, repo, ck, arm, env)
+        C["mine/robustness"], ROB = run_robustness(a, repo, ck, arm, env, RG.default_perturb(getattr(a, "harness", "v3c")))
         if getattr(a, "robust_wide_info", False):   # INFO only: same seeds/noise, env friction U(0.5, 1.2); never gating
             from eval import robust_grf as RG
-            w, _ = run_robustness(a, repo, ck, arm, env, RG.wide_perturb())
+            w, _ = run_robustness(a, repo, ck, arm, env, RG.wide_perturb(getattr(a, "harness", "v3c")))
             w = dict(w, status="info", passed=False, tag="info_only", gating=False, verdict_if_gating=w.get("status"), why=["INFO only (not gating): robustness under the env's wide friction U(0.5, 1.2)"] + list(w.get("why") or []))
             C["mine/robustness_wide_friction_info"] = w
+            if getattr(a, "harness", None) == "v3c":   # INFO only: fixed mu 1.1 stress value (above any golf-shoe value in the notes)
+                w, _ = run_robustness(a, repo, ck, arm, env, RG.stress_perturb())
+                C["mine/robustness_stress_friction_info"] = dict(w, status="info", passed=False, tag="info_only", gating=False, verdict_if_gating=w.get("status"), why=["INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md)"] + list(w.get("why") or []))
     S = SR.summarize(C); TR = None
     if tres:
         F = SR.agg_da(ok, "da_tres", "swing"); alt = dict(C); alt.update(F); S2 = SR.summarize(alt)
@@ -255,7 +263,7 @@ def main():
     ap.add_argument("--timing-res-ms", type=float, default=None, help="v5 only, opt-in (default OFF = 20 ms tie tolerance, verdict unchanged): ALSO report kinematic-sequence order/timing from per-physics-substep traces with this tie tolerance (e.g. 5), alongside the default rows; not gating")
     ap.add_argument("--grf-method", default=None, choices=["legacy", "sustain3", "butter", "raw"], help="v5 only. legacy (default) = v2 whole-episode raw peak; others = v3 PROVISIONAL rule: window top->impact on per-substep traces, de-spiked (butter = PRIMARY: 4th-order zero-lag Butterworth 50 Hz, window top->impact+20 ms, >=3-sample guard, 12/14 Hz sensitivity info; sustain3 = fallback >=3 consecutive 2 ms samples, top->impact); old value kept as INFO")
     ap.add_argument("--grf-cutoff-hz", type=float, default=None); ap.add_argument("--grf-order", type=int, default=None); ap.add_argument("--grf-source", default=None)
-    ap.add_argument("--harness", default="v3b", choices=["v3b", "v2"], help="v3b (default): Butterworth lead-GRF window + mine/robustness gate (friction 0.9-1.1) + wide-friction info row. v2: reproduce the v2 rules (whole-episode raw GRF, no robustness rows)"); ap.add_argument("--robustness", type=int, default=None, help="v5 only, PROVISIONAL GATING row mine/robustness: N perturbed episodes (0 = off; v3 runs use 24)"); ap.add_argument("--robust-seed0", type=int, default=7000)
+    ap.add_argument("--harness", default="v3c", choices=["v3c", "v3b", "v2"], help="v3c (default): Butterworth lead-GRF window + mine/robustness gate (friction 0.7-1.05, turf_friction_NOTES.md) + wide (0.5-1.2) and stress (1.1) friction info rows + lead-foot shear ratio info. v3b: gate friction 0.9-1.1 + wide info row. v2: reproduce the v2 rules (whole-episode raw GRF, no robustness rows)"); ap.add_argument("--robustness", type=int, default=None, help="v5 only, PROVISIONAL GATING row mine/robustness: N perturbed episodes (0 = off; v3 runs use 24)"); ap.add_argument("--robust-seed0", type=int, default=7000)
     a = ap.parse_args(); resolve_harness(a); r = run_v5(a) if a.env == "v5" else run_v1(a)
     print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}" + (f" info {r['n_info']} (not gating)" if r.get('n_info') else ""))
     for n, c in r["checks"].items():
