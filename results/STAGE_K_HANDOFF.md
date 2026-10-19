@@ -213,3 +213,7 @@ Common warns: order (arm = club sample), timing (pelvis 136-152 ms), pelvis 150-
 ## Best list update 15:25 ET 2026-10-19
 - Most passes: results/v5_runs/_snap/K22r5_s51_100000 - 13/3/1 (order passes for the first time in the gating era; FAIL lead GRF 2.59). 70.6 mph. ref stageK22e_ref_s1.
 - Zero-fail: K22r4_s49_500000 12/5/0 (GRF pass), K19a_s39_300000 12/5/0, K20b_s42_100000 12/5/0.
+
+## Best list update 15:50 ET 2026-10-19
+  1. **results/v5_runs/_snap/K23b_s52_300000 - v2 14/3/0, v3 14/3/1 (only robustness fails: contact 0.79 / dir 0.75 / plant 0.79)**. 70.6 mph, smash 1.44, spin 2892, t/c 1.284, GRF 1.66, X-factor 61.5; warns timing (arm 12 ms), pelvis 181 dps, t/c. ref stageK22e_ref_s1.
+  2. K22r5_s51_100000 / 400000 - v2 13/3/1 (raw-GRF fail; v3 Butterworth GRF likely passes).

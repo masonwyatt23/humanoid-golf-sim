@@ -45,11 +45,12 @@ class SwingRef:
         self.t_dstart = self.t_top + T_HOLD
         self.K = np.zeros((3, len(names)))      # top, imp, fin deltas
         self.xf_idx = None
-        tab = dict(PUBLIC_KEYS); self.k_grp = {}; self.sh_grp = {}; self.pc_grp = {}
+        tab = dict(PUBLIC_KEYS); self.k_grp = {}; self.sh_grp = {}; self.pc_grp = {}; self.il = {}
         if keys:   # K8: ("ease", <kind>, "k") entries set a per-joint-kind downswing ease exponent (e.g. wrist lag/release timing), not keyframe deltas
             keys = dict(keys)
             for k in [k for k in keys if k[0] == "ease"]: self.k_grp[k[1]] = float(keys.pop(k))
             for k in [k for k in keys if k[0] == "phase"]: self.sh_grp[k[1]] = float(keys.pop(k))
+            for k in [k for k in keys if k[0] == "il"]: self.il[k[1]] = float(keys.pop(k))   # K26: impact-lean bump (rad) on a named joint (lead wrist/shoulder shaft lean), gaussian about impact, sd IL_W
             for k in [k for k in keys if k[0] == "pc"]: self.pc_grp.setdefault(k[1], {})[k[2]] = float(keys.pop(k))   # K22: explicit bell-velocity downswing curve per kind: c = peak time before impact (s), w = width (s)   # K10: per-kind downswing start delay (s), e.g. hip/waist
         if keys: 
             for k, v in keys.items(): tab[k] = tab.get(k, 0.0) + v if not isinstance(v, tuple) else v[0]
@@ -67,6 +68,7 @@ class SwingRef:
             self.xf_idx = [j for j, n in enumerate(self.names) if n.startswith("waist_yaw")][0]
         kinds = [n.replace("left_", "").replace("right_", "").replace("_joint", "") for n in self.names]
         self.sh_vec = np.array([self.sh_grp.get(kd, self.sh_grp.get(kd.split("_")[0], 0.0)) for kd in kinds]); self.sh_xf = self.sh_grp.get("waist_yaw", self.sh_grp.get("waist", 0.0))
+        self.il_idx = [(self.names.index(n), v) for n, v in self.il.items() if n in self.names]
         self.pc_idx = []
         for g_, pr in self.pc_grp.items():
             js = [j for j, kd in enumerate(kinds) if kd == g_ or kd.startswith(g_ + "_") or (g_ == "shoulder" and kd.startswith("shoulder"))]
@@ -99,6 +101,10 @@ class SwingRef:
         return self.K[1] + (self.K[2] - self.K[1]) * s
 
     def q(self, t):
-        return np.clip(self.q_addr + self.delta(t), self.jlo + 1e-3, self.jhi - 1e-3)
+        d = self.delta(t)
+        if getattr(self, 'il_idx', None):
+            b = float(np.exp(-0.5 * ((t - self.t_imp) / 0.035) ** 2)); d = d.copy()
+            for j, v in self.il_idx: d[j] += v * b
+        return np.clip(self.q_addr + d, self.jlo + 1e-3, self.jhi - 1e-3)
     def downswing_phase(self, t): return float(np.clip((t - self.t_dstart) / self.t_down, 0.0, 1.0)) if t >= self.t_dstart else 0.0
     def u(self, t): return float(np.clip(t / self.t_end, 0.0, 1.0))
