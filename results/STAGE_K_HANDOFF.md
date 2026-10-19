@@ -77,3 +77,4 @@
 - Ref stageK10_ref_s1 (200 gens): open-loop 79.6 mph legal strike, pelvis peak 116 ms before club (K8 ref 156), arm 12 ms before club (K8 4), XF 64.6, GRF 1.0 (5 ms), trunk power 659 W (K8 537); waist delay 45 ms, hip_yaw delay 5 ms. Launch 19.5 / spin 8750 open-loop. s2 ref: 79.4 mph, pelvis 136 ms, arm-club 20 ms.
 - Residual runs stageK10 s11 (sep_w 1) / s12 (sep_w 2) warm from K9 s9 300k on the s1 ref, lr 5e-5, 600k cap, K9 terms otherwise.
 
+- (05:20 ET) Evaluator: s11 200k 78.7 mph 10/5/0; all s12 (sep_w 2) fail order -> s12 stopped at 400k (moved to _stageK10_s12_stopped, snapshots _snap/K10_s12_*). New stageK10b s13 from K10 s11 200k: sep_w 0.5, ord2_w 4, desc_w 6 (t/c), lr 3e-5, T0 78, 400k cap.
