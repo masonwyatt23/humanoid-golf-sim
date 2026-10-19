@@ -639,3 +639,9 @@ Unrelated modified tracked files (docs/hero_swing.gif, eval/leaderboard.py, eval
   s7 500k: 12/2/1, 76.6 mph, t/c passes; fail spin 4154.
 - First 70+ mph clean strikes under stock limits. Remaining: spin <3000, pelvis peak 165-175 ms (band 40-140), arm/club peak separation.
 
+
+## K9 (2026-10-19 ~04:25 ET) — stock limits, reference-guided residual on K8 ref
+- K8 final: no full pass at the 800k cap (Evaluator: zero-fail s8 300/400/600/700k, best s8 400k 12/3/0 at 72 mph; s7 500k 76.6 mph only spin fails). Snapshots _snap/K8_s{7,8}_{100..800}k.
+- stageK9 s9 from K8 s8 400k (T0 72), s10 from K8 s7 500k (T0 76): spin_w 8 (hi 2700, scale 1000), centered-strike ctr_w 4, dynamic loft window 15-20, pelvis timing band 60-120 ms (pel_t_w 8), new sep_w 4 (arm peak >= ~5-20 ms before club peak), ord2_w 3, lr 5e-5, 600k cap.
+- Tried a later-hip ease (k 2.2/3.0) in the open-loop ref: pelvis lead only 156->152/132 ms and 3.0 broke the strike (18 mph); not used.
+
