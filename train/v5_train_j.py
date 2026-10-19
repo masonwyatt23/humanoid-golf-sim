@@ -18,7 +18,7 @@ from env.v5_ref import SwingRef
 EXTRA = 4
 
 class JEnv(HEnv):
-    res_scale = 1.0; track_w = 1.0; bs_floor = 1.0; xf_cap_w = 0.08; xf_cap_lo = 60.0; ord_w = 1.5; track_floor = 0.3; grf_w = 0.15; ctr_w = 2.0; spin_w = 1.0; _cprev = False; ord2_w = 0.0; launch_w = 0.0; fine_grf = False; smash_w = 0.0; spin_hi = 3000.0; spin_scale = 2000.0; desc_w = 0.0; dloft_w = 0.0; spin_lo_w = 0.0; xf_hard = 0.0; grf_lo = 2.0; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
+    res_scale = 1.0; track_w = 1.0; bs_floor = 1.0; xf_cap_w = 0.08; xf_cap_lo = 60.0; ord_w = 1.5; track_floor = 0.3; grf_w = 0.15; ctr_w = 2.0; spin_w = 1.0; _cprev = False; ord2_w = 0.0; launch_w = 0.0; launch_hi = 14.0; dl_lo = 12.0; dl_hi = 18.0; aoa_lo = -6.0; spd_w = 0.0; fine_grf = False; smash_w = 0.0; spin_hi = 3000.0; spin_scale = 2000.0; desc_w = 0.0; dloft_w = 0.0; spin_lo_w = 0.0; xf_hard = 0.0; grf_lo = 2.0; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
     def __init__(self, dt=0.002, seed=0, keys=None, res_scale=1.0, t_down=0.27):
         super().__init__(dt=dt, seed=seed, planar=False); self.ref_keys = keys; self.res_scale = res_scale; self.t_down = t_down; self.ref = None
         self.target_len = 1.15; self.target_tether = 0.0; self.prior_w = 0.0; self.env.friction_rand = False; self.env.detail_info = True; self._slead = 0.0; self._sl_ep = 0.0; _orig = self.env._log_seg; _e = self.env
@@ -63,13 +63,14 @@ class JEnv(HEnv):
         rew -= self.grf_w * float(np.clip((self._slead if self.fine_grf else self.prev_lead) - self.grf_lo, 0.0, 6.0))   # extra lead-foot impulse penalty (harness measured 3.4-3.9 BW vs 0.8-1.7)
         if e.contact and not self._cprev and not info.get('ep', {}).get('unstable'):   # centred strike + spin cap
             q_ = max(0.0, 1 - np.hypot(info['dy'], info['dz']) / self.hit_tol); rew += self.ctr_w * q_ - self.spin_w * float(np.clip((info.get('spin_rpm', 0.0) - 3000.0) / 2000.0, 0.0, 1.0))
+            if self.spd_w > 0: rew += self.spd_w * float(np.clip((float(info.get('club_speed_mph', 0.0)) - 60.0) / 20.0, 0.0, 1.0))
             if self.smash_w > 0: rew += self.smash_w * float(np.clip((float(info.get('smash', 0.0)) - 1.1) / 0.2, 0.0, 1.0))
             if self.launch_w > 0:   # launch window 10-14 deg, penalise < 9 deg
-                la = float(info.get('launch_deg', 0.0)); rew += self.launch_w * (float(la >= 10.0 and la <= 14.0) + 0.5 * float(np.clip(1.0 - min(abs(la - 10.0), abs(la - 14.0)) / 4.0, 0.0, 1.0)) * float(not (10.0 <= la <= 14.0))) - self.launch_w * float(np.clip((9.0 - la) / 5.0, 0.0, 1.0))
+                la = float(info.get('launch_deg', 0.0)); rew += self.launch_w * (float(la >= 10.0 and la <= self.launch_hi) + 0.5 * float(np.clip(1.0 - min(abs(la - 10.0), abs(la - self.launch_hi)) / 4.0, 0.0, 1.0)) * float(not (10.0 <= la <= self.launch_hi))) - self.launch_w * float(np.clip((9.0 - la) / 5.0, 0.0, 1.0))
             if self.desc_w > 0:     # descent angle toward driver ~35-40 deg (shallow 11-13 deg gives total/carry ~2); needs carry to count
                 dsc = float(info.get('descent_deg', 0.0)); rew += self.desc_w * float(np.clip((dsc - 12.0) / 22.0, 0.0, 1.0)) * float(info.get('carry_m_noroll', 0.0) > 15.0)
             if self.dloft_w > 0:    # dynamic loft 12-18 deg and non-steep attack angle
-                dl = float(info.get('dynamic_loft_deg', 0.0)); rew += self.dloft_w * float(np.clip(1.0 - max(abs(dl - 15.0) - 3.0, 0.0) / 6.0, 0.0, 1.0)) - 0.5 * self.dloft_w * float(np.clip((-float(info.get('aoa_deg', 0.0)) - 6.0) / 6.0, 0.0, 1.0))
+                dl = float(info.get('dynamic_loft_deg', 0.0)); rew += self.dloft_w * float(np.clip(1.0 - max(self.dl_lo - dl, dl - self.dl_hi, 0.0) / 5.0, 0.0, 1.0)) - 0.5 * self.dloft_w * float(np.clip((self.aoa_lo - float(info.get('aoa_deg', 0.0))) / 6.0, 0.0, 1.0))
             if self.spin_lo_w > 0:  # spin band 1800-3000 rpm
                 sp = float(info.get('spin_rpm', 0.0)); rew -= self.spin_lo_w * float(np.clip((1800.0 - sp) / 1800.0, 0.0, 1.0))
         self._cprev = bool(e.contact)
@@ -112,7 +113,7 @@ class CurrJ(CurrH):
                    descent_med=med("descent"), spin_med=med("spin"), land_mps_med=med("land_mps"), dloft_med=med("dloft"), aoa_med=med("aoa"), tot_over_carry_med=med("tot_over_carry"),
                    lead_grf_fine=float(np.mean([x.get("lead_fine", 0.0) for x in c])) if c else 0.0, smash_med=med("smash"),
                    xf_deg=med("xf_deg") if c and "xf_deg" in c[0] else None, seq=float(np.mean([x.get("seq", 0.0) for x in c])) if c else 0.0)
-        sc = row["contact"] * (float(np.median([x["carry"] for x in fwdc])) if fwdc else 0.0) * (min(1.0, max(row["descent_med"], 1.0) / 30.0) if self.desc_sel else 1.0) + 0.001 * row["contact"] * row["impact_mph_med"]; row["best_score"] = sc
+        sc = row["contact"] * (float(np.median([x["carry"] for x in fwdc])) if fwdc else 0.0) * (min(1.0, max(row["descent_med"], 1.0) / 30.0) if self.desc_sel else 1.0) * ((0.4 + 0.6 * float(row["spin_med"] <= 3000.0)) * (0.6 + 0.4 * float(row["launch_med"] <= 16.0)) if self.sel_k4 else 1.0) + 0.001 * row["contact"] * row["impact_mph_med"]; row["best_score"] = sc
         if row["contact"] >= 0.9 and row["fwd_strike_frac"] >= 0.9 and row["impact_mph_med"] >= 0.8 * self.T and row["carry_med"] >= self.carry_min:
             self.T += self.T_step; self.last_promo = self.num_timesteps; row["promoted_to"] = self.T
         if self.anneal_start is None and self.num_timesteps >= self.track_hold and row["fell"] <= 0.25 and row["track_rmse"] < 0.3:
@@ -138,11 +139,11 @@ if __name__ == "__main__":
     ap.add_argument("--track_hold", type=int, default=400_000); ap.add_argument("--track_len", type=int, default=1_200_000); ap.add_argument("--track_end", type=float, default=0.2)
     ap.add_argument("--ent", type=float, default=0.003); ap.add_argument("--log_std", type=float, default=-1.0); ap.add_argument("--log_std_end", type=float, default=-1.6); ap.add_argument("--std_end", type=float, default=0.7)
     ap.add_argument("--rate_w", type=float, default=0.05); ap.add_argument("--resume", action="store_true"); ap.add_argument("--reset_stall", action="store_true"); ap.add_argument("--init_ck", default=None)
-    ap.add_argument("--fine_grf", action="store_true"); ap.add_argument("--smash_w", type=float, default=None); ap.add_argument("--spin_w", type=float, default=None); ap.add_argument("--spin_hi", type=float, default=None); ap.add_argument("--spin_scale", type=float, default=None); ap.add_argument("--desc_sel", action="store_true"); ap.add_argument("--launch_w", type=float, default=None); ap.add_argument("--desc_w", type=float, default=None); ap.add_argument("--dloft_w", type=float, default=None); ap.add_argument("--spin_lo_w", type=float, default=None); ap.add_argument("--snap_every", type=int, default=0); ap.add_argument("--ord2_w", type=float, default=None); ap.add_argument("--no_stop", action="store_true"); ap.add_argument("--T_step", type=float, default=5.0); ap.add_argument("--carry_min", type=float, default=0.0); ap.add_argument("--xf_hard", type=float, default=None); ap.add_argument("--grf_lo", type=float, default=None)
+    ap.add_argument("--sel_k4", action="store_true"); ap.add_argument("--launch_hi", type=float, default=None); ap.add_argument("--dl_lo", type=float, default=None); ap.add_argument("--dl_hi", type=float, default=None); ap.add_argument("--aoa_lo", type=float, default=None); ap.add_argument("--spd_w", type=float, default=None); ap.add_argument("--fine_grf", action="store_true"); ap.add_argument("--smash_w", type=float, default=None); ap.add_argument("--spin_w", type=float, default=None); ap.add_argument("--spin_hi", type=float, default=None); ap.add_argument("--spin_scale", type=float, default=None); ap.add_argument("--desc_sel", action="store_true"); ap.add_argument("--launch_w", type=float, default=None); ap.add_argument("--desc_w", type=float, default=None); ap.add_argument("--dloft_w", type=float, default=None); ap.add_argument("--spin_lo_w", type=float, default=None); ap.add_argument("--snap_every", type=int, default=0); ap.add_argument("--ord2_w", type=float, default=None); ap.add_argument("--no_stop", action="store_true"); ap.add_argument("--T_step", type=float, default=5.0); ap.add_argument("--carry_min", type=float, default=0.0); ap.add_argument("--xf_hard", type=float, default=None); ap.add_argument("--grf_lo", type=float, default=None)
     ap.add_argument("--grf_w", type=float, default=None); ap.add_argument("--xf_cap_lo", type=float, default=None); ap.add_argument("--xf_cap_w", type=float, default=None); ap.add_argument("--track_floor", type=float, default=None)
     a = ap.parse_args()
     keys = {tuple(k.split("|")): v for k, v in json.load(open(a.keys)).items()} if a.keys and a.keys != "none" else None
-    extra = dict(xf_hard=a.xf_hard, grf_lo=a.grf_lo, grf_w=a.grf_w, xf_cap_lo=a.xf_cap_lo, xf_cap_w=a.xf_cap_w, ord2_w=a.ord2_w, launch_w=a.launch_w, smash_w=a.smash_w, spin_w=a.spin_w, spin_hi=a.spin_hi, spin_scale=a.spin_scale, fine_grf=(True if a.fine_grf else None), desc_w=a.desc_w, dloft_w=a.dloft_w, spin_lo_w=a.spin_lo_w, track_floor=a.track_floor)
+    extra = dict(xf_hard=a.xf_hard, grf_lo=a.grf_lo, grf_w=a.grf_w, xf_cap_lo=a.xf_cap_lo, xf_cap_w=a.xf_cap_w, ord2_w=a.ord2_w, launch_w=a.launch_w, launch_hi=a.launch_hi, dl_lo=a.dl_lo, dl_hi=a.dl_hi, aoa_lo=a.aoa_lo, spd_w=a.spd_w, smash_w=a.smash_w, spin_w=a.spin_w, spin_hi=a.spin_hi, spin_scale=a.spin_scale, fine_grf=(True if a.fine_grf else None), desc_w=a.desc_w, dloft_w=a.dloft_w, spin_lo_w=a.spin_lo_w, track_floor=a.track_floor)
     out = f"results/v5_runs/{a.tag}_s{a.seed}"; os.makedirs(out, exist_ok=True)
     venv = SubprocVecEnv([make(i, a.seed, a.dt, keys, a.res_scale, a.t_down, extra) for i in range(a.workers)])
     step0, ck = newest(out) if a.resume else (0, None)
@@ -157,7 +158,7 @@ if __name__ == "__main__":
         old = VecNormalize.load(a.init_ck + "_vecnorm.pkl", venv); venv.obs_rms = old.obs_rms
     json.dump(vars(a), open(os.path.join(out, "args.json"), "w"))
     cb = CurrJ(a.steps, out, 10**12, a.tag); cb.base = 0; cb.total_all = a.steps; cb.stop = False; cb.planar = False; cb.act_end, cb.prior_w, cb.rate_w = 1.0, 0.0, a.rate_w; cb.h_every = 100_000; cb.h_last = step0
-    cb.keys, cb.res_scale, cb.t_down = keys, a.res_scale, a.t_down; cb.extra = extra; cb.desc_sel = a.desc_sel; cb.no_stop = a.no_stop; cb.T_step, cb.carry_min = a.T_step, a.carry_min; cb.track_hold, cb.track_len, cb.track_end = a.track_hold, a.track_len, a.track_end
+    cb.keys, cb.res_scale, cb.t_down = keys, a.res_scale, a.t_down; cb.extra = extra; cb.desc_sel = a.desc_sel; cb.sel_k4 = a.sel_k4; cb.no_stop = a.no_stop; cb.T_step, cb.carry_min = a.T_step, a.carry_min; cb.track_hold, cb.track_len, cb.track_end = a.track_hold, a.track_len, a.track_end
     cb.T, cb.last_promo, cb.anneal_start, cb.best_sc = a.T0, 0, None, 0.0
     cj = os.path.join(out, "curriculum.json")
     if ck and os.path.exists(cj): d_ = json.load(open(cj)); cb.T, cb.last_promo, cb.anneal_start, cb.best_sc = d_["T"], d_["last_promo"], d_.get("anneal_start"), d_.get("best_sc", 0.0)
