@@ -72,15 +72,17 @@ def run_v5(a):
                 shot["total_yd"] = gp["total_yd"]; shot["carry_yd"] = gp["carry_yd"]
         pk = [float(np.degrees(w[:, j]).max()) for j in range(4)]
         gp_rows.append(dict(seed=r.get("seed"), contact=bool(r["contact"]), **(gp or {}))) if gp else None
-        out.append(dict(true_contact=bool(r["contact"]), club_mph=club, da_swing=SR.da_swing(jt, 0.005, club, imp), da_shot=SR.da_shot(shot) if shot else [], seg_peak_dps=pk))
+        out.append(dict(true_contact=bool(r["contact"]), club_mph=club, ball_mph=sh.get("ball_speed_mph"), gp_toc=(gp or {}).get("total_over_carry"), da_swing=SR.da_swing(jt, 0.005, club, imp), da_shot=SR.da_shot(shot) if shot else [], seg_peak_dps=pk))
     ok = [e for e in out if e["true_contact"]] or out; C = {}
     C.update(SR.agg_da(ok, "da_swing", "swing")); C.update(SR.agg_da(ok, "da_shot", "shot"))
     pk = {n: SR.med([e["seg_peak_dps"][j] for e in ok]) for j, n in enumerate(("pelvis", "thorax", "arm", "club"))}; bad = [n for n, v in pk.items() if v < SR.MOVE_MIN_DPS]
     k, v = SR._mine("segments_rotate", not bad, [f"{n} does not rotate (peak {pk[n]:.1f} deg/s)" for n in bad], pk, "DERIVED 20 deg/s"); C[k] = v
     for nm in ("ground_contact_weight_shift", "joint_limits", "torque_saturation_smoothness", "tempo", "carry_vs_trackman_band"):
         C[f"mine/{nm}"] = dict(status="skip", passed=False, values=None, why=["not implemented for the v5 recorder (v1 recorder only)"], ref=None, tag="derived")
+    k, v = SR.info_total_over_carry_speed_matched(SR.med([e["ball_mph"] for e in ok if e.get("gp_toc") is not None]), SR.med([e["gp_toc"] for e in ok]))   # INFO ONLY: not gating, ignored by summarize
+    C[k] = v
     S = SR.summarize(C)
-    return dict(key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], verdict=S["verdict"],
+    return dict(key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"],
                 club_mph_median=SR.med([e["club_mph"] for e in ok]), golfphys_total=_gp_summary(gp_rows))
 
 def _gp_summary(rows):
@@ -100,9 +102,9 @@ def main():
     ap.add_argument("--eps-per-seed", type=int, default=8); ap.add_argument("--seeds", default="4000,8000,9000"); ap.add_argument("--workers", type=int, default=2); ap.add_argument("--club-len", type=float, default=1.05)
     ap.add_argument("--arm-dist", type=float, default=None, help="v5 only: 0.6 (default, BEnv) for Stage B/C; 0 (TrainEnv) auto for paths containing stageA"); ap.add_argument("--strike-gate-nx", type=float, default=None, help="v5 only, default OFF: Trainer Stage G+ strike gate (e.g. 0.25), same definition as V5GolfEnv.strike_gate_nx"); ap.add_argument("--v5-repo", default=DEFAULT_V5); ap.add_argument("--json", default="")
     a = ap.parse_args(); r = run_v5(a) if a.env == "v5" else run_v1(a)
-    print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}")
+    print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}" + (f" info {r['n_info']} (not gating)" if r.get('n_info') else ""))
     for n, c in r["checks"].items():
-        print(f"  {c['status'].upper():5s} {n}" + (f"  - {'; '.join(x for x in c['why'] if x)[:200]}" if c["status"] in ("fail", "warn") else ""))
+        print(f"  {c['status'].upper():5s} {n}" + (f"  - {'; '.join(x for x in c['why'] if x)[:200]}" if c["status"] in ("fail", "warn") else "") + (f"  - {'; '.join(x for x in c['why'] if x)}" if c["status"] == "info" else ""))
     if a.json: Path(a.json).write_text(json.dumps(r, indent=1, default=float))
     return 0
 if __name__ == "__main__": main()

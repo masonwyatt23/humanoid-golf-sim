@@ -260,9 +260,40 @@ def checks(struct, eps):
     k, v = _mine("carry_vs_trackman_band", inside, why, dict(club_mph=club, carry_yd=carry, ref_band=band), "TrackMan carry-optimizer rows 100/120 mph (data/launch_monitor_98_120.py)", status=("pass" if inside else ("warn" if band["extrapolated"] else "fail"))); C[k] = v
     return C
 
+# ---- INFO-ONLY rows (status "info": never gating, never counted in pass/warn/fail/n_checks, the verdict ignores them) -------------------------------------------
+INFO = "info"
+SM_KEY = "mine/total_over_carry_speed_matched (golfphys model, info only, not gating)"
+SM_LAUNCH_DEG = tuple(range(7, 17))            # Data Agent launch pass band 7-16 deg, 1 deg steps
+SM_SPIN_RPM = tuple(range(1800, 3001, 100))    # Data Agent spin pass band 1800-3000 rpm, 100 rpm steps
+SM_CAVEAT = ("golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds "
+             "(roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict")
+
+def speed_matched_min_total_over_carry(ball_mph, launches=SM_LAUNCH_DEG, spins=SM_SPIN_RPM):
+    """Lowest golfphys total/carry reachable at this ball speed with launch and backspin inside the Data Agent pass bands (no sidespin, azimuth 0, normal turf).
+    Sweep of eval/golfphys_total.golfphys_total (golfphys.sim.shot_from_launch, roll=True vs roll=False). Returns the minimum and where it occurs."""
+    from eval.golfphys_total import golfphys_total
+    best = None
+    for la in launches:
+        for sp in spins:
+            r = golfphys_total(float(ball_mph), float(la), float(sp))
+            if r["total_over_carry"] is not None and (best is None or r["total_over_carry"] < best["min_total_over_carry"]):
+                best = dict(min_total_over_carry=r["total_over_carry"], at_launch_deg=float(la), at_backspin_rpm=float(sp), at_carry_yd=r["carry_yd"], at_total_yd=r["total_yd"], at_descent_deg=r["descent_deg"])
+    return best
+
+def info_total_over_carry_speed_matched(ball_mph, actual_total_over_carry):
+    """(key, row) for the INFO-ONLY speed-matched total/carry row. status is always "info" (or "skip" when no ball speed / no golfphys total); never pass/warn/fail."""
+    ref = "eval/golfphys_total.py sweep: launch 7-16 deg x backspin 1800-3000 rpm at the shot's median ball speed (golfphys.sim.shot_from_launch, vendored golfphys-lh-fix 357bc0c)"
+    if not ball_mph or ball_mph <= 0 or actual_total_over_carry is None:
+        return SM_KEY, dict(status="skip", passed=False, values=None, why=["no contact shot with golfphys total/carry; " + SM_CAVEAT], ref=ref, tag="info_only", gating=False)
+    b = speed_matched_min_total_over_carry(ball_mph)
+    vals = dict(ball_mph=float(ball_mph), actual_total_over_carry=float(actual_total_over_carry), **(b or {}),
+                actual_minus_min=(float(actual_total_over_carry) - b["min_total_over_carry"]) if b else None, sweep=dict(launch_deg=[SM_LAUNCH_DEG[0], SM_LAUNCH_DEG[-1], 1], backspin_rpm=[SM_SPIN_RPM[0], SM_SPIN_RPM[-1], 100]))
+    why = [f"actual total/carry {actual_total_over_carry:.3f} vs golfphys speed-matched minimum {b['min_total_over_carry']:.3f} at {ball_mph:.1f} mph ball speed (launch {b['at_launch_deg']:.0f} deg, backspin {b['at_backspin_rpm']:.0f} rpm); " + SM_CAVEAT] if b else ["sweep returned no carry; " + SM_CAVEAT]
+    return SM_KEY, dict(status=INFO, passed=False, values=vals, why=why, ref=ref, tag="info_only", gating=False)
+
 def summarize(C):
-    st = [c["status"] for c in C.values()]; n_pass, n_warn, n_fail, n_skip = (st.count(x) for x in ("pass", "warn", "fail", "skip"))
-    return dict(verdict="FAIL" if n_fail else "WARN" if n_warn else "PASS", n_pass=n_pass, n_warn=n_warn, n_fail=n_fail, n_skip=n_skip, n_checks=len(st) - n_skip)
+    st = [c["status"] for c in C.values()]; n_pass, n_warn, n_fail, n_skip = (st.count(x) for x in ("pass", "warn", "fail", "skip")); n_info = st.count(INFO)   # info rows: excluded from verdict and n_checks
+    return dict(verdict="FAIL" if n_fail else "WARN" if n_warn else "PASS", n_pass=n_pass, n_warn=n_warn, n_fail=n_fail, n_skip=n_skip, n_checks=len(st) - n_skip - n_info, n_info=n_info)
 
 def evaluate(reg, eps_per_seed=8, workers=2, log=print):
     import multiprocessing as mp
