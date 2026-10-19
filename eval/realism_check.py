@@ -83,6 +83,7 @@ def run_robustness(a, repo, ck, arm, env):
     if J.get("perturb_spec") is None: return dict(status="skip", passed=False, values=None, why=["worker did not apply the perturbation"], ref=None, tag="derived"), []
     E = [_robust_ep(r, J["bw_N"]) for r in J["eps"]]
     P["floor_mu_nominal"] = J.get("floor_mu_nominal")
+    P["floor_mu_note"] = J.get("floor_mu_note")
     return RG.robustness_row(E, P, [s0 + i for i in range(n)]), E
 
 LEGACY_DT = 0.005   # sample interval the v5 path ASSUMED before the 2026-10-19 dt fix (JEnv/BEnv actually log every 4 ms); kept only for reporting

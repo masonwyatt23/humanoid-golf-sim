@@ -33,6 +33,16 @@ _W = {"skip": -1, "info": -1, "pass": 0, "warn": 1, "fail": 2}
 def default_perturb():
     return dict(joint_deg=JOINT_DEG, joint_vel=JOINT_VEL, ball_tol_m=BALL_TOL_M, friction_rand=FRICTION_RAND, seed0=ROBUST_SEED0, n=ROBUST_N)
 
+FLOOR_MU_NOTE = ("floor_mu_nominal = floor geom friction of a freshly compiled model (env/v5_body.py build_model, floor friction [1.0, 0.005, 0.0001]), "
+                 "read before any reset/randomisation. Until the 2026-10-19 label fix the worker read it after the env's construction-time reset, which had "
+                 "already drawn U(0.5, 1.2): the 0.978 in earlier v3 JSONs was one random draw, mislabeled as nominal; verdicts unaffected.")
+
+def nominal_floor_mu(build_model, handed, club_len, dt, force_scale, addr):
+    """Floor sliding friction of a freshly compiled v5 model (no reset, no randomisation)."""
+    import mujoco
+    m, _ = build_model(handed, club_len, dt=dt, force_scale=force_scale, addr=addr)
+    return float(m.geom_friction[mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_GEOM, "floor"), 0])
+
 # ---------------- B) GRF ----------------
 GRF_NOTES = "grf_filter_window_NOTES.md (Data Agent 2026-10-19; held locally, not in git)"
 BUTTER_CUTOFF_HZ = 50.0; BUTTER_ORDER = 4; POST_IMPACT_S = 0.020; SENS_CUTOFFS_HZ = (12.0, 14.0)
