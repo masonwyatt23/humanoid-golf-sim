@@ -53,17 +53,25 @@ def run_v5(a):
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
         subprocess.run([outp if x == "{OUT}" else x for x in worker_args(a, repo, ck, arm, sd)], check=True, cwd=str(repo), env=env)
         J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]; eps += J["eps"]
-    out = []
+    out = []; gp_rows = []
     for r in eps:
         w = np.radians(np.array([r["pelvis_dps"], r["thorax_dps"], r["arm_dps"], r["club_dps"]]).T); n = len(w); imp = r["impact_idx"]
         grf = np.array(r["grf"]).reshape(-1, 2); lead_i = 0 if r["lead"] == "left" else 1; sh = {k: v for k, v in r["shot"].items() if v is not None}
         club = sh.get("club_speed_mph", 0.0)
         jt = dict(pelvis_w=w[:, 0], thorax_w=w[:, 1], arm_w=w[:, 2], club_w=w[:, 3], pelvis=np.zeros(n), thorax=np.radians(np.array(r["xfactor_deg"])), grf_lead_vertical_bw=grf[:n, lead_i] / bw)
         shot = {}
+        gp = None
+        if sh and sh.get("ball_speed_mph") and sh.get("launch_deg") is not None and r.get("shot_extra") and r["shot_extra"].get("backspin_rpm") is not None and (sh["carry_m_noroll"] or 0) > 0:
+            from eval.golfphys_total import golfphys_total
+            x = r["shot_extra"]; gp = golfphys_total(sh["ball_speed_mph"], sh["launch_deg"], x["backspin_rpm"], x.get("sidespin_rpm") or 0.0, x.get("azimuth_deg") or 0.0)
+            gp.update(env_carry_yd=sh["carry_m_noroll"] * SR.M2YD, env_total_yd=sh["total_m_model"] * SR.M2YD if sh.get("total_m_model") is not None else None)
         if sh:
             shot = dict(club_speed_mph=club, ball_speed_mph=sh.get("ball_speed_mph"), launch_deg=sh.get("launch_deg"), spin_rpm=sh.get("spin_rpm"), carry_yd=sh["carry_m_noroll"] * SR.M2YD if sh.get("carry_m_noroll") is not None else None,
                         total_yd=sh["total_m_model"] * SR.M2YD if sh.get("total_m_model") is not None else None)
+            if gp:                                   # total/carry from the independent golfphys recompute (roll model) instead of the env-logged total; env number kept in gp_rows
+                shot["total_yd"] = gp["total_yd"]; shot["carry_yd"] = gp["carry_yd"]
         pk = [float(np.degrees(w[:, j]).max()) for j in range(4)]
+        gp_rows.append(dict(seed=r.get("seed"), contact=bool(r["contact"]), **(gp or {}))) if gp else None
         out.append(dict(true_contact=bool(r["contact"]), club_mph=club, da_swing=SR.da_swing(jt, 0.005, club, imp), da_shot=SR.da_shot(shot) if shot else [], seg_peak_dps=pk))
     ok = [e for e in out if e["true_contact"]] or out; C = {}
     C.update(SR.agg_da(ok, "da_swing", "swing")); C.update(SR.agg_da(ok, "da_shot", "shot"))
@@ -73,7 +81,19 @@ def run_v5(a):
         C[f"mine/{nm}"] = dict(status="skip", passed=False, values=None, why=["not implemented for the v5 recorder (v1 recorder only)"], ref=None, tag="derived")
     S = SR.summarize(C)
     return dict(key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], verdict=S["verdict"],
-                club_mph_median=SR.med([e["club_mph"] for e in ok]))
+                club_mph_median=SR.med([e["club_mph"] for e in ok]), golfphys_total=_gp_summary(gp_rows))
+
+def _gp_summary(rows):
+    """Per-run summary of the golfphys total/carry recompute (medians over true-contact episodes with carry>0). env_* = the env-logged golfphys numbers (carry no roll; total = golfphys roll=True)."""
+    from eval import swing_realism as SR
+    R = [x for x in rows if x.get("contact") and x.get("carry_yd", 0) > 0]
+    if not R: return dict(n=0, note="no contact episode with carry>0; total/carry not computable")
+    m = lambda k: SR.med([x[k] for x in R if x.get(k) is not None])
+    return dict(n=len(R), source="eval/golfphys_total.py: golfphys.sim.shot_from_launch from measured ball speed / launch / azimuth / back+side spin, roll=True vs roll=False, normal turf (verified vs TrackMan rows, tests/test_golfphys_total.py)",
+                carry_yd_median=m("carry_yd"), total_yd_median=m("total_yd"), total_over_carry_median=m("total_over_carry"), descent_deg_median=m("descent_deg"),
+                env_carry_yd_median_noroll=m("env_carry_yd"), env_total_yd_median=m("env_total_yd"), env_total_over_carry_median=SR.med([x["env_total_yd"] / x["env_carry_yd"] for x in R if x.get("env_total_yd") and x.get("env_carry_yd")]),
+                total_over_carry_max=max(x["total_over_carry"] for x in R), total_over_carry_min=min(x["total_over_carry"] for x in R),
+                max_abs_total_diff_vs_env_yd=max(abs(x["total_yd"] - x["env_total_yd"]) for x in R if x.get("env_total_yd") is not None), episodes=R)
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter); ap.add_argument("target"); ap.add_argument("--env", default="v1", choices=["v1", "v5"])

@@ -28,7 +28,10 @@ for i in range(n):
         a = model.predict(vn.normalize_obs(o[None]), deterministic=True)[0][0]; o, r, term, trunc, info = te.step(a); done = term or trunc
     L_ = e.log; tc = e.t_contact; t = np.array(L_["t"])
     imp = int(np.argmax(t >= tc)) if tc is not None and (t >= tc).any() else len(t) - 1
-    eps.append(dict(t=L_["t"], pelvis_dps=L_["pelvis"], thorax_dps=L_["thorax"], arm_dps=L_["lead_arm"], club_dps=L_["club"], xfactor_deg=L_["xfactor_deg"], lead_share=L_["lead_share"],
+    shx = {}
+    if e.contact and getattr(e, "shot", None):
+        _s = e.shot; _r = _s["shot"]; shx = dict(azimuth_deg=_s.get("azimuth_deg"), backspin_rpm=_s.get("backspin_rpm"), sidespin_rpm=_s.get("sidespin_rpm"), env_carry_m=_r.carry_m, env_total_m=_r.total_m, env_descent_deg=_r.descent_deg, env_lateral_m=_r.lateral_carry_m)
+    eps.append(dict(shot_extra=shx, t=L_["t"], pelvis_dps=L_["pelvis"], thorax_dps=L_["thorax"], arm_dps=L_["lead_arm"], club_dps=L_["club"], xfactor_deg=L_["xfactor_deg"], lead_share=L_["lead_share"],
                     grf=[list(map(float, g)) for g in grf], lead=e.lead, impact_idx=imp, contact=bool(e.contact), ep=info.get("ep"), foul=bool(info.get("foul", False)), seed=seed0 + i,
                     shot={k: info.get(k) for k in ("club_speed_mph", "ball_speed_mph", "launch_deg", "spin_rpm", "smash", "carry_m_noroll", "total_m_model", "lateral_carry_m")}))
 json.dump(dict(strike_gate_nx=GATE, arm_dist=ARM, env_class=("BEnv" if ARM > 0 else "TrainEnv"), bw_N=bw, dt=0.005, club_len=L, eps=eps), open(out, "w"))
