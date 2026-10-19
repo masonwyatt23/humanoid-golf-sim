@@ -12,7 +12,7 @@ ap = argparse.ArgumentParser(); ap.add_argument("--clip", default="test"); ap.ad
 ap.add_argument("--out", default="golf_render/test"); ap.add_argument("--frames", default=""); ap.add_argument("--samples", type=int, default=16)
 ap.add_argument("--npz", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "swing_v3.npz")); ap.add_argument("--threads", type=int, default=3)
 ap.add_argument("--body_map", default="", help="JSON role->body-name overrides, e.g. '{\"pelvis\":\"pelvis\",\"head\":\"head\"}'"); ap.add_argument("--tag", default="")
-ap.add_argument("--worker", type=int, default=0); ap.add_argument("--nworkers", type=int, default=1); ap.add_argument("--engine", default="eevee"); ap.add_argument("--save_blend", default="")
+ap.add_argument("--y_body", type=float, default=-0.14, help="cosmetic y offset of torso/legs/head (v1 planar body: -0.14; 0 for a full 3-D body such as the v5 G1 export)"); ap.add_argument("--worker", type=int, default=0); ap.add_argument("--nworkers", type=int, default=1); ap.add_argument("--engine", default="eevee"); ap.add_argument("--save_blend", default="")
 a = ap.parse_args(sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else sys.argv[1:])
 RW, RH = map(int, a.res.split("x"))
 D = np.load(a.npz); NAMES = [str(s) for s in D["body_names"]]; XP, XQ, T, BALL = D["xpos"], D["xquat"], D["t"], D["ball"]
@@ -22,7 +22,7 @@ BM = dict(r_sh="right_shoulder", r_el="right_elbow", r_wr="right_wrist", l_sh="l
           r_hip="right_hip", r_kn="right_knee", r_an="right_ankle", l_hip="left_hip", l_kn="left_knee", l_an="left_ankle", root="torso", chest="chest", club="right_wrist")
 if a.body_map: BM.update(json.loads(a.body_map))
 CLUB_SHAFT_LEN = float(np.abs(D["club_shaft_fromto"][5])) if "club_shaft_fromto" in D.files else 1.1
-Y_BODY = -0.14   # cosmetic: torso/legs/head sit behind the (real) arm plane y=0 so arms don't pass through the chest
+Y_BODY = a.y_body   # cosmetic (default -0.14): torso/legs/head sit behind the (real) arm plane y=0 so arms don't pass through the chest
 
 # ---------------------------------------------------------------- helpers
 def P(i, name): return XP[i, bi[name]]
@@ -278,7 +278,9 @@ def camera_for(tv, f):
     if kind == "chase":   # starts low behind the tee, sweeps to the side/ahead as the ball flies, ends framing the landing zone
         side = ev(-3.0, -16.0, u); back = ev(-7.0, -22.0, u); h = ev(1.2, 5.5, u)
         # camera tracks along x (lagging the ball) so the ball stays mid-frame; blends toward the landing spot at the end
-        lag = Vector((b.x + back * (1 - smooth(u)) - 12 * smooth(u), side, h))
+        # policy: y follows the ball (offline shots stay in frame); other clips keep the fixed-side chase
+        cy = (b.y + side) if a.clip == "policy" else side
+        lag = Vector((b.x + back * (1 - smooth(u)) - 12 * smooth(u), cy, h))
         return lag, b.lerp(Vector((b.x, b.y, max(b.z * 0.8, 0.3))), 0.0) if u < 0.9 else b
     if kind == "land":    # hold on landing spot, slow orbit to show it rolled to rest
         ang = math.radians(ev(-100, -40, u)); return Vector((LAND.x + 9 * math.cos(ang), LAND.y + 9 * math.sin(ang), 1.6)), Vector((LAND.x, LAND.y, 0.2))
@@ -308,7 +310,7 @@ for fi in fr:
     # subtle address waggle-free idle: tiny breathing so the establishing shot is not frozen
     pose(f); ball.location = lerp_ball(f); update_trail(f)
     kd_, _u = kind_at(tv); k_ = 4.0 if kd_ in ("chase", "land") else 1.0   # COSMETIC: ball drawn 4x larger in the distance shots so it is visible
-    ball.scale = (0.02135 * k_,) * 3; cu.bevel_depth = (0.06 if a.clip not in ("hero", "policy") else 0.035) * (2.0 if kd_ in ("chase", "land") else 1.0)
+    ball.scale = (0.02135 * k_,) * 3; cu.bevel_depth = (0.06 if a.clip not in ("hero", "policy") else 0.035) * (2.0 if kd_ in ("chase", "land") else 1.0) * (0.25 if a.clip == "policy" and kd_ == "impact" else 1.0)   # policy: thin trail in the close-up impact shot
     cl, tg = camera_for(tv, f); cam.location = cl; tgt.location = tg
     sc.render.filepath = os.path.join(a.out, f"f{fi:05d}.png"); t0 = time.time()
     bpy.ops.render.render(write_still=True); print(f"frame {fi} tv={tv:.2f} sim_idx={f:.1f} {time.time()-t0:.1f}s", flush=True)
