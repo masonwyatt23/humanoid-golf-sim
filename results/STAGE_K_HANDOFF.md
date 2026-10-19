@@ -46,3 +46,4 @@
 - Result (results/v5_runs/stageK8_ref_s1/, 200 gens): open-loop 76.5 mph (vs 64.6 old ref), legal gate-on strike, XF 64.7, GRF 1.45 (5 ms), tilt 30, no fall. But launch 24.9 / spin 8919 (residual must fix), and the gain came from arm/shoulder keyframes, not trunk: trunk power ~537 W (unchanged), wrist saturation 0.49 (unchanged), wrist torque last 60 ms 0.39 (higher), ease exponents ~1.6 (lag/release timing barely moved). First run with mph weight 1 (stageK8_ref/) gave only 65-67 mph.
 - Residual runs stageK8 s7 (T0 70) / s8 (T0 75), warm from K7 s6 800k policy (same obs/action layout, new ref), K7 reward terms, 800k cap.
 
+- (03:30 ET) K8 runs restarted after ~1 min with pelvis-timing band 60-120 ms before club peak (harness band 40-140), pel_t_w 4.
