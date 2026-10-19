@@ -18,7 +18,7 @@ from env.v5_ref import SwingRef
 EXTRA = 4
 
 class JEnv(HEnv):
-    res_scale = 1.0; track_w = 1.0; bs_floor = 1.0; xf_cap_w = 0.08; xf_cap_lo = 60.0; ord_w = 1.5; track_floor = 0.3; grf_w = 0.15; ctr_w = 2.0; spin_w = 1.0; _cprev = False; ord2_w = 0.0; launch_w = 0.0; launch_hi = 14.0; dl_lo = 12.0; dl_hi = 18.0; aoa_lo = -6.0; spd_w = 0.0; res_mult = None; ctrl_dt = None; pel_w = 0.0; pel_t_w = 0.0; pel_dps = 400.0; pel_t_lo = 0.10; sep_w = 0.0; pel_t_hi = 0.15; fine_grf = False; smash_w = 0.0; spin_hi = 3000.0; spin_scale = 2000.0; desc_w = 0.0; dloft_w = 0.0; spin_lo_w = 0.0; xf_hard = 0.0; grf_lo = 2.0; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
+    res_scale = 1.0; track_w = 1.0; bs_floor = 1.0; xf_cap_w = 0.08; xf_cap_lo = 60.0; ord_w = 1.5; track_floor = 0.3; grf_w = 0.15; ctr_w = 2.0; spin_w = 1.0; _cprev = False; ord2_w = 0.0; launch_w = 0.0; launch_hi = 14.0; dl_lo = 12.0; dl_hi = 18.0; aoa_lo = -6.0; spd_w = 0.0; res_mult = None; ctrl_dt = None; pel_w = 0.0; pel_t_w = 0.0; pel_dps = 400.0; pel_t_lo = 0.10; sep_w = 0.0; early_w = 0.0; aim_w = 0.0; foot_w = 0.0; plant_term = 0.0; strike_w = 0.0; tc_w = 0.0; smash2_w = 0.0; ctr2_w = 0.0; _off = None; _ft = None; f_lift = 0.0; f_slip = 0.0; pel_t_hi = 0.15; fine_grf = False; smash_w = 0.0; spin_hi = 3000.0; spin_scale = 2000.0; desc_w = 0.0; dloft_w = 0.0; spin_lo_w = 0.0; xf_hard = 0.0; grf_lo = 2.0; rsi = (0.4, 0.3, 0.3); ref_keys = None; t_down = 0.27; k_ease = 1.6; grf_term = 6.0
     def __init__(self, dt=0.002, seed=0, keys=None, res_scale=1.0, t_down=0.27):
         super().__init__(dt=dt, seed=seed, planar=False); self.ref_keys = keys; self.res_scale = res_scale; self.t_down = t_down; self.ref = None
         self.target_len = 1.15; self.target_tether = 0.0; self.prior_w = 0.0; self.env.friction_rand = False; self.env.detail_info = True; self._slead = 0.0; self._sl_ep = 0.0; _orig = self.env._log_seg; _e = self.env
@@ -27,6 +27,9 @@ class JEnv(HEnv):
             self._sl_ep = max(self._sl_ep, v_)
         self.env._log_seg = _seg; self.rng2 = np.random.default_rng(seed + 12345)
         n = self.env.observation_space.shape[0] + EXTRA; self.observation_space = spaces.Box(-np.inf, np.inf, (n,), np.float32)
+    def _sole(self):
+        e = self.env; sid = e.m.site(f"{e.lead}_sole_site").id; P = e.d.site_xpos[sid]; R = e.d.site_xmat[sid].reshape(3, 3); hx = float(e.m.site_size[sid][0])
+        return (float(P[0]), float(P[1]), float((P - hx * R[:, 0])[2]), float((P + hx * R[:, 0])[2]), float(np.arctan2(R[1, 0], R[0, 0])))
     def configure(self, **kw):
         for k, v in kw.items():
             if v is not None: setattr(self, k, v)
@@ -41,6 +44,7 @@ class JEnv(HEnv):
         return np.concatenate([o, [r.u(t), r.downswing_phase(t), 1.0 if t < r.t_dstart else 0.0, float(np.clip((r.t_imp - t) / 0.3, -1.0, 1.0))]]).astype(np.float32)
     def reset(self, **kw):
         out = super().reset(**kw); e = self.env; self._ensure_ref(); e.q_addr = self.home.copy(); r = self.ref
+        self._ft = None; self.f_lift = 0.0; self.f_slip = 0.0; self._plant_break = False; self._off = None; self._addr = None; self._air_run = 0; self.f_air = 0
         u = self.rng2.random(); mode = 0 if u < self.rsi[0] else 1 if u < self.rsi[0] + self.rsi[1] else 2
         t_start = 0.0 if mode == 0 else r.t_dstart if mode == 1 else r.t_dstart + self.rng2.uniform(0.3, 0.7) * r.t_down
         e.act_scale[:] = 0.0; self.mode = mode; ok = True
@@ -60,6 +64,18 @@ class JEnv(HEnv):
             e.act_scale[:] *= self._rm_vec
         self._slead = 0.0
         o, rew, term, trunc, info = super().step(a)
+        if getattr(self, '_plant_break', False): rew -= 5.0 * max(self.foot_w, 1.0); term = True; trunc = False; info['plant_break'] = True
+        if self._addr is None:   # K16: lead-foot reference = ADDRESS pose (Evaluator 08835a4 metric)
+            self._addr = self._sole()
+        if e.d.time >= r.t_top and not e.contact:   # top -> impact: slip/yaw vs address, whole-foot airborne (zero lead GRF or heel AND toe up)
+            x, y, zh, zt, yw = self._sole(); x0, y0, zh0, zt0, yw0 = self._addr
+            sl = float(np.hypot(x - x0, y - y0)); tn = abs(float((np.degrees(yw - yw0) + 180.0) % 360.0 - 180.0))
+            gl = float(e.foot_forces()[0 if e.lead == "left" else 1]); air = (gl <= 1.0) or (zh > zh0 + 0.005 and zt > zt0 + 0.005)
+            self._air_run = self._air_run + 1 if air else 0
+            self.f_slip = max(self.f_slip, sl); self.f_lift = max(self.f_lift, tn); self.f_air = max(self.f_air, self._air_run)
+            if self.foot_w > 0:
+                rew -= self.foot_w * (float(np.clip(sl / 0.05, 0.0, 4.0)) + float(np.clip(tn / 20.0, 0.0, 4.0)) + 1.5 * float(air))
+                if self.plant_term > 0 and (self._air_run >= 3 or sl > self.plant_term * 0.05 or tn > self.plant_term * 20.0): self._plant_break = True
         err = e.d.qpos[e.qa] - r.q(e.d.time); rmse = float(np.sqrt(np.mean(err ** 2))); self.trk_sum += rmse; self.trk_n += 1
         t_ = e.d.time; tw = max(self.track_w, self.bs_floor) if t_ < r.t_dstart else max(self.track_w, self.track_floor)   # backswing/hold tracking floor (Stage J v3): full-swing episodes lost the backswing once tracking annealed to 0
         rew += 0.1 * tw * float(np.exp(-(rmse / 0.25) ** 2))
@@ -67,7 +83,7 @@ class JEnv(HEnv):
             xf = abs(float(e.log["xfactor_deg"][-1])) if len(e.log["xfactor_deg"]) else 0.0; rew -= self.xf_cap_w * float(np.clip((xf - self.xf_cap_lo) / 20.0, 0.0, 2.0))
         rew -= self.grf_w * float(np.clip((self._slead if self.fine_grf else self.prev_lead) - self.grf_lo, 0.0, 6.0))   # extra lead-foot impulse penalty (harness measured 3.4-3.9 BW vs 0.8-1.7)
         if e.contact and not self._cprev and not info.get('ep', {}).get('unstable'):   # centred strike + spin cap
-            q_ = max(0.0, 1 - np.hypot(info['dy'], info['dz']) / self.hit_tol); rew += self.ctr_w * q_ - self.spin_w * float(np.clip((info.get('spin_rpm', 0.0) - 3000.0) / 2000.0, 0.0, 1.0))
+            self._off = float(np.hypot(info['dy'], info['dz'])); q_ = max(0.0, 1 - np.hypot(info['dy'], info['dz']) / self.hit_tol); rew += self.ctr_w * q_ - self.spin_w * float(np.clip((info.get('spin_rpm', 0.0) - self.spin_hi) / self.spin_scale, 0.0, 1.0))   # was hard-coded 3000/2000 (spin_hi/spin_scale unused until K23)
             if self.spd_w > 0: rew += self.spd_w * float(np.clip((float(info.get('club_speed_mph', 0.0)) - 60.0) / 20.0, 0.0, 1.0))
             if self.smash_w > 0: rew += self.smash_w * float(np.clip((float(info.get('smash', 0.0)) - 1.1) / 0.2, 0.0, 1.0))
             if self.launch_w > 0:   # launch window 10-14 deg, penalise < 9 deg
@@ -84,6 +100,9 @@ class JEnv(HEnv):
             pk = {k: float(tt[int(np.argmax(L[k][:n_]))]) for k in ("pelvis", "thorax", "lead_arm", "club")}
             g1 = float(np.clip((pk["lead_arm"] - pk["thorax"]) / 0.04, -1.0, 1.0)); g2 = float(np.clip((pk["club"] - pk["lead_arm"]) / 0.04, -1.0, 1.0)); g0 = float(np.clip((pk["thorax"] - pk["pelvis"]) / 0.04, -1.0, 1.0))
             rew += self.ord2_w * (g0 + g1 + g2) / 3.0
+            if self.early_w > 0:   # K15: keep lead-arm speed low 150-40 ms before the club peak (kill the early arm hump)
+                av_ = np.abs(np.array(L["lead_arm"][:n_])); w_ = (tt >= pk["club"] - 0.15) & (tt <= pk["club"] - 0.04)
+                if w_.any(): rew -= self.early_w * float(np.clip((av_[w_].max() / max(av_.max(), 1e-6) - 0.6) / 0.3, 0.0, 1.0))
             if self.sep_w > 0: rew += self.sep_w * float(np.clip((pk["club"] - pk["lead_arm"] - 0.005) / 0.015, -1.0, 1.0))   # K9: arm peak >= ~1 harness sample before club peak
         if (self.pel_w > 0 or self.pel_t_w > 0) and "ep" in info and info["ep"].get("contact"):   # K7: pelvis peak speed toward pel_dps and pelvis peak 100-150 ms before club peak
             L = e.log; n_ = max(int(np.searchsorted(np.array(L["t"]), e.t_contact, side="right")), 2); tt = np.array(L["t"][:n_]); pv = np.abs(np.array(L["pelvis"][:n_])); cv = np.abs(np.array(L["club"][:n_]))
@@ -91,6 +110,18 @@ class JEnv(HEnv):
             rew += self.pel_w * float(np.clip(pv.max() / self.pel_dps, 0.0, 1.0)) + self.pel_t_w * float(np.clip(1.0 - max(self.pel_t_lo - dt_, dt_ - self.pel_t_hi, 0.0) / 0.08, 0.0, 1.0))
         if "ep" in info and info["ep"].get("contact"): rew += self.ord_w * float(info["ep"].get("seq", 0.0))   # extra pelvis->thorax->arm->club order credit on real strikes
         if "ep" in info and e.contact: info["ep"].update(descent=float(info.get("descent_deg", 0.0)), land_mps=float(info.get("landing_speed_mps", 0.0)), spin=float(info.get("spin_rpm", 0.0)), smash=float(info.get("smash", 0.0)), dloft=float(info.get("dynamic_loft_deg", 0.0)), aoa=float(info.get("aoa_deg", 0.0)), lead_fine=float(self._sl_ep), tot_over_carry=float(info.get("total_m_model", 0.0)) / max(float(info.get("carry_m_noroll", 0.0)), 1e-3))
+        if "ep" in info:
+            info["ep"].update(foot_lift=self.f_lift, foot_turn=self.f_lift, foot_slip=self.f_slip, foot_air=self.f_air)
+            if e.contact:
+                az = float(info.get("azimuth_deg", 0.0)); fpth = float(info.get("face_yaw_deg", 0.0)) - float(info.get("club_path_deg", 0.0)); info["ep"].update(az=az, face_path=fpth)
+                if self.tc_w > 0 and float(info.get("carry_m_noroll", 0.0)) > 15.0:   # K20: total/carry <= 1.25 (band 1.04-1.25)
+                    tc_ = float(info.get("total_m_model", 0.0)) / max(float(info.get("carry_m_noroll", 0.0)), 1e-3); rew -= self.tc_w * float(np.clip((tc_ - 1.22) / 0.1, 0.0, 3.0))
+                if self.strike_w > 0 or self.smash2_w > 0 or self.ctr2_w > 0:   # K18: square, non-glancing strike (Evaluator: face -3.5 vs path +22.9, AoA -19, toe/high)
+                    pth = float(info.get("club_path_deg", 0.0)); aoa = float(info.get("aoa_deg", 0.0)); sm = float(info.get("smash", 0.0))
+                    rew -= self.strike_w * (min(abs(fpth) / 8.0, 3.0) + min(max(abs(pth - 2.0) - 3.0, 0.0) / 8.0, 2.0) + min(max(-1.0 - aoa, aoa - 3.0, 0.0) / 4.0, 3.0))
+                    rew += self.smash2_w * float(np.clip((sm - 0.9) / 0.45, 0.0, 1.0)) - self.ctr2_w * min((self._off or 0.0) / 0.01, 3.0)
+                    info["ep"].update(path=pth, aoa_k18=aoa, off=self._off)
+                if self.aim_w > 0: rew += self.aim_w * (0.5 * float(np.clip(1 - abs(az) / 7.0, 0, 1)) + 0.5 * float(np.clip(1 - abs(fpth) / 5.0, 0, 1))) - self.aim_w * float(np.clip((abs(az) - 7.0) / 8.0, 0, 1))
         if "ep" in info: info["ep"].update(track_rmse=self.trk_sum / max(self.trk_n, 1), mode=self.mode)
         e.q_addr = r.q(e.d.time)
         return self._xobs(e._obs()), rew, term, trunc, info
@@ -122,7 +153,7 @@ class CurrJ(CurrH):
                    flail=float(np.mean([x["flail_ratio"] for x in res])), track_rmse=float(np.mean([x.get("track_rmse", 0.0) for x in res])), hpeak_mph=float(np.mean([x.get("hpeak_mph", 0.0) for x in res])),
                    descent_med=med("descent"), spin_med=med("spin"), land_mps_med=med("land_mps"), dloft_med=med("dloft"), aoa_med=med("aoa"), tot_over_carry_med=med("tot_over_carry"),
                    lead_grf_fine=float(np.mean([x.get("lead_fine", 0.0) for x in c])) if c else 0.0, smash_med=med("smash"),
-                   xf_deg=med("xf_deg") if c and "xf_deg" in c[0] else None, seq=float(np.mean([x.get("seq", 0.0) for x in c])) if c else 0.0)
+                   xf_deg=med("xf_deg") if c and "xf_deg" in c[0] else None, seq=float(np.mean([x.get("seq", 0.0) for x in c])) if c else 0.0, az_abs_med=float(np.median([abs(x.get('az', 0.0)) for x in c])) if c else 0.0, face_path_abs_med=float(np.median([abs(x.get('face_path', 0.0)) for x in c])) if c else 0.0, foot_lift_max=float(max([x.get('foot_lift', 0.0) for x in res])), foot_slip_max=float(max([x.get('foot_slip', 0.0) for x in res])))
         sc = row["contact"] * (float(np.median([x["carry"] for x in fwdc])) if fwdc else 0.0) * (min(1.0, max(row["descent_med"], 1.0) / 30.0) if self.desc_sel else 1.0) * ((0.4 + 0.6 * float(row["spin_med"] <= 3000.0)) * (0.6 + 0.4 * float(row["launch_med"] <= 16.0)) if self.sel_k4 else 1.0) + 0.001 * row["contact"] * row["impact_mph_med"]; row["best_score"] = sc
         if row["contact"] >= 0.9 and row["fwd_strike_frac"] >= 0.9 and row["impact_mph_med"] >= 0.8 * self.T and row["carry_med"] >= self.carry_min:
             self.T += self.T_step; self.last_promo = self.num_timesteps; row["promoted_to"] = self.T
@@ -149,11 +180,11 @@ if __name__ == "__main__":
     ap.add_argument("--track_hold", type=int, default=400_000); ap.add_argument("--track_len", type=int, default=1_200_000); ap.add_argument("--track_end", type=float, default=0.2)
     ap.add_argument("--ent", type=float, default=0.003); ap.add_argument("--log_std", type=float, default=-1.0); ap.add_argument("--log_std_end", type=float, default=-1.6); ap.add_argument("--std_end", type=float, default=0.7)
     ap.add_argument("--rate_w", type=float, default=0.05); ap.add_argument("--resume", action="store_true"); ap.add_argument("--reset_stall", action="store_true"); ap.add_argument("--init_ck", default=None)
-    ap.add_argument("--pel_w", type=float, default=None); ap.add_argument("--pel_t_w", type=float, default=None); ap.add_argument("--res_mult", type=str, default=None); ap.add_argument("--ctrl_dt", type=float, default=None); ap.add_argument("--ctr_w", type=float, default=None); ap.add_argument("--sep_w", type=float, default=None); ap.add_argument("--pel_t_lo", type=float, default=None); ap.add_argument("--pel_t_hi", type=float, default=None); ap.add_argument("--pel_dps", type=float, default=None); ap.add_argument("--lr", type=float, default=3e-4); ap.add_argument("--sel_k4", action="store_true"); ap.add_argument("--launch_hi", type=float, default=None); ap.add_argument("--dl_lo", type=float, default=None); ap.add_argument("--dl_hi", type=float, default=None); ap.add_argument("--aoa_lo", type=float, default=None); ap.add_argument("--spd_w", type=float, default=None); ap.add_argument("--fine_grf", action="store_true"); ap.add_argument("--smash_w", type=float, default=None); ap.add_argument("--spin_w", type=float, default=None); ap.add_argument("--spin_hi", type=float, default=None); ap.add_argument("--spin_scale", type=float, default=None); ap.add_argument("--desc_sel", action="store_true"); ap.add_argument("--launch_w", type=float, default=None); ap.add_argument("--desc_w", type=float, default=None); ap.add_argument("--dloft_w", type=float, default=None); ap.add_argument("--spin_lo_w", type=float, default=None); ap.add_argument("--snap_every", type=int, default=0); ap.add_argument("--ord2_w", type=float, default=None); ap.add_argument("--no_stop", action="store_true"); ap.add_argument("--T_step", type=float, default=5.0); ap.add_argument("--carry_min", type=float, default=0.0); ap.add_argument("--xf_hard", type=float, default=None); ap.add_argument("--grf_lo", type=float, default=None)
+    ap.add_argument("--plant_term", type=float, default=None); ap.add_argument("--strike_w", type=float, default=None); ap.add_argument("--tc_w", type=float, default=None); ap.add_argument("--smash2_w", type=float, default=None); ap.add_argument("--ctr2_w", type=float, default=None); ap.add_argument("--pel_w", type=float, default=None); ap.add_argument("--pel_t_w", type=float, default=None); ap.add_argument("--res_mult", type=str, default=None); ap.add_argument("--ctrl_dt", type=float, default=None); ap.add_argument("--ctr_w", type=float, default=None); ap.add_argument("--aim_w", type=float, default=None); ap.add_argument("--foot_w", type=float, default=None); ap.add_argument("--early_w", type=float, default=None); ap.add_argument("--sep_w", type=float, default=None); ap.add_argument("--pel_t_lo", type=float, default=None); ap.add_argument("--pel_t_hi", type=float, default=None); ap.add_argument("--pel_dps", type=float, default=None); ap.add_argument("--lr", type=float, default=3e-4); ap.add_argument("--sel_k4", action="store_true"); ap.add_argument("--launch_hi", type=float, default=None); ap.add_argument("--dl_lo", type=float, default=None); ap.add_argument("--dl_hi", type=float, default=None); ap.add_argument("--aoa_lo", type=float, default=None); ap.add_argument("--spd_w", type=float, default=None); ap.add_argument("--fine_grf", action="store_true"); ap.add_argument("--smash_w", type=float, default=None); ap.add_argument("--spin_w", type=float, default=None); ap.add_argument("--spin_hi", type=float, default=None); ap.add_argument("--spin_scale", type=float, default=None); ap.add_argument("--desc_sel", action="store_true"); ap.add_argument("--launch_w", type=float, default=None); ap.add_argument("--desc_w", type=float, default=None); ap.add_argument("--dloft_w", type=float, default=None); ap.add_argument("--spin_lo_w", type=float, default=None); ap.add_argument("--snap_every", type=int, default=0); ap.add_argument("--ord2_w", type=float, default=None); ap.add_argument("--no_stop", action="store_true"); ap.add_argument("--T_step", type=float, default=5.0); ap.add_argument("--carry_min", type=float, default=0.0); ap.add_argument("--xf_hard", type=float, default=None); ap.add_argument("--grf_lo", type=float, default=None)
     ap.add_argument("--grf_w", type=float, default=None); ap.add_argument("--xf_cap_lo", type=float, default=None); ap.add_argument("--xf_cap_w", type=float, default=None); ap.add_argument("--track_floor", type=float, default=None)
     a = ap.parse_args()
     keys = {tuple(k.split("|")): v for k, v in json.load(open(a.keys)).items()} if a.keys and a.keys != "none" else None
-    extra = dict(xf_hard=a.xf_hard, grf_lo=a.grf_lo, grf_w=a.grf_w, xf_cap_lo=a.xf_cap_lo, xf_cap_w=a.xf_cap_w, ord2_w=a.ord2_w, launch_w=a.launch_w, launch_hi=a.launch_hi, dl_lo=a.dl_lo, dl_hi=a.dl_hi, aoa_lo=a.aoa_lo, spd_w=a.spd_w, pel_w=a.pel_w, pel_t_w=a.pel_t_w, pel_dps=a.pel_dps, pel_t_lo=a.pel_t_lo, sep_w=a.sep_w, ctr_w=a.ctr_w, res_mult=(json.loads(a.res_mult) if a.res_mult else None), ctrl_dt=a.ctrl_dt, pel_t_hi=a.pel_t_hi, smash_w=a.smash_w, spin_w=a.spin_w, spin_hi=a.spin_hi, spin_scale=a.spin_scale, fine_grf=(True if a.fine_grf else None), desc_w=a.desc_w, dloft_w=a.dloft_w, spin_lo_w=a.spin_lo_w, track_floor=a.track_floor)
+    extra = dict(plant_term=a.plant_term, strike_w=a.strike_w, tc_w=a.tc_w, smash2_w=a.smash2_w, ctr2_w=a.ctr2_w, xf_hard=a.xf_hard, grf_lo=a.grf_lo, grf_w=a.grf_w, xf_cap_lo=a.xf_cap_lo, xf_cap_w=a.xf_cap_w, ord2_w=a.ord2_w, launch_w=a.launch_w, launch_hi=a.launch_hi, dl_lo=a.dl_lo, dl_hi=a.dl_hi, aoa_lo=a.aoa_lo, spd_w=a.spd_w, pel_w=a.pel_w, pel_t_w=a.pel_t_w, pel_dps=a.pel_dps, pel_t_lo=a.pel_t_lo, sep_w=a.sep_w, early_w=a.early_w, aim_w=a.aim_w, foot_w=a.foot_w, ctr_w=a.ctr_w, res_mult=(json.loads(a.res_mult) if a.res_mult else None), ctrl_dt=a.ctrl_dt, pel_t_hi=a.pel_t_hi, smash_w=a.smash_w, spin_w=a.spin_w, spin_hi=a.spin_hi, spin_scale=a.spin_scale, fine_grf=(True if a.fine_grf else None), desc_w=a.desc_w, dloft_w=a.dloft_w, spin_lo_w=a.spin_lo_w, track_floor=a.track_floor)
     out = f"results/v5_runs/{a.tag}_s{a.seed}"; os.makedirs(out, exist_ok=True)
     venv = SubprocVecEnv([make(i, a.seed, a.dt, keys, a.res_scale, a.t_down, extra) for i in range(a.workers)])
     step0, ck = newest(out) if a.resume else (0, None)

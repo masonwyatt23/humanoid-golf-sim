@@ -11,7 +11,7 @@ from scripts.v5_ref_openloop import make_env, keys_from_vec
 from env.v5_ref import SwingRef, TUNED_KEYS
 from golfphys.sim import shot_from_launch
 EASE = ["wrist", "hip", "waist", "shoulder", "elbow"]; PHASE = ["hip_yaw", "waist"]
-_E = None; ORDER = os.environ.get('K11_ORDER') == '1'; AC_HI = float(os.environ.get('K11_AC_HI', '50')); PEL_W = float(os.environ.get('K11_PEL_W', '10'))
+_E = None; ORDER = os.environ.get('K11_ORDER') == '1'; AC_HI = float(os.environ.get('K11_AC_HI', '50')); PEL_W = float(os.environ.get('K11_PEL_W', '10')); EARLY_W = float(os.environ.get('K11_EARLY_W', '0')); TRUNK_W = float(os.environ.get('K11_TRUNK_W', '4')); WR_W = float(os.environ.get('K11_WR_W', '4')); EARLY_T = float(os.environ.get('K11_EARLY_T', '0.8')); FOOT_W = float(os.environ.get('K11_FOOT_W', '0')); AIM_W = float(os.environ.get('K11_AIM_W', '0'))
 def build(x):
     n = len(TUNED_KEYS); keys = keys_from_vec(x[:n]); td = float(np.clip(0.24 + 0.05 * x[n], 0.20, 0.30))
     for i, g in enumerate(EASE): keys[("ease", g, "k")] = float(np.clip(1.6 * np.exp(0.5 * x[n + 1 + i]), 0.6, 4.0))
@@ -28,16 +28,19 @@ def run(e, ref):
         rec.append((e.contact, F.copy(), np.abs(d.actuator_force * qd), d.qpos[e.qa][lw].copy() if hasattr(e, "qa") else None, (fl if e.lead == "left" else fr) / bw))
     e._log_seg = seg
     try:
-        e.reset(seed=0); home = e.q_addr.copy(); e.act_scale[:] = 0.0; t = 0.0; info = {}; term = False; xf = 0.0; tilt = 0.0; zmin = 9.0; rec.clear()
+        e.reset(seed=0); home = e.q_addr.copy(); e.act_scale[:] = 0.0; t = 0.0; info = {}; term = False; xf = 0.0; tilt = 0.0; zmin = 9.0; rec.clear(); ft0 = None; flift = 0.0; fslip = 0.0
         while t < ref.t_end + 0.1 and not term:
             e.q_addr = ref.q(t); _, _, term, trn, info = e.step(np.zeros(len(home))); t += 0.02; zmin = min(zmin, float(e.d.qpos[2]))
+            if t >= ref.t_top and (not e.contact or (e.d.time - e.t_contact) < 0.05):
+                fp = e.d.geom_xpos[e.sole_geoms[e.lead]].copy(); ft0 = fp if ft0 is None else ft0
+                flift = max(flift, float(fp[2] - ft0[2])); fslip = max(fslip, float(np.hypot(*(fp[:2] - ft0[:2]))))
             if not e.contact and len(e.log['xfactor_deg']): xf = max(xf, abs(float(e.log['xfactor_deg'][-1])))
             tilt = max(tilt, float(np.degrees(np.arccos(np.clip(e.d.xmat[e.pel].reshape(3, 3)[2, 2], -1, 1)))))
             if trn: break
         e.q_addr = home
     finally: e._log_seg = orig
     r = dict(contact=bool(e.contact), foul=bool(e.foul), fell=bool(info.get("fell", False)), mph=float(info.get("club_speed_mph", 0.0)), carry=float(info.get("carry_m_noroll", 0.0)),
-             launch=float(info.get("launch_deg", 0.0)), spin=float(info.get("spin_rpm", 0.0) or 0.0), xf=xf, tilt=tilt, zmin=zmin, min_head_ball=float(e.min_dist))
+             launch=float(info.get("launch_deg", 0.0)), spin=float(info.get("spin_rpm", 0.0) or 0.0), xf=xf, tilt=tilt, zmin=zmin, min_head_ball=float(e.min_dist), foot_lift=flift, foot_slip=fslip, az=float(info.get("azimuth_deg", 0.0) or 0.0), face_path=float(info.get("face_yaw_deg", 0.0) or 0.0) - float(info.get("club_path_deg", 0.0) or 0.0), lat=float(info.get("lateral_carry_m", 0.0) or 0.0))
     bs = float(info.get("ball_speed_mph", 0.0) or 0.0)
     if r["contact"] and bs > 5 and r["launch"] > 0:
         try:
@@ -55,12 +58,13 @@ def run(e, ref):
         n_ = max(int(np.searchsorted(np.array(L["t"]), e.t_contact, side="right")), 2); tt = np.array(L["t"][:n_])
         r["pel_lead_ms"] = 1000 * float(tt[int(np.argmax(np.abs(L["club"][:n_])))] - tt[int(np.argmax(np.abs(L["pelvis"][:n_])))]); r["pel_dps"] = float(np.max(np.abs(L["pelvis"][:n_])))
         pk_ = {k: float(tt[int(np.argmax(np.abs(L[k][:n_])))]) for k in ("pelvis", "thorax", "lead_arm", "club")}; r["thor_arm_ms"] = 1000 * (pk_["lead_arm"] - pk_["thorax"]); r["pel_thor_ms"] = 1000 * (pk_["thorax"] - pk_["pelvis"])
+        av = np.abs(np.array(L["lead_arm"][:n_])); tcp = pk_["club"]; w_ = (tt >= tcp - 0.15) & (tt <= tcp - 0.04); r["arm_early_ratio"] = float(av[w_].max() / max(av.max(), 1e-6)) if w_.any() else 0.0
         r["arm_club_ms"] = 1000 * float(tt[int(np.argmax(np.abs(L["club"][:n_])))] - tt[int(np.argmax(np.abs(L["lead_arm"][:n_])))])
     return r
 def score(args):
     global _E
     x, cap, mw = args
-    if _E is None: _E = make_env()
+    if _E is None: _E = make_env(); _E.detail_info = True
     e = _E
     try:
         keys, td = build(x); ref = SwingRef(e.names, e.q_addr, e.lead, e.jlo, e.jhi, keys=keys, t_down=td); r = run(e, ref); r["t_down"] = td
@@ -68,13 +72,15 @@ def score(args):
     s = 0.0
     if r["contact"] and not r["foul"]:
         s += 20.0 + mw * min(r["mph"], cap) + 0.2 * min(r["carry"], 100.0)
-        s += 4.0 * min(r.get("trunk_W", 0.0) / 1500.0, 1.0) + PEL_W * float(np.clip(1 - max(60 - r.get("pel_lead_ms", 0), r.get("pel_lead_ms", 0) - 120, 0) / 60, 0, 1))
+        s += TRUNK_W * min(r.get("trunk_W", 0.0) / 1500.0, 1.0) - EARLY_W * max(r.get("arm_early_ratio", 1.0) - EARLY_T, 0.0) / 0.2 + PEL_W * float(np.clip(1 - max(60 - r.get("pel_lead_ms", 0), r.get("pel_lead_ms", 0) - 120, 0) / 60, 0, 1))
         s += (8.0 * float(np.clip(1 - max(10.0 - r.get("arm_club_ms", 0.0), r.get("arm_club_ms", 0.0) - AC_HI, 0.0) / 20.0, -1, 1)) + 6.0 * float(np.clip((r.get("thor_arm_ms", -50.0) - 5.0) / 15.0, -1, 1))
               + 4.0 * float(np.clip((r.get("pel_thor_ms", -50.0) - 5.0) / 15.0, -1, 1))) if ORDER else 4.0 * float(np.clip((r.get("arm_club_ms", 0.0) - 10.0) / 10.0 + 1.0, -1, 1)) - 5.0 * max(75.0 - r["mph"], 0.0)
-        s += 3.0 * min(r.get("lag_deg", 0.0) / 40.0, 1.0) - 6.0 * r.get("wr_sat", 0.0) - 3.0 * r.get("sh_sat", 0.0) - 4.0 * r.get("wr_last60", 0.0)
+        s += 3.0 * min(r.get("lag_deg", 0.0) / 40.0, 1.0) - 6.0 * r.get("wr_sat", 0.0) - 3.0 * r.get("sh_sat", 0.0) - WR_W * r.get("wr_last60", 0.0)
         s += 8.0 * float(np.clip(1 - max(11.0 - r["launch"], r["launch"] - 15.0, 0.0) / 6.0, 0, 1)) + 20.0 * float(np.clip(1 - max(2200.0 - r["spin"], r["spin"] - 2900.0, 0.0) / 7000.0, 0, 1))
         s += 6.0 * min(r.get("descent", 0.0) / 27.0, 1.0) + 8.0 * float(np.clip(1 - max(r.get("tc", 2.0) - 1.22, 0.0) / 0.4, 0, 1)) + 4.0 * float(np.clip((r.get("smash", 0.0) - 1.1) / 0.2, 0, 1))
     else: s += -40.0 * min(r["min_head_ball"], 1.0) - (10.0 if r["foul"] else 0.0)
+    s -= FOOT_W * (min(r.get("foot_lift", 0.0) / 0.02, 5.0) + min(r.get("foot_slip", 0.0) / 0.02, 5.0))
+    if r["contact"]: s += AIM_W * (float(np.clip(1 - abs(r.get("az", 0.0)) / 8.0, 0, 1)) + float(np.clip(1 - abs(r.get("face_path", 0.0)) / 6.0, 0, 1)) - float(np.clip((abs(r.get("az", 0.0)) - 8.0) / 12.0, 0, 1)))
     s -= 0.6 * max(r["xf"] - 65.0, 0.0) + 30.0 * max(r.get("grf5", 0.0) - 1.5, 0.0)
     s -= 0.4 * max(r["tilt"] - 30.0, 0.0) + 40.0 * max(0.6 - r["zmin"], 0.0) + (30.0 if r["fell"] else 0.0)
     return float(s), r

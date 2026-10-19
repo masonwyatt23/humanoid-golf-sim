@@ -260,7 +260,7 @@ class V5GolfEnv(gym.Env):
             sh = self.shot["shot"]
             info.update(carry_m_noroll=sh.carry_m, total_m_model=sh.total_m, lateral_carry_m=sh.lateral_carry_m, launch_deg=self.shot["launch_deg"],
                         spin_rpm=sh.spin_rpm, smash=self.shot["smash"], ball_speed_mph=self.shot["ball_speed"] / 0.44704,
-                        club_speed_mph=self.ball_hit_info["club_speed"] / 0.44704, **{k: self.ball_hit_info[k] for k in ("dy", "dz")})
+                        club_speed_mph=self.ball_hit_info["club_speed"] / 0.44704, azimuth_deg=float(self.shot.get("azimuth_deg", 0.0) or 0.0), **{k: self.ball_hit_info[k] for k in ("dy", "dz")})
         if self.contact and self.detail_info:
             hs = 1.0 if self.handed.upper().startswith("R") else -1.0       # golfer frame: y-derived angles x hand_sign (+ = left of target)
             n = np.asarray(self.ball_hit_info["face_normal"]); v = self.prev_v

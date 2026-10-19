@@ -11,4 +11,16 @@ def worker_args(a, repo, ck, arm, sd):
 RC.worker_args = worker_args
 if __name__ == "__main__":
     sys.argv = [sys.argv[0], sys.argv[1], "--env", "v5", "--club-len", "1.15", "--arm-dist", "0.6", "--strike-gate-nx", "0.25", "--eps-per-seed", "8", "--seeds", "4000,8000,9000"] + sys.argv[2:]
-    RC.main()
+    out = sys.argv[sys.argv.index("--json") + 1] if "--json" in sys.argv else None
+    try: RC.main()
+    finally:   # slim JSON (Repo Agent): drop per-episode golfphys blocks
+        if out and os.path.exists(out):
+            d = json.load(open(out))
+            def strip(o):
+                if isinstance(o, dict):
+                    for k in list(o):
+                        if k == "golfphys_total" and isinstance(o[k], dict): o[k].pop("episodes", None)
+                        strip(o[k])
+                elif isinstance(o, list):
+                    for v in o: strip(v)
+            strip(d); json.dump(d, open(out, "w"), indent=1, default=float)

@@ -168,3 +168,48 @@ Harness JSONs: results/v5_runs/stageJ_harness/<name>.json. Open blockers for a f
 | 6 | K13a_s19_200000 | 12/3/0 | 79.3 | zero-fail |
 | 7 | K9_s9_300000 | 12/3/0 | 71.8 | zero-fail |
 
+
+## K15 (2026-10-19 ~09:00 ET) — stock limits
+- Fitter (scripts/v5_ref_fit_k11.py) gained env-weighted terms: early lead-arm hump (max arm speed 150-40 ms before club / peak, threshold K11_EARLY_T), trunk power weight, wrist-torque-last-60 ms weight.
+- P1 ref stageK15p1_ref (from K11d, early-hump w15 thr 0.6, arm 10-30 ms, pelvis w15, cap 78): open-loop 78.7 mph, launch 14.4, spin 3209, descent 28.1, t/c 1.24, smash 1.34, pelvis 108 ms, thorax 32 ms before arm, early-hump ratio 0.58 (K11d 0.85), arm-club -8 ms (open loop club still peaks first), GRF 1.35, XF 59.9.
+- P2 ref stageK15p2_ref (speed: cap 100, trunk power w12, wrist last-60 w10): 81.5 mph, launch 14.9, spin 3637, descent 30.7, t/c 1.19, smash 1.31, pelvis 120 ms, trunk 803 W (K11d 897? see note), wrist sat 0.19, wrist last-60 0.53 (not reduced), GRF 1.43, XF 63.3. Speed gain small (+3 mph over K11d).
+- Residual: K15a s23 = K14a 300k on P1 ref; K15b s24 = K14a 300k on P2 ref (T0 84, spd_w 8). Both hip/waist authority x0.25, new early_w 4 term (penalize early arm hump), 300k caps.
+
+
+- K16 launched 09:35 ET: see TRAINING_NOTES. d527e54 re-score of K14a 300k: 12/1/4 incl. both GATING fails (az 16.8, lift 22 cm, slip 53 cm).
+
+## Best-checkpoint list, gating era (scott-e 08835a4 checks, restored-pin worker), 11:27 ET 2026-10-19
+Only rows passing BOTH GATING checks (mine/start_direction, mine/lead_foot_plant):
+  1. results/v5_runs/_snap/K18e_s37_200000 - 11/6/0, 74.1 mph, smash 1.42, spin 3227 (warn), t/c 1.32 (warn), GRF 2.29 (warn); az 2.0, plant slip 0.9 cm / turn 1.6 / airborne 0. ref stageK18s_ref, fresh residual.
+  2. K18f_s38_100000 - 12/4/1, 76.8 mph (fail GRF 2.83; spin 3841 warn). ref stageK18_ref.
+  3. K18c_s35_200000 - 12/3/2, 76.4 (fail order: pelvis peaks at impact; spin 4742).
+  4. K17f_s31_300000 - 10/5/2, glancing strike (smash 0.99); not usable as a strike.
+Pre-gating rows (K14a_s21_300000 etc.) FAIL both gating checks.
+
+## Gating-era best list update, 12:13 ET 2026-10-19 (supersedes the 11:27 list's #1)
+  1. results/v5_runs/_snap/K19a_s39_300000 - 12/5/0, 72.8 mph, smash 1.47, spin 2710 (pass), launch 12.4, t/c 1.348 (warn, fail >1.35), GRF 1.81 (warn); az 1.8; plant pass. ref stageK19_ref_s1, fresh residual.
+  2. K19a_s39_400000 - 12/5/0, 73.4 mph, smash 1.46, spin 2700, t/c 1.346, GRF 2.12, az 0.65.
+  3. K18e_s37_200000 - 11/6/0, 74.1 mph (spin 3227 warn).
+  4. K19b_s40_200000 / 400000 - 11/6/0 (GRF 2.0, spin 3142).
+  Remaining warns on #1: order (arm peaks 4 ms AFTER club), timing, pelvis 161 dps, GRF 1.81, t/c 1.348.
+
+## Best list update 13:10 ET 2026-10-19 (both GATING pass on all rows)
+| rank | ckpt | score | mph | t/c | spin | GRF | smash |
+|---|---|---|---|---|---|---|---|
+| 1 | K19a_s39_300000 | 12/5/0 | 72.8 | 1.348 | 2710 | 1.81 | 1.47 |
+| 1= | K20b_s42_100000 | 12/5/0 | 73.8 | 1.255 | 2964 | 2.17 | 1.41 |
+| 3 | K19a_s39_400000 | 12/5/0 | 73.4 | 1.346 | 2700 | 2.12 | 1.46 |
+| 4 | K20a_s41_100000/200000 | 12/5/0 | 73.0 | 1.34 | 2804-2898 | 2.36 | 1.45 |
+| 5 | K20b_s42_200000 | 12/5/0 | 73.4 | 1.329 | 2985 | 1.94 | 1.44 |
+Common warns: order (arm = club sample), timing (pelvis 136-152 ms), pelvis 150-165 dps, GRF, t/c.
+
+## Best list update 14:40 ET 2026-10-19 (all pass both GATING checks)
+| rank | ckpt | score | mph | t/c | spin | GRF | smash | pelvis dps / ms | warns |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | K22r4_s49_500000 | 12/5/0 | 71.5 | 1.289 | 2907 | pass | 1.45 | 229 / 104 | order, timing (arm 8 ms), pelvis speed, X-factor 66.6, t/c |
+| 1= | K19a_s39_300000 | 12/5/0 | 72.8 | 1.348 | 2710 | 1.81 | 1.47 | 161 / 152 | order, timing, pelvis, GRF, t/c |
+| 1= | K20b_s42_100000 | 12/5/0 | 73.8 | 1.255 | 2964 | 2.17 | 1.41 | ~155 / 150 | order, timing, pelvis, GRF, t/c |
+
+## Best list update 15:25 ET 2026-10-19
+- Most passes: results/v5_runs/_snap/K22r5_s51_100000 - 13/3/1 (order passes for the first time in the gating era; FAIL lead GRF 2.59). 70.6 mph. ref stageK22e_ref_s1.
+- Zero-fail: K22r4_s49_500000 12/5/0 (GRF pass), K19a_s39_300000 12/5/0, K20b_s42_100000 12/5/0.

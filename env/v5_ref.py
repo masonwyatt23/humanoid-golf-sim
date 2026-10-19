@@ -45,11 +45,12 @@ class SwingRef:
         self.t_dstart = self.t_top + T_HOLD
         self.K = np.zeros((3, len(names)))      # top, imp, fin deltas
         self.xf_idx = None
-        tab = dict(PUBLIC_KEYS); self.k_grp = {}; self.sh_grp = {}
+        tab = dict(PUBLIC_KEYS); self.k_grp = {}; self.sh_grp = {}; self.pc_grp = {}
         if keys:   # K8: ("ease", <kind>, "k") entries set a per-joint-kind downswing ease exponent (e.g. wrist lag/release timing), not keyframe deltas
             keys = dict(keys)
             for k in [k for k in keys if k[0] == "ease"]: self.k_grp[k[1]] = float(keys.pop(k))
-            for k in [k for k in keys if k[0] == "phase"]: self.sh_grp[k[1]] = float(keys.pop(k))   # K10: per-kind downswing start delay (s), e.g. hip/waist
+            for k in [k for k in keys if k[0] == "phase"]: self.sh_grp[k[1]] = float(keys.pop(k))
+            for k in [k for k in keys if k[0] == "pc"]: self.pc_grp.setdefault(k[1], {})[k[2]] = float(keys.pop(k))   # K22: explicit bell-velocity downswing curve per kind: c = peak time before impact (s), w = width (s)   # K10: per-kind downswing start delay (s), e.g. hip/waist
         if keys: 
             for k, v in keys.items(): tab[k] = tab.get(k, 0.0) + v if not isinstance(v, tuple) else v[0]
         for (g, role, st), v in tab.items():
@@ -66,6 +67,10 @@ class SwingRef:
             self.xf_idx = [j for j, n in enumerate(self.names) if n.startswith("waist_yaw")][0]
         kinds = [n.replace("left_", "").replace("right_", "").replace("_joint", "") for n in self.names]
         self.sh_vec = np.array([self.sh_grp.get(kd, self.sh_grp.get(kd.split("_")[0], 0.0)) for kd in kinds]); self.sh_xf = self.sh_grp.get("waist_yaw", self.sh_grp.get("waist", 0.0))
+        self.pc_idx = []
+        for g_, pr in self.pc_grp.items():
+            js = [j for j, kd in enumerate(kinds) if kd == g_ or kd.startswith(g_ + "_") or (g_ == "shoulder" and kd.startswith("shoulder"))]
+            self.pc_idx.append((np.array(js, int), float(pr.get("c", 0.08)), max(float(pr.get("w", 0.04)), 0.01), float(pr.get("a", 1.0))))
         self.k_vec = np.array([self.k_grp.get(kd, self.k_grp.get(kd.split("_")[0], k_ease)) for kd in kinds])
         self.wy_pub = (PUBLIC_KEYS[("waist_yaw", "both", "top")], PUBLIC_KEYS[("waist_yaw", "both", "imp")])
         self.wy_extra = [self.K[i, self.xf_idx] - (PUBLIC_KEYS[("waist_yaw", "both", s)]) for i, s in enumerate(STAGES)]
@@ -83,6 +88,12 @@ class SwingRef:
             # waist yaw: public X-factor phase curve (110 mph class, LH-mirrored) + the extra tuned offset
             xf = np.interp(ph, _PH, np.radians(_XF)); extra = self.wy_extra[0] + (self.wy_extra[1] - self.wy_extra[0]) * gx
             d[self.xf_idx] = xf + extra
+            if self.pc_idx:   # K22: bell-shaped velocity (erf position profile) peaking pc_c before impact; overrides ease/phase for those joints
+                from math import erf
+                for js, c_, w_, a_ in self.pc_idx:
+                    tc = self.t_imp - c_; F = lambda tt: erf((tt - tc) / w_)
+                    f0, f1 = F(self.t_dstart), F(self.t_imp); gg = (F(t) - f0) / max(f1 - f0, 1e-6)
+                    d[js] = (1.0 - a_) * d[js] + a_ * (self.K[0][js] + (self.K[1][js] - self.K[0][js]) * gg)   # a = blend toward the explicit curve (K22e gentle arm)
             return d
         x = np.clip((t - self.t_imp) / T_FOLLOW, 0, 1); s = 3 * x * x - 2 * x ** 3
         return self.K[1] + (self.K[2] - self.K[1]) * s
