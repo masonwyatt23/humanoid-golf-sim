@@ -686,3 +686,21 @@ Unrelated modified tracked files (docs/hero_swing.gif, eval/leaderboard.py, eval
 ## K12 (2026-10-19 ~07:10 ET) — stock limits, reference-guided residual
 - stageK12 s17 (K11c ref) and s18 (K11d ref), both from K11 s16 500k, K11 s16 shot terms (spin_w 12, dloft 13-18, AoA>=+1), ord2_w 6 (was 4), pelvis 60-120 ms, lr 3e-5, 400k cap.
 
+
+## K12 result (2026-10-19 ~07:20 ET) — no full pass; both runs ended at the 400k cap
+- K12 s17 400k: 12 pass/3 warn/0 fail, 79.1 mph, spin passes (det 2988), warns: order arm=club same sample, pelvis 155 ms, t/c 1.27.
+- K12 s18 400k: 12/3/0, 80.4 mph, spin passes (det 1982), warns: order arm/club, pelvis 145 ms, t/c 1.284.
+- Evaluator (early): s18 100k 12/3/0 80.7 mph; s17 300k 11/4/0; s17 200k 10/5/0; s18 200k/300k and s17 100k fail order.
+
+## BEST-CHECKPOINT LIST (for Evaluator requests; all stock limits, reference-guided residual RL, harness = scripts/v5_realism_j.py, 24 det eps, gate 0.25, arm 0.6, club 1.15)
+Each dir holds ckpt_<N>.zip + ckpt_<N>_vecnorm.pkl + args.json (args.json points at the reference keys file and t_down).
+| rank | checkpoint (results/v5_runs/_snap/...) | P/W/F | mph | notes |
+| 1 | K12_s18_400000/ckpt_400000 | 12/3/0 | 80.4 | spin pass; warns order arm/club, pelvis 145 ms, t/c 1.284; ref stageK11d_ref_s1 |
+| 2 | K12_s17_400000/ckpt_400000 | 12/3/0 | 79.1 | spin pass; warns order, pelvis 155, t/c 1.27; ref stageK11c_ref_s1 |
+| 3 | K12_s18_100000/ckpt_100000 | 12/3/0 | 80.7 | Evaluator-scored |
+| 4 | K11_s16_500000/ckpt_500000 | 13/1/1 | 80.0 | all shot checks pass (t/c 1.21, spin 2884); FAIL order (arm before thorax); ref stageK11b_ref_s1 |
+| 5 | K9_s9_300000/ckpt_300000 | 12/3/0 | 71.8 | ref stageK8_ref_s1 |
+| 6 | K8_s8_400000/ckpt_400000 | 12/3/0 | 72.0 | ref stageK8_ref_s1 |
+| 7 | K7_s6_800000/ckpt_800000 | 12/3/0 | 66.5 | old ref stageK_ref |
+Harness JSONs: results/v5_runs/stageJ_harness/<name>.json. Open blockers for a full pass: arm and club peaks on the same 5 ms sample, pelvis peak 145-155 ms (band 40-140), t/c 1.27-1.28 vs 1.25 (K11 s16 500k had 1.21 but order fail).
+
