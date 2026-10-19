@@ -47,3 +47,12 @@
 - Residual runs stageK8 s7 (T0 70) / s8 (T0 75), warm from K7 s6 800k policy (same obs/action layout, new ref), K7 reward terms, 800k cap.
 
 - (03:30 ET) K8 runs restarted after ~1 min with pelvis-timing band 60-120 ms before club peak (harness band 40-140), pel_t_w 4.
+
+## K8 interim (2026-10-19 ~04:30 ET) — stock limits, reference-guided residual on the K8 76.5 mph open-loop ref
+- Det evals (500k): s7 76-77 mph, carry 99-127 m, descent 30-32, t/c 1.15-1.20, spin 4154-6596; s8 72-75 mph, spin 2919-5709, t/c 1.19-1.38.
+- Harness (24 det eps, all 24/24 contact; JSONs stageJ_harness/K8_*.json, snapshots _snap/K8_s{7,8}_{100..500}k):
+  s8 400k: 12 pass / 3 warn / 0 fail, 72.0 mph (warns: order arm=club same sample, pelvis timing 165 ms, spin 3792).
+  s8 300k: 10/5/0, 73.1 mph (spin 3434, launch 16.06, t/c 1.278 warns).
+  s7 500k: 12/2/1, 76.6 mph, t/c passes; fail spin 4154.
+- First 70+ mph clean strikes under stock limits. Remaining: spin <3000, pelvis peak 165-175 ms (band 40-140), arm/club peak separation.
+

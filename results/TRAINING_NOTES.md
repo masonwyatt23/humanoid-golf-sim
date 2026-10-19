@@ -630,3 +630,12 @@ Unrelated modified tracked files (docs/hero_swing.gif, eval/leaderboard.py, eval
 - Result (results/v5_runs/stageK8_ref_s1/, 200 gens): open-loop 76.5 mph (vs 64.6 old ref), legal gate-on strike, XF 64.7, GRF 1.45 (5 ms), tilt 30, no fall. But launch 24.9 / spin 8919 (residual must fix), and the gain came from arm/shoulder keyframes, not trunk: trunk power ~537 W (unchanged), wrist saturation 0.49 (unchanged), wrist torque last 60 ms 0.39 (higher), ease exponents ~1.6 (lag/release timing barely moved). First run with mph weight 1 (stageK8_ref/) gave only 65-67 mph.
 - Residual runs stageK8 s7 (T0 70) / s8 (T0 75), warm from K7 s6 800k policy (same obs/action layout, new ref), K7 reward terms, 800k cap.
 
+
+## K8 interim (2026-10-19 ~04:30 ET) — stock limits, reference-guided residual on the K8 76.5 mph open-loop ref
+- Det evals (500k): s7 76-77 mph, carry 99-127 m, descent 30-32, t/c 1.15-1.20, spin 4154-6596; s8 72-75 mph, spin 2919-5709, t/c 1.19-1.38.
+- Harness (24 det eps, all 24/24 contact; JSONs stageJ_harness/K8_*.json, snapshots _snap/K8_s{7,8}_{100..500}k):
+  s8 400k: 12 pass / 3 warn / 0 fail, 72.0 mph (warns: order arm=club same sample, pelvis timing 165 ms, spin 3792).
+  s8 300k: 10/5/0, 73.1 mph (spin 3434, launch 16.06, t/c 1.278 warns).
+  s7 500k: 12/2/1, 76.6 mph, t/c passes; fail spin 4154.
+- First 70+ mph clean strikes under stock limits. Remaining: spin <3000, pelvis peak 165-175 ms (band 40-140), arm/club peak separation.
+
