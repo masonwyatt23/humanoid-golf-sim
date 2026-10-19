@@ -17,3 +17,9 @@
 ## K4c (2026-10-18 ~23:15 ET)
 - Snapshots: _snap/K4b_s1_200000 (47.5 mph, spin 2245, smash 1.42, launch 14.5, only t/c 1.68 fails), _snap/K4b_s0_100000/200000 (regressed: order/XF/GRF fail).
 - K4b s0 stopped (moved to _stageK4b_s0_old). New stageK4c s0 warm from K4b s1 200k with speed bonus 4, desc_w 4, XF hard 65 (cap w 0.3), GRF w 0.6, T_step 5. K4b s1 (pid 222555) continues unchanged.
+
+## K5 (2026-10-19 ~00:50 ET) — stageK5 s2, warm from K4c s0 900k, lr 1e-4, grf_lo 1.5 w 2.5 (5 ms), K4c terms otherwise
+- Snapshots _snap/K5_s2_{100000,300000,400000,500000}. Harness JSONs stageJ_harness/K5_s2_{300000,400000}.json.
+- 300k: 61.9 mph, spin 3060 (warn), launch 18.2 (warn), t/c 1.37 (only FAIL), GRF 1.38 PASS, smash 1.25 warn, order warn (thorax/arm same sample), pelvis timing warn.
+- 400k: 65.4 mph, GRF PASS, spin 4036 FAIL, t/c 1.39 FAIL, order FAIL (pelvis/thorax).
+- Running: K4c s0 (227376), K5 s2 (700k steps cap).
