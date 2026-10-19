@@ -28,3 +28,7 @@
 - K4c s0 stopped. stageK6 s3 (desc_w 6) and s4 (desc_w 3): lr 7e-5, spd_w 5, spin_hi 2800 w5, launch_hi 15.5 (margin), GRF/XF/order as K5. 700k steps cap.
 - Note: golfphys needs ~70 mph for descent 28/t/c 1.27 with spin<3000, launch<=16; at 61-63 mph t/c ~1.36-1.38 is the physical floor, so K6 can only pass t/c by gaining speed.
 - K6 interim (~400k): harness (stageJ_harness/K6_*.json): s4 200k = 64.5 mph, spin 2843, launch 13.6, only FAIL total/carry (1.43), 1 warn (pelvis peak speed 0.66x); s4 400k = 63.9 mph, spin 2939, launch 16.3 (warn), t/c 1.35 FAIL; s3 200k = 60.9 mph, spin 2779, t/c 1.44 FAIL. Snapshots _snap/K6_s{3,4}_*. Both runs alive (334331 s3, 334332 s4).
+
+## K7 (2026-10-19 ~02:45 ET) — from K6 s4 200k (snapshot _snap/K6_s4_200000)
+- Torque check (scripts/v5_torque_sat.py, 5 ms samples, 300 ms before impact, K6 s4 200k at 64.9 mph): wrists (5 N*m stock) saturated 32-68% of samples and at ~rated speed; shoulders/elbows (25 N*m) hit the cap intermittently (2-32%); waist_yaw peak 0.88 of 88 N*m, hips <=0.87, never saturated. => distal arm/wrist chain is torque-limited at ~65 mph; pelvis/hip/waist have headroom, so extra speed must come from the trunk/pelvis.
+- stageK7 s5 (spd_w 5, pel_w 3, pel_t_w 2) and s6 (spd_w 7, pel_w 5, pel_t_w 3): new pelvis peak-speed term (toward 400 deg/s) + pelvis-peak 100-150 ms before club-peak term; speed curriculum T0 67 step 3; lr 7e-5; GRF 1.5/w2.5 fine, XF hard 65, order terms; spin<=2800, launch<=15.5. 800k cap.
