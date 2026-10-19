@@ -21,6 +21,6 @@ def test_real_model_nominal_is_one_even_after_random_draw():
 def test_committed_v3b_jsons_carry_corrected_label():
     fs = glob.glob(os.path.join(ROOT, "results/v5_runs/stageJK_harness_summary/*_v3b_gateoff_gp_arm06.json"))
     if not fs: pytest.skip("v3b summary JSONs absent")
-    assert len(fs) == 6
+    assert len(fs) >= 6  # six v3b re-scores + later independent v3b scores (e.g. K24a s53 200k)
     for f in fs:
         s = open(f).read(); assert "0.9776" not in s and '"floor_mu_nominal": 1.0' in s
