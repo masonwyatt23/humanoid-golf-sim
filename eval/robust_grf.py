@@ -136,6 +136,15 @@ def shot_status(name, value):
 
 SHOT_KEYS = ("club_speed_mph", "smash", "launch_deg", "spin_rpm", "total_over_carry")
 
+def applied_summary(eps):
+    """What the worker actually applied, per episode (floor mu, ball offset, joint noise). None if not recorded."""
+    P = [e.get("perturb") for e in eps if e.get("perturb")]
+    if not P: return None
+    mu = [p["floor_mu"] for p in P if p.get("floor_mu") is not None]; b = [max(abs(x) for x in p["ball_xy_off_m"]) for p in P if p.get("ball_xy_off_m")]
+    jd = [p["joint_deg_max"] for p in P if p.get("joint_deg_max") is not None]
+    return dict(n=len(P), floor_mu_min=min(mu) if mu else None, floor_mu_max=max(mu) if mu else None, ball_xy_abs_max_m=max(b) if b else None,
+                ball_xy_nonzero_eps=sum(1 for p in P if p.get("ball_xy_off_m") and max(abs(x) for x in p["ball_xy_off_m"]) > 0), joint_deg_abs_max=max(jd) if jd else None)
+
 def robustness_row(eps, perturb, seeds):
     """eps: list of dicts with contact (bool), sd_status, foot_status, and the SHOT_KEYS (None if no contact). Returns the mine/robustness row."""
     n = len(eps)
@@ -160,6 +169,7 @@ def robustness_row(eps, perturb, seeds):
     why = [("; ".join(fails + warns) if (fails or warns) else "all requirements hold inside PASS bands") +
            f"; {n} perturbed eps, seeds {seeds[0]}..{seeds[-1]}; {PROV}"]
     vals = dict(n=n, contact_frac=fc, start_direction_pass_frac=fsd, lead_foot_plant_pass_frac=ffoot, shot=stats, perturb=perturb, seeds=list(seeds))
+    vals["applied"] = applied_summary(eps)
     ref = (f"Orchestrator-approved robustness gate 2026-10-19 ({PROV}): contact >={REQ_CONTACT:.0%}, start_direction PASS >={REQ_SD:.0%}, lead_foot_plant PASS >={REQ_FOOT:.0%}, "
            "shot median and p10/p90 inside WARN band; WARN if any leaves PASS band. Magnitudes: joints +/-1.5 deg, +/-0.05 rad/s (ours); ball +/-1 cm (env ball_tol_m); "
            + friction_desc(perturb))

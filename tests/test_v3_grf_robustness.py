@@ -1,6 +1,6 @@
 """v3 PROVISIONAL harness additions (2026-10-19): lead-GRF rule (window top->impact+20 ms, zero-lag 4th-order Butterworth 50 Hz, >=3-sample guard,
 raw value kept as INFO) and mine/robustness (perturbed-start gate). Defaults keep the v2 behaviour."""
-import types
+import os, types
 import numpy as np, pytest
 from eval import robust_grf as RG
 from eval import realism_check as RC
@@ -113,3 +113,18 @@ def test_wide_info_row_does_not_gate():
     from eval import swing_realism as SR
     C = {"a": dict(status="pass"), "mine/robustness_wide_friction_info": dict(status="info")}
     S = SR.summarize(C); assert S["verdict"] == "PASS" and S["n_checks"] == 1 and S["n_info"] == 1
+
+
+def test_applied_summary_records_what_the_worker_did():
+    E = [dict(_ep(), perturb=dict(floor_mu=m, ball_xy_off_m=[b, -b], joint_deg_max=1.2)) for m, b in ((0.91, 0.004), (1.07, 0.0))]
+    a = RG.robustness_row(E, RG.default_perturb(), [7000, 7001])["values"]["applied"]
+    assert a["floor_mu_min"] == 0.91 and a["floor_mu_max"] == 1.07 and a["ball_xy_abs_max_m"] == 0.004 and a["ball_xy_nonzero_eps"] == 1
+    assert RG.robustness_row([_ep()] * 2, RG.default_perturb(), [7000, 7001])["values"]["applied"] is None
+
+def test_worker_reasserts_perturbation_against_jenv_reset_override():
+    """K24+ JEnv.reset() forces env.friction_rand=False / env.ball_tol=JEnv.ball_tol; the v3 worker must re-assert the requested values at V5GolfEnv.reset."""
+    w = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "results/overnight/_j_worker_gp_v3.py")
+    if not os.path.exists(w):
+        import pytest; pytest.skip("v3 worker (results/overnight/_j_worker_gp_v3.py) is held locally, not tracked")
+    src = open(w).read()
+    assert "def _reset_pert" in src and "e.reset = _reset_pert" in src and "e.friction_rand = _fr_; e.ball_tol = _bt_" in src
