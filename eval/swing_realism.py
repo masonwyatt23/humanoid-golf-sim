@@ -291,6 +291,56 @@ def info_total_over_carry_speed_matched(ball_mph, actual_total_over_carry):
     why = [f"actual total/carry {actual_total_over_carry:.3f} vs golfphys speed-matched minimum {b['min_total_over_carry']:.3f} at {ball_mph:.1f} mph ball speed (launch {b['at_launch_deg']:.0f} deg, backspin {b['at_backspin_rpm']:.0f} rpm); " + SM_CAVEAT] if b else ["sweep returned no carry; " + SM_CAVEAT]
     return SM_KEY, dict(status=INFO, passed=False, values=vals, why=why, ref=ref, tag="info_only", gating=False)
 
+# ---- PROVISIONAL gating checks (Orchestrator-approved 2026-10-19; bands pending Data Agent sourcing) -----------------------------------------------------
+PROV = "PROVISIONAL, pending Data Agent sourcing"
+START_AZ_DEG = (4.0, 8.0)          # |launch azimuth vs target|: pass <=4, warn <=8, fail >8
+START_LAT_PER100 = (7.0, 14.0)     # |lateral at landing| per 100 yd of carry: pass <=7, warn <=14, fail >14
+FOOT_LIFT_CM = (3.0, 6.0)          # lead-foot max vertical lift, top of backswing -> impact
+FOOT_SLIP_CM = (5.0, 10.0)         # lead-foot max horizontal slip, top of backswing -> impact
+TOP_FALLBACK_S = 0.6               # without a logged top time: top = min club angular speed in [club peak - 0.6 s, club peak]
+_W = {"pass": 0, "warn": 1, "fail": 2, "skip": -1}
+
+def band_status(x, band):
+    return "pass" if x <= band[0] else "warn" if x <= band[1] else "fail"
+
+def _worst(*st): return max(st, key=lambda s: _W[s])
+
+def check_start_direction(az_abs_deg, lat_per100):
+    """(key, row) mine/start_direction from median |launch azimuth| (deg vs target line, 0 = at target) and median |lateral at landing| per 100 yd carry
+    (golfphys no-roll flight). Status = worst of the two. Skip when no contact shot carries azimuth/lateral data."""
+    ref = f"Orchestrator 2026-10-19 bands ({PROV}): |az| pass<=4 warn<=8 deg; lateral pass<=7 warn<=14 yd per 100 yd carry"
+    if az_abs_deg is None and lat_per100 is None:
+        return _mine("start_direction", False, [f"no azimuth / golfphys lateral logged; {PROV}"], None, ref, status="skip")
+    parts = []; st = []
+    if az_abs_deg is not None: s_ = band_status(az_abs_deg, START_AZ_DEG); st.append(s_); parts.append(f"|azimuth| {az_abs_deg:.2f} deg ({s_}; pass <=4, warn <=8)")
+    if lat_per100 is not None: s_ = band_status(lat_per100, START_LAT_PER100); st.append(s_); parts.append(f"lateral {lat_per100:.2f} yd/100 yd carry ({s_}; pass <=7, warn <=14)")
+    s = _worst(*st); return _mine("start_direction", s == "pass", ["; ".join(parts) + f"; worst of the two; bands {PROV}"], dict(azimuth_abs_deg=az_abs_deg, lateral_yd_per_100yd=lat_per100), ref, status=s)
+
+def top_index(t, club_dps, impact_idx, t_top=None):
+    """Index of the top of the backswing: the worker's logged top time (JEnv reference downswing start) if given, else the minimum club angular speed in
+    the TOP_FALLBACK_S window before the club's peak (up to impact). Uses the episode's own (dt-correct) time axis."""
+    t = np.asarray(t, float); i_imp = int(impact_idx)
+    if t_top is not None and t[0] <= t_top <= t[i_imp]: return int(np.argmin(np.abs(t[:i_imp + 1] - t_top))), "logged"
+    c = np.abs(np.asarray(club_dps, float)[:i_imp + 1]); ipk = int(np.argmax(c)); lo = int(np.searchsorted(t, t[ipk] - TOP_FALLBACK_S))
+    return lo + int(np.argmin(c[lo:ipk + 1])), "fallback_min_club_speed"
+
+def lead_foot_motion(t, foot, impact_idx, i_top):
+    """Max vertical lift and horizontal slip (cm) of the lead sole between top (i_top) and impact, relative to its pose at the top.
+    foot rows: [x, y, z, heel_z, toe_z] (sole site centre + sole ends). Lift = max rise of centre/heel/toe; slip = max horizontal centre displacement.
+    Post-impact motion is not judged."""
+    F = np.asarray(foot, float)[i_top:int(impact_idx) + 1]
+    if len(F) == 0: return None, None
+    z0 = F[0, [2, 3, 4]]; lift = float(np.max(F[:, [2, 3, 4]] - z0)); slip = float(np.max(np.hypot(F[:, 0] - F[0, 0], F[:, 1] - F[0, 1])))
+    return 100.0 * max(lift, 0.0), 100.0 * slip
+
+def check_lead_foot_plant(lift_cm, slip_cm, n_eps=None, top_method=None):
+    ref = f"Orchestrator 2026-10-19 bands ({PROV}): lift pass<=3 warn<=6 cm; slip pass<=5 warn<=10 cm; top of backswing -> impact only"
+    if lift_cm is None or slip_cm is None:
+        return _mine("lead_foot_plant", False, [f"lead-foot positions not logged by this worker; {PROV}"], None, ref, status="skip")
+    a, b = band_status(lift_cm, FOOT_LIFT_CM), band_status(slip_cm, FOOT_SLIP_CM); s = _worst(a, b)
+    why = [f"lead foot top->impact: max lift {lift_cm:.2f} cm ({a}; pass <=3, warn <=6), max slip {slip_cm:.2f} cm ({b}; pass <=5, warn <=10); median over {n_eps} contact eps; top = {top_method}; post-impact not judged; bands {PROV}"]
+    return _mine("lead_foot_plant", s == "pass", why, dict(lift_cm=lift_cm, slip_cm=slip_cm), ref, status=s)
+
 def summarize(C):
     st = [c["status"] for c in C.values()]; n_pass, n_warn, n_fail, n_skip = (st.count(x) for x in ("pass", "warn", "fail", "skip")); n_info = st.count(INFO)   # info rows: excluded from verdict and n_checks
     return dict(verdict="FAIL" if n_fail else "WARN" if n_warn else "PASS", n_pass=n_pass, n_warn=n_warn, n_fail=n_fail, n_skip=n_skip, n_checks=len(st) - n_skip - n_info, n_info=n_info)

@@ -66,7 +66,8 @@ def legacy_view(r):
     so the default (20 ms tie tolerance) rows of a --timing-res-ms run are computed from exactly the default traces."""
     if r.get("seg_every", None) in (None, r.get("seg_every_default")) or not r.get("sub"): return r
     k = int(r["seg_every_default"]); keep = [i for i, s in enumerate(r["sub"]) if s % k == 0]; q = dict(r)
-    for f in ("t", "pelvis_dps", "thorax_dps", "arm_dps", "club_dps", "xfactor_deg", "lead_share", "grf", "sub"): q[f] = [r[f][i] for i in keep]
+    for f in ("t", "pelvis_dps", "thorax_dps", "arm_dps", "club_dps", "xfactor_deg", "lead_share", "grf", "sub", "lead_foot"):
+        if f in r: q[f] = [r[f][i] for i in keep]
     t = np.array(q["t"]); tc = r.get("t_contact")
     q["impact_idx"] = int(np.argmax(t >= tc)) if tc is not None and (t >= tc).any() else len(t) - 1; q["seg_every"] = k
     return q
@@ -117,6 +118,12 @@ def run_v5(a):
         dt_ep, dt_mis = episode_dt(r, r_raw.get("_declared_dt"))   # MEASURED sample interval (dt fix); tie tolerance (20 ms) and thresholds unchanged
         gp_rows.append(dict(seed=r.get("seed"), contact=bool(r["contact"]), **(gp or {}))) if gp else None
         out.append(dict(true_contact=bool(r["contact"]), club_mph=club, ball_mph=sh.get("ball_speed_mph"), gp_toc=(gp or {}).get("total_over_carry"), da_swing=SR.da_swing(jt, dt_ep, club, imp), dt_used=dt_ep, dt_declared=r_raw.get("_declared_dt"), dt_mismatch=dt_mis, da_shot=SR.da_shot(shot) if shot else [], seg_peak_dps=pk))
+        x_ = r.get("shot_extra") or {}; az = x_.get("azimuth_deg") if r["contact"] else None
+        lat = abs(gp["lateral_carry_yd"]) / gp["noroll_carry_yd"] * 100.0 if gp and gp.get("lateral_carry_yd") is not None and (gp.get("noroll_carry_yd") or 0) > 0 else None
+        lift = slip = top_m = None
+        if r.get("lead_foot"):
+            i_top, top_m = SR.top_index(r["t"], r["club_dps"], imp, r.get("t_top")); lift, slip = SR.lead_foot_motion(r["t"], r["lead_foot"], imp, i_top)
+        out[-1].update(az_abs=(abs(az) if az is not None else None), lat_per100=lat, foot_lift_cm=lift, foot_slip_cm=slip, top_method=top_m)
         if tres:
             rows_f, dt_f = timing_res_rows(r_raw, tres, club); out[-1].update(da_tres=rows_f, dt_fine=dt_f, seg_every_fine=r_raw.get("seg_every"), dt_logged_default=float(np.median(np.diff(np.array(r["t"], float)))))
     ok = [e for e in out if e["true_contact"]] or out; C = {}
@@ -125,6 +132,9 @@ def run_v5(a):
     k, v = SR._mine("segments_rotate", not bad, [f"{n} does not rotate (peak {pk[n]:.1f} deg/s)" for n in bad], pk, "DERIVED 20 deg/s"); C[k] = v
     for nm in ("ground_contact_weight_shift", "joint_limits", "torque_saturation_smoothness", "tempo", "carry_vs_trackman_band"):
         C[f"mine/{nm}"] = dict(status="skip", passed=False, values=None, why=["not implemented for the v5 recorder (v1 recorder only)"], ref=None, tag="derived")
+    k, v = SR.check_start_direction(SR.med([e["az_abs"] for e in ok]), SR.med([e["lat_per100"] for e in ok])); C[k] = v          # GATING, PROVISIONAL bands
+    fe = [e for e in ok if e["foot_lift_cm"] is not None]
+    k, v = SR.check_lead_foot_plant(SR.med([e["foot_lift_cm"] for e in fe]), SR.med([e["foot_slip_cm"] for e in fe]), len(fe), (sorted({e["top_method"] for e in fe}) or [None])[0]); C[k] = v   # GATING, PROVISIONAL
     k, v = SR.info_total_over_carry_speed_matched(SR.med([e["ball_mph"] for e in ok if e.get("gp_toc") is not None]), SR.med([e["gp_toc"] for e in ok]))   # INFO ONLY: not gating, ignored by summarize
     C[k] = v
     S = SR.summarize(C); TR = None

@@ -13,4 +13,5 @@ def golfphys_total(ball_mph, launch_deg, backspin_rpm, sidespin_rpm=0.0, azimuth
     r = shot_from_launch(ball_mph * MPH, launch_deg, spin, roll=True, **kw)
     n = shot_from_launch(ball_mph * MPH, launch_deg, spin, roll=False, **kw)
     carry = r.carry_m * M2YD; total = r.total_m * M2YD
-    return dict(carry_yd=carry, total_yd=total, noroll_carry_yd=n.carry_m * M2YD, total_over_carry=(total / carry if carry > 0 else None), descent_deg=r.descent_deg, backspin_rpm=r.backspin_rpm, sidespin_rpm=r.sidespin_rpm)
+    return dict(carry_yd=carry, total_yd=total, noroll_carry_yd=n.carry_m * M2YD, total_over_carry=(total / carry if carry > 0 else None), descent_deg=r.descent_deg, backspin_rpm=r.backspin_rpm, sidespin_rpm=r.sidespin_rpm,
+                lateral_carry_yd=n.lateral_carry_m * M2YD)   # signed lateral offset at landing (no-roll flight), yd
