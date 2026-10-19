@@ -23,3 +23,7 @@
 - 300k: 61.9 mph, spin 3060 (warn), launch 18.2 (warn), t/c 1.37 (only FAIL), GRF 1.38 PASS, smash 1.25 warn, order warn (thorax/arm same sample), pelvis timing warn.
 - 400k: 65.4 mph, GRF PASS, spin 4036 FAIL, t/c 1.39 FAIL, order FAIL (pelvis/thorax).
 - Running: K4c s0 (227376), K5 s2 (700k steps cap).
+
+## K6 (2026-10-19 ~01:30 ET) — from K5 s2 700k (snapshot _snap/K5_s2_700000; 60.8 mph, 14/0/1, only t/c 1.36)
+- K4c s0 stopped. stageK6 s3 (desc_w 6) and s4 (desc_w 3): lr 7e-5, spd_w 5, spin_hi 2800 w5, launch_hi 15.5 (margin), GRF/XF/order as K5. 700k steps cap.
+- Note: golfphys needs ~70 mph for descent 28/t/c 1.27 with spin<3000, launch<=16; at 61-63 mph t/c ~1.36-1.38 is the physical floor, so K6 can only pass t/c by gaining speed.
