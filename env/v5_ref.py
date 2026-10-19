@@ -45,10 +45,11 @@ class SwingRef:
         self.t_dstart = self.t_top + T_HOLD
         self.K = np.zeros((3, len(names)))      # top, imp, fin deltas
         self.xf_idx = None
-        tab = dict(PUBLIC_KEYS); self.k_grp = {}
+        tab = dict(PUBLIC_KEYS); self.k_grp = {}; self.sh_grp = {}
         if keys:   # K8: ("ease", <kind>, "k") entries set a per-joint-kind downswing ease exponent (e.g. wrist lag/release timing), not keyframe deltas
             keys = dict(keys)
             for k in [k for k in keys if k[0] == "ease"]: self.k_grp[k[1]] = float(keys.pop(k))
+            for k in [k for k in keys if k[0] == "phase"]: self.sh_grp[k[1]] = float(keys.pop(k))   # K10: per-kind downswing start delay (s), e.g. hip/waist
         if keys: 
             for k, v in keys.items(): tab[k] = tab.get(k, 0.0) + v if not isinstance(v, tuple) else v[0]
         for (g, role, st), v in tab.items():
@@ -64,6 +65,7 @@ class SwingRef:
                     self.K[STAGES.index(st), j] += sgn * v
             self.xf_idx = [j for j, n in enumerate(self.names) if n.startswith("waist_yaw")][0]
         kinds = [n.replace("left_", "").replace("right_", "").replace("_joint", "") for n in self.names]
+        self.sh_vec = np.array([self.sh_grp.get(kd, self.sh_grp.get(kd.split("_")[0], 0.0)) for kd in kinds]); self.sh_xf = self.sh_grp.get("waist_yaw", self.sh_grp.get("waist", 0.0))
         self.k_vec = np.array([self.k_grp.get(kd, self.k_grp.get(kd.split("_")[0], k_ease)) for kd in kinds])
         self.wy_pub = (PUBLIC_KEYS[("waist_yaw", "both", "top")], PUBLIC_KEYS[("waist_yaw", "both", "imp")])
         self.wy_extra = [self.K[i, self.xf_idx] - (PUBLIC_KEYS[("waist_yaw", "both", s)]) for i, s in enumerate(STAGES)]
@@ -75,7 +77,8 @@ class SwingRef:
         if t <= tb1:
             x = (t - tb0) / T_BACK; s = 3 * x * x - 2 * x ** 3; return self.K[0] * s
         if t <= self.t_imp:                                    # downswing top -> impact
-            ph = (t - self.t_dstart) / self.t_down; g = _ease_down(ph, self.k_vec); gx = _ease_down(ph, self.k_ease)
+            ph = (t - self.t_dstart) / self.t_down; phj = np.clip((t - self.t_dstart - self.sh_vec) / np.maximum(self.t_down - self.sh_vec, 0.05), 0, 1); g = _ease_down(phj, self.k_vec)
+            ph = float(np.clip((t - self.t_dstart - self.sh_xf) / max(self.t_down - self.sh_xf, 0.05), 0, 1)); gx = _ease_down(ph, self.k_ease)
             d = self.K[0] + (self.K[1] - self.K[0]) * g
             # waist yaw: public X-factor phase curve (110 mph class, LH-mirrored) + the extra tuned offset
             xf = np.interp(ph, _PH, np.radians(_XF)); extra = self.wy_extra[0] + (self.wy_extra[1] - self.wy_extra[0]) * gx

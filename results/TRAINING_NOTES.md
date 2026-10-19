@@ -653,3 +653,10 @@ Unrelated modified tracked files (docs/hero_swing.gif, eval/leaderboard.py, eval
 - Pelvis peak sits at t=1.475-1.485 s in every K7-K9 policy (160-175 ms before club) regardless of pel_t_w 3-8: it is set by the reference waist_yaw/hip phase; residual (0.7*0.2 rad) does not move it. Needs a reference-level change (pelvis keyframe/phase timing in the ES) rather than a reward.
 - spin vs t/c still trade at ~72 mph (s9 600k 73.1 mph spin 3121 t/c 1.36; s10 400k spin 3182 t/c 1.26).
 
+
+## K10 (2026-10-19 ~05:05 ET) — stock limits, reference-guided residual
+- env/v5_ref.py: new "phase|<kind>|d" keys = per-kind downswing start delay (s); waist delay shifts the public X-factor phase curve (backward compatible: K8 ref still 76.5 mph).
+- scripts/v5_ref_fit_k10.py (K8 fitter + phase|hip_yaw, phase|waist delays; pelvis lead 60-120 ms weight 10; arm-before-club soft term; speed<72 penalty), init K8 best.
+- Ref stageK10_ref_s1 (200 gens): open-loop 79.6 mph legal strike, pelvis peak 116 ms before club (K8 ref 156), arm 12 ms before club (K8 4), XF 64.6, GRF 1.0 (5 ms), trunk power 659 W (K8 537); waist delay 45 ms, hip_yaw delay 5 ms. Launch 19.5 / spin 8750 open-loop. s2 ref: 79.4 mph, pelvis 136 ms, arm-club 20 ms.
+- Residual runs stageK10 s11 (sep_w 1) / s12 (sep_w 2) warm from K9 s9 300k on the s1 ref, lr 5e-5, 600k cap, K9 terms otherwise.
+

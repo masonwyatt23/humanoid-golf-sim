@@ -1,0 +1,16 @@
+{
+ "contact": true,
+ "foul": false,
+ "fell": false,
+ "mph": 79.55008964331354,
+ "carry": 55.93438067418025,
+ "launch": 19.451046240726466,
+ "min_pelvis_z": 0.7327486003828896,
+ "max_tilt_deg": 30.410001128794985,
+ "armed": true,
+ "xf_max_deg": 64.57952669652556,
+ "lead_grf_bw": 0.7820370356906691,
+ "t_end": 1.4400000000000008,
+ "min_head_ball": 0.023691632780954573,
+ "peak_head_mph": null
+}
