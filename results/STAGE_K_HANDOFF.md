@@ -13,3 +13,7 @@
 - Best so far: snapshot results/v5_runs/_snap/K4_s0_100k (61.0 mph, total/carry 1.21, descent 32, smash 1.35, spin 4087, launch 19.8; Evaluator 12/2/1, only spin fails). Also _snap/K4_s1_100k, K3b_s0_500k.
 - Original K4 runs (T0 80) collapsed (fell) at 200k; moved to results/v5_runs/_stageK4a_s*. Relaunched as stageK4b s0 (from K4 s0 100k) and s1 (from K3b 500k), T0 70, dl window 17-22, launch<=16, spin<=2900 penalty. Alive (pids 222554/222555), eval every 100k.
 - Physics: spin<3000 + launch<=16 + total/carry<=1.25 are jointly infeasible at ~63 mph (golfphys: 24.7 deg descent/1.38 at 63; 28/1.27 at 70; 31.6/1.20 at 80 mph).
+
+## K4c (2026-10-18 ~23:15 ET)
+- Snapshots: _snap/K4b_s1_200000 (47.5 mph, spin 2245, smash 1.42, launch 14.5, only t/c 1.68 fails), _snap/K4b_s0_100000/200000 (regressed: order/XF/GRF fail).
+- K4b s0 stopped (moved to _stageK4b_s0_old). New stageK4c s0 warm from K4b s1 200k with speed bonus 4, desc_w 4, XF hard 65 (cap w 0.3), GRF w 0.6, T_step 5. K4b s1 (pid 222555) continues unchanged.
