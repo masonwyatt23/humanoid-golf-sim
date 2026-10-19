@@ -725,3 +725,27 @@ Harness JSONs: results/v5_runs/stageJ_harness/<name>.json. Open blockers for a f
 | 6 | K9_s9_300000 | 12/3/0 | 71.8 | ref stageK8_ref_s1 |
 | 7 | K8_s8_400000 | 12/3/0 | 72.0 | ref stageK8_ref_s1 |
 
+
+## K14 (2026-10-19 ~08:30 ET) + HARNESS TIMEBASE FIX
+- BUG (my adapter, scripts/v5_eval_j_worker.py): JEnv runs physics dt=0.002, so V5GolfEnv logs segments every round(0.005/0.002)=2 substeps = 4 ms, but the harness scores swing series with dt=0.005 (eval/realism_check.py da_swing(jt, 0.005, ...)). All harness timings were inflated x1.25 (e.g. pelvis 145 ms reported = ~116 ms true). Fixed: the worker now resamples to an exact 5 ms grid (linear interp for speeds/x-factor/share, max-per-bin for GRF) and emits shot_extra (backspin etc.) so golfphys_total (carry, total/carry) is populated. Old JSONs kept as <name>_pre_dtfix.json.
+- Re-scored with the fix (24 det eps): K11 s16 500k = 14 pass / 0 warn / 1 fail (only order: arm 1.245 s before thorax 1.285 s; pelvis timing now PASSES), 80.0 mph. K12 s18 400k 12/3/0 80.4 mph (pelvis 115 ms -> timing warn now only from arm -5 ms; t/c 1.28; golfphys carry 166.6 yd median). K12 s17 400k 12/3/0 79.1; K12 s18 100k 12/3/0 80.7; K13a s19 200k 12/3/0 79.3; K9 s9 300k 12/3/0 71.8.
+- 2 ms kinematic peaks (scripts/v5_peaks_fine.py, 8 det eps, physics-substep logging; <name>_peaks2ms.json): K12 s18 400k pelvis 117 / thorax 40 / lead arm -2 ms before club (arm peaks 2 ms AFTER club, so not a sampling artifact: order genuinely violated by a hair); K12 s17 400k 117/40/0; K11 s16 500k 116/42/76 (arm before thorax); K13a s19 200k 128/38/82.
+- Runs: K14a s21 = K12 s18 400k with hip_yaw/waist residual authority x0.25; K14b s22 = K12 s18 400k at 10 ms control (2x rate, same weights/obs layout). 300k caps.
+
+
+## K14 result (2026-10-19 ~09:20 ET) — no full pass; stock limits, reference-guided residual RL (fixed 5 ms harness timebase)
+- K14a s21 300k (hip_yaw/waist residual x0.25): 14 pass / 0 warn / 1 fail, 80.3 mph, 24/24, golfphys carry 170.4 yd, det spin 2701, launch 14.6, descent 30.1, t/c 1.22, smash 1.44, GRF 1.47. Only FAIL: order (arm peak on its early hump 1.23 s, before thorax 1.275 s). 2 ms peaks: pelvis 120 / thorax 22 / arm 80 ms before club. K14a 100k fell (det contact 0), 200k 59.6 mph.
+- K14b s22 (10 ms control): 100k 12/2/1, 200k 12/1/2 (t/c 1.375 fail), 300k 12/2/1 at 80.3 mph; all fail order (thorax peaks with the club, arm 86-95 ms before). Faster control did not separate arm and club; it moved thorax later.
+- 2 ms peak check: arm/club separation is not a sampling artifact. The lead-arm speed curve is bimodal (early hump ~80-90 ms before club, late hump at the club); policies sit either on the early hump (arm before thorax -> fail) or the late one (arm 0-2 ms after club -> warn).
+- Torque (K12 s18 400k, 76.4 mph episode, 240 ms pre-impact at 4 ms): wrists 5 N*m at cap 32-48% of samples (torque+speed use ~1.0), lead shoulder pitch 25 N*m at cap 42%, lead hip pitch 88 N*m at cap 28%; waist_yaw peak 0.90 never at cap, hip yaw below top-13.
+
+## BEST-CHECKPOINT LIST (updated ~09:20 ET; _snap/<name>/ckpt_<N>; harness JSONs use the fixed 5 ms timebase)
+| rank | checkpoint | P/W/F | mph | notes |
+| 1 | K14a_s21_300000 | 14/0/1 | 80.3 | only order fail (arm early hump); carry 170 yd; ref stageK11d_ref_s1; res_mult in args.json |
+| 2 | K11_s16_500000 | 14/0/1 | 80.0 | only order fail; ref stageK11b_ref_s1 |
+| 3 | K12_s18_400000 | 12/3/0 | 80.4 | zero-fail; warns order arm 5 ms after club, timing (arm), t/c 1.28; carry 166.6 yd; ref stageK11d_ref_s1 (interim published best) |
+| 4 | K12_s17_400000 | 12/3/0 | 79.1 | zero-fail; ref stageK11c_ref_s1 |
+| 5 | K12_s18_100000 | 12/3/0 | 80.7 | zero-fail |
+| 6 | K13a_s19_200000 | 12/3/0 | 79.3 | zero-fail |
+| 7 | K9_s9_300000 | 12/3/0 | 71.8 | zero-fail |
+

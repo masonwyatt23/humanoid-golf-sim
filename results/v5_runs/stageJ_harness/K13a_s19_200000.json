@@ -11,10 +11,10 @@
    "status": "warn",
    "passed": false,
    "values": {
-    "pelvis": 1.49,
-    "thorax": 1.595,
-    "arm": 1.66,
-    "club": 1.645
+    "pelvis": 1.19,
+    "thorax": 1.28,
+    "arm": 1.33,
+    "club": 1.315
    },
    "expected": [
     "pelvis",
@@ -36,8 +36,8 @@
    "status": "warn",
    "passed": false,
    "values": {
-    "pelvis": 155.0,
-    "thorax": 50.0,
+    "pelvis": 125.0,
+    "thorax": 35.0,
     "arm": -15.0
    },
    "expected": {
@@ -55,7 +55,7 @@
     ]
    },
    "why": [
-    "outside band: {'pelvis': 155, 'arm': -15} (pro means 87/68/65 ms, amateur 78/59/64)"
+    "outside band: {'arm': -15} (pro means 87/68/65 ms, amateur 78/59/64)"
    ],
    "ref": "derived: roughly +/-50 % around the Cheetham means",
    "tag": "assumption",
@@ -67,10 +67,10 @@
   "swing/peak_speed_pelvis_deg_s": {
    "status": "pass",
    "passed": true,
-   "values": 377.0,
+   "values": 373.9,
    "expected": "403 x [0.7, 1.3]",
    "why": [
-    "0.94 x target at 79 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+    "0.93 x target at 79 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
    ],
    "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
    "tag": "derived",
@@ -82,10 +82,10 @@
   "swing/peak_speed_thorax_deg_s": {
    "status": "pass",
    "passed": true,
-   "values": 666.2,
+   "values": 658.3,
    "expected": "597 x [0.7, 1.3]",
    "why": [
-    "1.12 x target at 79 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+    "1.10 x target at 79 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
    ],
    "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
    "tag": "derived",
@@ -97,10 +97,10 @@
   "swing/peak_speed_arm_deg_s": {
    "status": "pass",
    "passed": true,
-   "values": 732.7,
+   "values": 732.3,
    "expected": "783 x [0.7, 1.3]",
    "why": [
-    "0.94 x target at 79 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+    "0.93 x target at 79 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
    ],
    "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
    "tag": "derived",
@@ -112,7 +112,7 @@
   "swing/peak_speed_club_deg_s": {
    "status": "pass",
    "passed": true,
-   "values": 1879.1,
+   "values": 1872.7,
    "expected": "1834 x [0.7, 1.3]",
    "why": [
     "1.02 x target at 79 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
@@ -280,7 +280,7 @@
   "shot/total_over_carry": {
    "status": "warn",
    "passed": false,
-   "values": 1.284,
+   "values": 1.277,
    "expected": [
     1.04,
     1.25
@@ -298,10 +298,10 @@
   "shot/carry_vs_golfphys_yd": {
    "status": "pass",
    "passed": true,
-   "values": -2.2,
+   "values": -1.9,
    "expected": "|residual| <= 15",
    "why": [
-    "reported carry 161 vs golfphys 164 yd from ball speed/launch/spin (model-only; Foresight tables sit 14-33 yd above golfphys at 120-145 mph)"
+    "reported carry 162 vs golfphys 164 yd from ball speed/launch/spin (model-only; Foresight tables sit 14-33 yd above golfphys at 120-145 mph)"
    ],
    "ref": "golfphys vs TrackMan chart within ~3 yd (consistency only); vs Foresight 14-33 yd lower at 120-145 mph (unresolved vendor disagreement)",
    "tag": "model",
@@ -314,10 +314,10 @@
    "status": "pass",
    "passed": true,
    "values": {
-    "pelvis": 384.00380365359257,
-    "thorax": 677.4612735870355,
-    "arm": 1189.4352838966456,
-    "club": 1886.6730958454
+    "pelvis": 382.3541549052903,
+    "thorax": 673.8790391964837,
+    "arm": 1159.0055880442894,
+    "club": 1883.0097362602864
    },
    "why": [],
    "ref": "DERIVED 20 deg/s",
@@ -374,11 +374,33 @@
    "tag": "derived"
   },
   "mine/total_over_carry_speed_matched (golfphys model, info only, not gating)": {
-   "status": "skip",
+   "status": "info",
    "passed": false,
-   "values": null,
+   "values": {
+    "ball_mph": 112.2579268035694,
+    "actual_total_over_carry": 1.2765807580093842,
+    "min_total_over_carry": 1.1893811363632245,
+    "at_launch_deg": 16.0,
+    "at_backspin_rpm": 3000.0,
+    "at_carry_yd": 165.71192372134604,
+    "at_total_yd": 197.09463614463053,
+    "at_descent_deg": 32.53549191788739,
+    "actual_minus_min": 0.08719962164615969,
+    "sweep": {
+     "launch_deg": [
+      7,
+      16,
+      1
+     ],
+     "backspin_rpm": [
+      1800,
+      3000,
+      100
+     ]
+    }
+   },
    "why": [
-    "no contact shot with golfphys total/carry; golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict"
+    "actual total/carry 1.277 vs golfphys speed-matched minimum 1.189 at 112.3 mph ball speed (launch 16 deg, backspin 3000 rpm); golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict"
    ],
    "ref": "eval/golfphys_total.py sweep: launch 7-16 deg x backspin 1800-3000 rpm at the shot's median ball speed (golfphys.sim.shot_from_launch, vendored golfphys-lh-fix 357bc0c)",
    "tag": "info_only",
@@ -389,12 +411,22 @@
  "n_checks": 15,
  "n_warn": 3,
  "n_fail": 0,
- "n_skip": 9,
- "n_info": 0,
+ "n_skip": 8,
+ "n_info": 1,
  "verdict": "WARN",
  "club_mph_median": 79.31614353788616,
  "golfphys_total": {
-  "n": 0,
-  "note": "no contact episode with carry>0; total/carry not computable"
+  "n": 24,
+  "source": "eval/golfphys_total.py: golfphys.sim.shot_from_launch from measured ball speed / launch / azimuth / back+side spin, roll=True vs roll=False, normal turf (verified vs TrackMan rows, tests/test_golfphys_total.py)",
+  "carry_yd_median": 161.6199009063238,
+  "total_yd_median": 206.3208556083964,
+  "total_over_carry_median": 1.2765807580093842,
+  "descent_deg_median": 28.18584780016495,
+  "env_carry_yd_median_noroll": 161.35228345988565,
+  "env_total_yd_median": 207.15606482764034,
+  "env_total_over_carry_median": 1.283874392017155,
+  "total_over_carry_max": 1.2765807580093842,
+  "total_over_carry_min": 1.2765807580093842,
+  "max_abs_total_diff_vs_env_yd": 0.8352092192439216
  }
 }

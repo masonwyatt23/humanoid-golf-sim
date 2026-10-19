@@ -171,7 +171,7 @@ class V5GolfEnv(gym.Env):
         shaft = d.xmat[self.club_body].reshape(3, 3)[:, 2]
         fl, fr = self.foot_forces(); tot = max(fl + fr, 1e-6)
         o = np.concatenate([q - self.q_addr, qd * 0.1, self.last_act, Rp[:, :2].T.ravel(), rel(d.qvel[3:6]) * 0.1, rel(head - d.xpos[self.pel]), rel(hv) * 0.05,
-                            rel(shaft), rel(d.qpos[self.ball_q:self.ball_q + 3] - head), [fl / tot, fr / tot, 0.0][:3], [self.steps * CTRL_DT]])
+                            rel(shaft), rel(d.qpos[self.ball_q:self.ball_q + 3] - head), [fl / tot, fr / tot, 0.0][:3], [self.steps * self.sub * self.dt]])
         return o.astype(np.float32)[: self.observation_space.shape[0]] if len(o) >= self.observation_space.shape[0] else np.pad(o, (0, self.observation_space.shape[0] - len(o))).astype(np.float32)
 
     def _log_seg(self):
@@ -221,7 +221,7 @@ class V5GolfEnv(gym.Env):
         tgt = np.clip(self.q_addr + a * self.act_scale, self.jlo, self.jhi)
         d.ctrl[:] = tgt
         for k in range(self.sub):
-            if k % 10 == 0: self._derate()
+            if self.sub_count % 10 == 0: self._derate()   # every 5 ms of sim time (independent of control rate)
             if self.tether_strength > 0: self._soft_tether()
             if not self.contact:
                 d.qpos[self.ball_q:self.ball_q + 3] = self.tee; d.qvel[self.ball_v:self.ball_v + 6] = 0
