@@ -78,3 +78,10 @@
 - Residual runs stageK10 s11 (sep_w 1) / s12 (sep_w 2) warm from K9 s9 300k on the s1 ref, lr 5e-5, 600k cap, K9 terms otherwise.
 
 - (05:20 ET) Evaluator: s11 200k 78.7 mph 10/5/0; all s12 (sep_w 2) fail order -> s12 stopped at 400k (moved to _stageK10_s12_stopped, snapshots _snap/K10_s12_*). New stageK10b s13 from K10 s11 200k: sep_w 0.5, ord2_w 4, desc_w 6 (t/c), lr 3e-5, T0 78, 400k cap.
+
+## K10 result (2026-10-19 ~06:15 ET) — no full pass
+- s11 (sep_w 1) ran to 600k (600k collapsed to 53.6 mph). s12 stopped at 400k. K10b s13 (from s11 200k, sep 0.5, ord2 4, desc 6) ran to 400k.
+- Harness: K10b s13 400k 12 pass/2 warn/1 fail, 75.9 mph (fail spin 4836; t/c and GRF pass; warns order arm/club same sample, pelvis 150 ms). s13 300k 11/3/1 (spin 4395, GRF 1.74 warn), s13 100k 11/3/1 (spin 4651), s11 500k 10/3/2 (order, spin). Evaluator: s11 200k 10/5/0 at 78.7 mph (best zero-fail of K10).
+- At 75-79 mph the policies get t/c <=1.25 (descent 26-29) but only with spin 3800-5700; spin<3000 checkpoints have t/c 1.3-1.6. Pelvis peak moved 165->145-150 ms (band 40-140) via the ref phase delay but not inside the band. Arm/club peaks remain on the same 5 ms sample.
+- Overall best zero-fail: K9 s9 300k (12/3/0, 71.8 mph, spin pass) and K8 s8 400k (12/3/0, 72 mph).
+
