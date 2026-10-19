@@ -8,3 +8,8 @@
 - BEST: results/v5_runs/_snap/K3b_s0_500k/ckpt_500000.zip (+_vecnorm.pkl, args.json): det 63.2 mph, carry 83.9 m, descent 29.2, total/carry 1.25, smash 1.30, GRF 1.01 BW (5 ms), X-factor 55.8; harness FAIL on spin only (4693 rpm); JSON results/v5_runs/stageJ_harness/K3b_s0_500k.json.
 - results/v5_runs/_snap/K3_s1_600k (65.7 mph/83.6 m, fails order+spin), K3_s1_200k (10/3/2), K2_s0_600k (63 mph/43.8 m, 9/5/1 before descent terms).
 - Adapter: PYTHONPATH=hgs-scott-lb python scripts/v5_realism_j.py <ckpt.zip> (reads args.json next to the ckpt).
+
+## K4 status (2026-10-18 ~22:15 ET)
+- Best so far: snapshot results/v5_runs/_snap/K4_s0_100k (61.0 mph, total/carry 1.21, descent 32, smash 1.35, spin 4087, launch 19.8; Evaluator 12/2/1, only spin fails). Also _snap/K4_s1_100k, K3b_s0_500k.
+- Original K4 runs (T0 80) collapsed (fell) at 200k; moved to results/v5_runs/_stageK4a_s*. Relaunched as stageK4b s0 (from K4 s0 100k) and s1 (from K3b 500k), T0 70, dl window 17-22, launch<=16, spin<=2900 penalty. Alive (pids 222554/222555), eval every 100k.
+- Physics: spin<3000 + launch<=16 + total/carry<=1.25 are jointly infeasible at ~63 mph (golfphys: 24.7 deg descent/1.38 at 63; 28/1.27 at 70; 31.6/1.20 at 80 mph).
