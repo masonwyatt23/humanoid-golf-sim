@@ -92,3 +92,4 @@
   s1 ref = open-loop 78.6 mph, launch 14.4, spin 3587, descent 28.1, t/c 1.23, smash 1.30, pelvis 96 ms before club, arm 84 ms before club, GRF 1.2 (5 ms), XF 62.9. (K10 ref: spin 8750, smash 0.90.)
 - Residual: stageK11 s14 from K10 s11 200k, s15 from K9 s9 300k, on the K11b s1 ref; ord2 4, sep 0.5, desc 4, lr 5e-5, 500k cap.
 
+- (06:15 ET) Per Evaluator: replaced s15 (K9 s9 300k start, ~2 min old) with stageK11 s16 from K10b s13 400k: spin_w 12, dynamic loft window 13-18 (w4), AoA >= +1, rest as s14.
