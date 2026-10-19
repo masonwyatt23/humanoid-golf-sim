@@ -42,8 +42,48 @@ def gate_label(g):
 def worker_args(a, repo, ck, arm, sd):
     g = getattr(a, "strike_gate_nx", None)
     x = [sys.executable, str(ROOT / "eval" / "_v5_worker.py"), str(repo), os.path.abspath(ck), str(a.club_len), str(sd), str(a.eps_per_seed), "{OUT}", str(arm), "off" if g is None else str(g)]
-    if getattr(a, "timing_res_ms", None): x.append("seg1")     # opt-in: worker logs every physics substep (2 ms at dt 0.002); default argv unchanged
+    if getattr(a, "timing_res_ms", None) or _fine_grf(a): x.append("seg1")   # v3 GRF rule also needs per-substep (2 ms) traces; default rows use legacy_view     # opt-in: worker logs every physics substep (2 ms at dt 0.002); default argv unchanged
     return x
+
+def _fine_grf(a): return getattr(a, "grf_method", "legacy") not in (None, "legacy")
+
+def _robust_ep(r, bw):
+    """Per-episode numbers for mine/robustness (same definitions as the deterministic rows: golfphys t/c and lateral, ball azimuth, address-referenced plant)."""
+    from eval import swing_realism as SR
+    from eval.golfphys_total import golfphys_total
+    sh = {k: v for k, v in (r.get("shot") or {}).items() if v is not None}; x = r.get("shot_extra") or {}
+    out = dict(seed=r.get("seed"), contact=bool(r.get("contact")), perturb=r.get("perturb"))
+    if not out["contact"] or not sh.get("ball_speed_mph"): return out
+    gp = None
+    if sh.get("launch_deg") is not None and x.get("backspin_rpm") is not None and (sh.get("carry_m_noroll") or 0) > 0:
+        gp = golfphys_total(sh["ball_speed_mph"], sh["launch_deg"], x["backspin_rpm"], x.get("sidespin_rpm") or 0.0, x.get("azimuth_deg") or 0.0)
+    az = x.get("azimuth_deg"); lat = abs(gp["lateral_carry_yd"]) / gp["noroll_carry_yd"] * 100.0 if gp and gp.get("lateral_carry_yd") is not None and (gp.get("noroll_carry_yd") or 0) > 0 else None
+    out["sd_status"] = SR.check_start_direction(abs(az) if az is not None else None, lat)[1]["status"]
+    fm = None
+    if r.get("lead_foot"):
+        q = legacy_view(r); imp = q["impact_idx"]; i_top, top_m = SR.top_index(q["t"], q["club_dps"], imp, q.get("t_top"))
+        g = np.array(q["grf"], float).reshape(-1, 2)[:, 0 if q["lead"] == "left" else 1]
+        fm = SR.lead_foot_plant_metrics(q["t"], q["lead_foot"], g[:len(q["t"])], imp, i_top, q.get("foot_length_m"))
+    out["foot_status"] = SR.check_lead_foot_plant(fm, 1, "logged")[1]["status"]
+    out.update(club_speed_mph=sh.get("club_speed_mph"), smash=sh.get("smash"), launch_deg=sh.get("launch_deg"), spin_rpm=sh.get("spin_rpm"),
+               total_over_carry=(gp or {}).get("total_over_carry"), az_abs=abs(az) if az is not None else None, lat_per100=lat)
+    return out
+
+def run_robustness(a, repo, ck, arm, env):
+    """mine/robustness (PROVISIONAL, GATING): N seeded perturbed episodes through the v3 J worker. Returns (row, per-episode list)."""
+    from eval import robust_grf as RG
+    n = int(a.robustness); s0 = int(a.robust_seed0); P = RG.default_perturb(); P.update(seed0=s0, n=n)
+    x = worker_args(a, repo, ck, arm, s0)
+    if "_v3" not in os.path.basename(x[1]):
+        return dict(status="skip", passed=False, values=None, why=[f"worker {os.path.basename(x[1])} has no perturb support (needs _j_worker_gp_v3.py)"], ref=None, tag="derived"), []
+    x[6] = str(n); x = [y for y in x if y != "seg1"] + ["seg1", "perturb=" + json.dumps({k: P[k] for k in ("joint_deg", "joint_vel", "ball_tol_m", "friction_rand")})]
+    with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
+    subprocess.run([outp if y == "{OUT}" else y for y in x], check=True, cwd=str(repo), env=env)
+    J = json.load(open(outp)); os.unlink(outp)
+    if J.get("perturb_spec") is None: return dict(status="skip", passed=False, values=None, why=["worker did not apply the perturbation"], ref=None, tag="derived"), []
+    E = [_robust_ep(r, J["bw_N"]) for r in J["eps"]]
+    P["floor_mu_nominal"] = J.get("floor_mu_nominal")
+    return RG.robustness_row(E, P, [s0 + i for i in range(n)]), E
 
 LEGACY_DT = 0.005   # sample interval the v5 path ASSUMED before the 2026-10-19 dt fix (JEnv/BEnv actually log every 4 ms); kept only for reporting
 DT_TOL = 0.05       # relative disagreement between declared and measured sample interval that is flagged
@@ -98,7 +138,7 @@ def run_v5(a):
         eps += J["eps"]
     out = []; gp_rows = []; tres = getattr(a, "timing_res_ms", None)
     for r_raw in eps:
-        r = legacy_view(r_raw) if tres else r_raw
+        r = legacy_view(r_raw) if (tres or _fine_grf(a)) else r_raw
         w = np.radians(np.array([r["pelvis_dps"], r["thorax_dps"], r["arm_dps"], r["club_dps"]]).T); n = len(w); imp = r["impact_idx"]
         grf = np.array(r["grf"]).reshape(-1, 2); lead_i = 0 if r["lead"] == "left" else 1; sh = {k: v for k, v in r["shot"].items() if v is not None}
         club = sh.get("club_speed_mph", 0.0)
@@ -127,6 +167,14 @@ def run_v5(a):
             flen = r.get("foot_length_m")
             foot_m = SR.lead_foot_plant_metrics(r["t"], r["lead_foot"], grf[:len(r["t"]), lead_i], imp, i_top, flen)
         out[-1].update(az_abs=(abs(az) if az is not None else None), lat_per100=lat, foot_metrics=foot_m, top_method=top_m)
+        if _fine_grf(a):   # v3 GRF rule on the raw per-substep trace: window top -> impact, de-spiked
+            from eval import robust_grf as RG
+            gr = np.array(r_raw["grf"], float).reshape(-1, 2)[:, lead_i] / bw; tr = r_raw["t"]; ir = int(r_raw["impact_idx"])
+            it, _m = SR.top_index(tr, r_raw["club_dps"], ir, r_raw.get("t_top"))
+            post = RG.POST_IMPACT_S if a.grf_method == "butter" else 0.0
+            pk_, mn_, k_ = RG.despike_peak(tr, gr, it, ir, a.grf_method, a.grf_cutoff_hz or RG.BUTTER_CUTOFF_HZ, a.grf_order or RG.BUTTER_ORDER, post_s=post)
+            sens_ = {hz: RG.despike_peak(tr, gr, it, ir, "butter", hz, RG.BUTTER_ORDER, post_s=post)[0] for hz in RG.SENS_CUTOFFS_HZ} if a.grf_method == "butter" else {}
+            out[-1].update(grf_v3=(pk_, mn_), grf_k=k_, grf_sens=sens_, grf_raw_whole=float((grf[:n, lead_i] / bw).max()))
         if tres:
             rows_f, dt_f = timing_res_rows(r_raw, tres, club); out[-1].update(da_tres=rows_f, dt_fine=dt_f, seg_every_fine=r_raw.get("seg_every"), dt_logged_default=float(np.median(np.diff(np.array(r["t"], float)))))
     ok = [e for e in out if e["true_contact"]] or out; C = {}
@@ -147,6 +195,18 @@ def run_v5(a):
         k, v = SR.check_lead_foot_plant(None, 0, None); C[k] = v   # GATING, PROVISIONAL (Data Agent judgement)
     k, v = SR.info_total_over_carry_speed_matched(SR.med([e["ball_mph"] for e in ok if e.get("gp_toc") is not None]), SR.med([e["gp_toc"] for e in ok]))   # INFO ONLY: not gating, ignored by summarize
     C[k] = v
+    if _fine_grf(a):
+        from eval import robust_grf as RG
+        from realism.checks import load_thresholds
+        band = load_thresholds()["grf"]["lead_vertical_bw"]["value"]
+        src = a.grf_source or (RG.GRF_SOURCE if a.grf_method == "butter" and (a.grf_cutoff_hz in (None, RG.BUTTER_CUTOFF_HZ)) and (a.grf_order in (None, RG.BUTTER_ORDER))
+                               else "fallback, no source: sustained >=3 consecutive 2 ms samples (k=%s)" % sorted({e.get("grf_k") for e in ok}, key=str) if a.grf_method == "sustain3" else "NO SOURCE GIVEN")
+        sens = {hz: [e["grf_sens"][hz] for e in ok if e.get("grf_sens") and e["grf_sens"].get(hz) is not None] for hz in RG.SENS_CUTOFFS_HZ} if a.grf_method == "butter" else None
+        row, info = RG.grf_rows([e["grf_v3"] for e in ok if e.get("grf_v3") and e["grf_v3"][0] is not None], a.grf_method, src, band, [e["grf_raw_whole"] for e in ok if e.get("grf_raw_whole") is not None], sens)
+        C["swing/grf_lead_vertical_bw"] = row; C["mine/grf_lead_vertical_raw_info"] = info
+    ROB = None
+    if getattr(a, "robustness", 0):
+        C["mine/robustness"], ROB = run_robustness(a, repo, ck, arm, env)
     S = SR.summarize(C); TR = None
     if tres:
         F = SR.agg_da(ok, "da_tres", "swing"); alt = dict(C); alt.update(F); S2 = SR.summarize(alt)
@@ -157,7 +217,7 @@ def run_v5(a):
                   sample_interval_ms=1000 * SR.med([e["dt_fine"] for e in ok]), default_rows=dict(tie_tolerance_ms=20, assumed_sample_interval_ms=1000 * SR.med([e["dt_used"] for e in ok]), pre_fix_assumed_ms=1000 * LEGACY_DT, measured_logged_interval_ms=1000 * SR.med([e["dt_logged_default"] for e in ok])),
                   checks={k.replace("swing/", f"swing@{tres:g}ms/"): v for k, v in F.items()}, verdict_if_these_rows_gate=S2["verdict"], n_warn_if_gate=S2["n_warn"], n_fail_if_gate=S2["n_fail"],
                   gating=False, note="verdict above is the DEFAULT (20 ms) verdict; these rows are reported alongside and do not change it")
-    return dict(timing_resolution=TR, key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"],
+    return dict(harness_v3=dict(grf_method=getattr(a, "grf_method", "legacy"), grf_source=getattr(a, "grf_source", None), robustness_n=getattr(a, "robustness", 0), robust_seed0=getattr(a, "robust_seed0", None)), robustness_episodes=ROB, timing_resolution=TR, key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"],
                 club_mph_median=SR.med([e["club_mph"] for e in ok]), golfphys_total=_gp_summary(gp_rows),
                 sample_interval=dict(used_ms=1000 * SR.med([e["dt_used"] for e in out]), declared_ms=(1000 * float(out[0]["dt_declared"]) if out and out[0]["dt_declared"] is not None else None),
                                      n_declared_mismatch=sum(1 for e in out if e["dt_mismatch"]), method="measured median spacing of the worker's logged sim time per episode (dt fix 2026-10-19; pre-fix assumed 5 ms)"))
@@ -179,6 +239,9 @@ def main():
     ap.add_argument("--eps-per-seed", type=int, default=8); ap.add_argument("--seeds", default="4000,8000,9000"); ap.add_argument("--workers", type=int, default=2); ap.add_argument("--club-len", type=float, default=1.05)
     ap.add_argument("--arm-dist", type=float, default=None, help="v5 only: 0.6 (default, BEnv) for Stage B/C; 0 (TrainEnv) auto for paths containing stageA"); ap.add_argument("--strike-gate-nx", type=float, default=None, help="v5 only, default OFF: Trainer Stage G+ strike gate (e.g. 0.25), same definition as V5GolfEnv.strike_gate_nx"); ap.add_argument("--v5-repo", default=DEFAULT_V5); ap.add_argument("--json", default="")
     ap.add_argument("--timing-res-ms", type=float, default=None, help="v5 only, opt-in (default OFF = 20 ms tie tolerance, verdict unchanged): ALSO report kinematic-sequence order/timing from per-physics-substep traces with this tie tolerance (e.g. 5), alongside the default rows; not gating")
+    ap.add_argument("--grf-method", default="legacy", choices=["legacy", "sustain3", "butter", "raw"], help="v5 only. legacy (default) = v2 whole-episode raw peak; others = v3 PROVISIONAL rule: window top->impact on per-substep traces, de-spiked (butter = PRIMARY: 4th-order zero-lag Butterworth 50 Hz, window top->impact+20 ms, >=3-sample guard, 12/14 Hz sensitivity info; sustain3 = fallback >=3 consecutive 2 ms samples, top->impact); old value kept as INFO")
+    ap.add_argument("--grf-cutoff-hz", type=float, default=None); ap.add_argument("--grf-order", type=int, default=None); ap.add_argument("--grf-source", default=None)
+    ap.add_argument("--robustness", type=int, default=0, help="v5 only, PROVISIONAL GATING row mine/robustness: N perturbed episodes (0 = off; v3 runs use 24)"); ap.add_argument("--robust-seed0", type=int, default=7000)
     a = ap.parse_args(); r = run_v5(a) if a.env == "v5" else run_v1(a)
     print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}" + (f" info {r['n_info']} (not gating)" if r.get('n_info') else ""))
     for n, c in r["checks"].items():
