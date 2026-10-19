@@ -1,0 +1,433 @@
+{
+ "key": "K8_s8_700k/ckpt_700000",
+ "arm_dist": 0.6,
+ "strike_gate_nx": null,
+ "n_foul": 0,
+ "env": "v5 (G1, club_len 1.15, tether 0, strike gate OFF, arm_dist 0.6 [BEnv, as B2-B4/C train])",
+ "n_episodes": 24,
+ "true_contact": 24,
+ "checks": {
+  "swing/kinematic_sequence_order": {
+   "status": "warn",
+   "passed": false,
+   "values": {
+    "pelvis": 1.48,
+    "thorax": 1.605,
+    "arm": 1.65,
+    "club": 1.64
+   },
+   "expected": [
+    "pelvis",
+    "thorax",
+    "arm",
+    "club"
+   ],
+   "why": [
+    "peak order pelvis->thorax->arm->club; not resolvable at dt=20 ms (same sample or reversed by one sample): [('arm', 'club')]"
+   ],
+   "ref": "Cheetham 2008 (pros), Parker 2018, Tinmark 2007 (n=47)",
+   "tag": "published",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "warn": 24
+   }
+  },
+  "swing/kinematic_sequence_timing_ms_before_club_peak": {
+   "status": "warn",
+   "passed": false,
+   "values": {
+    "pelvis": 160.0,
+    "thorax": 35.0,
+    "arm": -10.0
+   },
+   "expected": {
+    "pelvis": [
+     40,
+     140
+    ],
+    "thorax": [
+     25,
+     110
+    ],
+    "arm": [
+     15,
+     110
+    ]
+   },
+   "why": [
+    "outside band: {'pelvis': 160, 'arm': -10} (pro means 87/68/65 ms, amateur 78/59/64)"
+   ],
+   "ref": "derived: roughly +/-50 % around the Cheetham means",
+   "tag": "assumption",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "warn": 24
+   }
+  },
+  "swing/peak_speed_pelvis_deg_s": {
+   "status": "pass",
+   "passed": true,
+   "values": 446.1,
+   "expected": "403 x [0.7, 1.3]",
+   "why": [
+    "1.11 x target at 72 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+   ],
+   "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
+   "tag": "derived",
+   "extrapolated": true,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "swing/peak_speed_thorax_deg_s": {
+   "status": "pass",
+   "passed": true,
+   "values": 747.0,
+   "expected": "597 x [0.7, 1.3]",
+   "why": [
+    "1.25 x target at 72 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+   ],
+   "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
+   "tag": "derived",
+   "extrapolated": true,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "swing/peak_speed_arm_deg_s": {
+   "status": "pass",
+   "passed": true,
+   "values": 884.9,
+   "expected": "783 x [0.7, 1.3]",
+   "why": [
+    "1.13 x target at 72 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+   ],
+   "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
+   "tag": "derived",
+   "extrapolated": true,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "swing/peak_speed_club_deg_s": {
+   "status": "pass",
+   "passed": true,
+   "values": 1579.8,
+   "expected": "1834 x [0.7, 1.3]",
+   "why": [
+    "0.86 x target at 72 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+   ],
+   "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
+   "tag": "derived",
+   "extrapolated": true,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "swing/x_factor_top_deg": {
+   "status": "pass",
+   "passed": true,
+   "values": 61.9,
+   "expected": [
+    40,
+    65
+   ],
+   "why": [
+    "max |thorax - pelvis| before impact (published 24-59 deg, method dependent); stretch not checked"
+   ],
+   "ref": "Parker 54.9+-7.9 (elite), Myers 44.2/49.5/59.1, Hume review 24-38 (long vs short hitters), Burden 70; kseq doc recommends 45-62",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "swing/actuator_torque_speed_limits": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "expected": null,
+   "why": [
+    "pass tier='stock'|'elite' to enable"
+   ],
+   "ref": null,
+   "tag": null,
+   "extrapolated": false,
+   "episode_status_counts": {
+    "skip": 24
+   }
+  },
+  "swing/pelvis_yaw_avg_torque_Nm": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "expected": null,
+   "why": [
+    "no torque:pelvis_yaw trace"
+   ],
+   "ref": null,
+   "tag": null,
+   "extrapolated": false,
+   "episode_status_counts": {
+    "skip": 24
+   }
+  },
+  "swing/grf_lead_vertical_bw": {
+   "status": "pass",
+   "passed": true,
+   "values": {
+    "peak": 1.52,
+    "min": 0.0
+   },
+   "expected": [
+    0.8,
+    1.7
+   ],
+   "why": [
+    "peak lead-foot vertical force in body weights; min < 0 means the foot pulls on the ground"
+   ],
+   "ref": "Worsfold 2007 front 0.84; Han 2019 1.12+-0.22 (S); Hirano 2023 1.51; Hume review 1.6-2.0 (per foot or summed unclear); studies differ ~2x",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "shot/smash": {
+   "status": "pass",
+   "passed": true,
+   "values": 1.395,
+   "expected": "1.3..1.49 (hard ceiling 1.5)",
+   "why": [
+    "inside expected range"
+   ],
+   "ref": "launch_targets_120_132_limits.json gate_recommendation (TrackMan smash blog, R&A WLD, PGA Tour pdf)",
+   "tag": "published",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "shot/club_speed_mph": {
+   "status": "pass",
+   "passed": true,
+   "values": 72.3,
+   "expected": [
+    60,
+    150
+   ],
+   "why": [
+    "driver swing speed range"
+   ],
+   "ref": "R&A WLD 145 mph, record ball speed 241.6 mph (Berkshire) -> club speed ~165 mph; sim below 60 mph is not a driver swing",
+   "tag": "assumption",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "shot/spin_rpm": {
+   "status": "warn",
+   "passed": false,
+   "values": 3667.0,
+   "expected": [
+    1800,
+    3000
+   ],
+   "why": [
+    "driver spin gate (published windows, derived thresholds)"
+   ],
+   "ref": "launch_targets_120_132_limits.json gate_recommendation",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "warn": 24
+   }
+  },
+  "shot/launch_deg": {
+   "status": "pass",
+   "passed": true,
+   "values": 13.82,
+   "expected": [
+    7.0,
+    16.0
+   ],
+   "why": [
+    "driver launch window (TrackMan 7.8-9.3 at AoA 0, Foresight 10-14)"
+   ],
+   "ref": "TrackMan optimizer 7.8-9.3 at AoA 0 (120-132 mph), Foresight window 10-14, WLD 11.2, tour 10.4-11.2",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "shot/descent_deg": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "expected": null,
+   "why": [
+    "no descent angle (log it: golfphys ShotResult.descent_deg)"
+   ],
+   "ref": null,
+   "tag": null,
+   "extrapolated": false,
+   "episode_status_counts": {
+    "skip": 24
+   }
+  },
+  "shot/total_over_carry": {
+   "status": "warn",
+   "passed": false,
+   "values": 1.306,
+   "expected": [
+    1.04,
+    1.25
+   ],
+   "why": [
+    "total/carry (normal turf 1.07-1.13, firm to ~1.2; env without roll gives 1.0)"
+   ],
+   "ref": "roll_aoa_validation (normal turf 1.07-1.13, firm ~1.2); TrackMan total optimizer 1.17-1.22",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "warn": 24
+   }
+  },
+  "shot/carry_vs_golfphys_yd": {
+   "status": "pass",
+   "passed": true,
+   "values": -4.6,
+   "expected": "|residual| <= 15",
+   "why": [
+    "reported carry 127 vs golfphys 131 yd from ball speed/launch/spin (model-only; Foresight tables sit 14-33 yd above golfphys at 120-145 mph)"
+   ],
+   "ref": "golfphys vs TrackMan chart within ~3 yd (consistency only); vs Foresight 14-33 yd lower at 120-145 mph (unresolved vendor disagreement)",
+   "tag": "model",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "mine/segments_rotate": {
+   "status": "pass",
+   "passed": true,
+   "values": {
+    "pelvis": 456.93342886772314,
+    "thorax": 749.9790604562182,
+    "arm": 907.1138848737254,
+    "club": 1583.9491402685514
+   },
+   "why": [],
+   "ref": "DERIVED 20 deg/s",
+   "tag": "derived"
+  },
+  "mine/ground_contact_weight_shift": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/joint_limits": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/torque_saturation_smoothness": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/tempo": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/carry_vs_trackman_band": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/total_over_carry_speed_matched (golfphys model, info only, not gating)": {
+   "status": "info",
+   "passed": false,
+   "values": {
+    "ball_mph": 100.7990980629876,
+    "actual_total_over_carry": 1.3056729449756106,
+    "min_total_over_carry": 1.239953506804222,
+    "at_launch_deg": 16.0,
+    "at_backspin_rpm": 3000.0,
+    "at_carry_yd": 137.5193319288859,
+    "at_total_yd": 170.5175778785959,
+    "at_descent_deg": 29.000535822650804,
+    "actual_minus_min": 0.06571943817138859,
+    "sweep": {
+     "launch_deg": [
+      7,
+      16,
+      1
+     ],
+     "backspin_rpm": [
+      1800,
+      3000,
+      100
+     ]
+    }
+   },
+   "why": [
+    "actual total/carry 1.306 vs golfphys speed-matched minimum 1.240 at 100.8 mph ball speed (launch 16 deg, backspin 3000 rpm); golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict"
+   ],
+   "ref": "eval/golfphys_total.py sweep: launch 7-16 deg x backspin 1800-3000 rpm at the shot's median ball speed (golfphys.sim.shot_from_launch, vendored golfphys-lh-fix 357bc0c)",
+   "tag": "info_only",
+   "gating": false
+  }
+ },
+ "checks_passed": 11,
+ "n_checks": 15,
+ "n_warn": 4,
+ "n_fail": 0,
+ "n_skip": 8,
+ "n_info": 1,
+ "verdict": "WARN",
+ "club_mph_median": 72.27769459910374,
+ "golfphys_total": {
+  "n": 24,
+  "source": "eval/golfphys_total.py: golfphys.sim.shot_from_launch from measured ball speed / launch / azimuth / back+side spin, roll=True vs roll=False, normal turf (verified vs TrackMan rows, tests/test_golfphys_total.py)",
+  "carry_yd_median": 126.60591463329057,
+  "total_yd_median": 165.30591741057924,
+  "total_over_carry_median": 1.3056729449756106,
+  "descent_deg_median": 25.249483259067677,
+  "env_carry_yd_median_noroll": 126.70372953806319,
+  "env_total_yd_median": 165.39661571713626,
+  "env_total_over_carry_median": 1.305380799129905,
+  "total_over_carry_max": 1.3056729449756106,
+  "total_over_carry_min": 1.3056729449756106,
+  "max_abs_total_diff_vs_env_yd": 0.09069830655701594,
+  "episodes_note": "24 deterministic episodes, identical per-episode values; per-episode rows kept local"
+ }
+}
