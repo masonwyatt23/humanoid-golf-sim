@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-19
+- **Trainer Stage K port** (`572b960` .. `59728d2`, 17 commits cherry-picked as-is): Stage K-K7 changes to `train/v5_train_j.py` and `scripts/v5_eval_j_worker.py` (re-timed 240 ms reference, hard X-factor cap, lead-GRF 5 ms penalty, launch/descent/dynamic-loft/spin/smash terms, speed bonus, `--lr`, pelvis speed/timing terms), `scripts/v5_ref_fit.py`/`v5_ref_openloop.py` re-timing, new `scripts/v5_torque_sat.py`, `results/v5_runs/stageK_ref/` (open-loop reference: 64.6 mph / 57.8 m, a tuned script, not learned), Stage K harness summary JSONs under `results/v5_runs/stageJ_harness/K*.json`, `results/STAGE_K_HANDOFF.md` and TRAINING_NOTES Stage K-K7. Labelled **reference-guided residual (script-distilled init + residual), NOT from-scratch**; single seed per run; model-only physics. Checkpoints, logs and held gate JSONs not committed.
+- README v5 status table: best row K7 `s6` 800k, 66.5 mph median, harness 0 fail / 3 warn (NOT a full pass; Trainer-reported, [gate JSON held locally, Trainer-reported]); committed K rows cite their JSONs; 88-109 mph target row kept. Corrected the stale "v5 env has no roll" sentence (env total uses the golfphys roll model; carry is no-roll).
+
 ## 2026-10-18
 - Repo renamed `humanoid-golf-scott` -> `humanoid-golf-sim` (public; old URL redirects). MIT LICENSE added. CMU/MultiSense/CaddieSet-converter/mason*.npz/imit_private files untracked at the tip (still in git history; held locally).
 
