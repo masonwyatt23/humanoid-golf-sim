@@ -27,3 +27,4 @@
 ## K6 (2026-10-19 ~01:30 ET) — from K5 s2 700k (snapshot _snap/K5_s2_700000; 60.8 mph, 14/0/1, only t/c 1.36)
 - K4c s0 stopped. stageK6 s3 (desc_w 6) and s4 (desc_w 3): lr 7e-5, spd_w 5, spin_hi 2800 w5, launch_hi 15.5 (margin), GRF/XF/order as K5. 700k steps cap.
 - Note: golfphys needs ~70 mph for descent 28/t/c 1.27 with spin<3000, launch<=16; at 61-63 mph t/c ~1.36-1.38 is the physical floor, so K6 can only pass t/c by gaining speed.
+- K6 interim (~400k): harness (stageJ_harness/K6_*.json): s4 200k = 64.5 mph, spin 2843, launch 13.6, only FAIL total/carry (1.43), 1 warn (pelvis peak speed 0.66x); s4 400k = 63.9 mph, spin 2939, launch 16.3 (warn), t/c 1.35 FAIL; s3 200k = 60.9 mph, spin 2779, t/c 1.44 FAIL. Snapshots _snap/K6_s{3,4}_*. Both runs alive (334331 s3, 334332 s4).
