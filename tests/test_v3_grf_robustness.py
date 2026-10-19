@@ -71,14 +71,45 @@ def test_robustness_pass_warn_fail():
 
 def test_robustness_records_seeds_and_magnitudes():
     v = RG.robustness_row([_ep()] * 24, RG.default_perturb(), list(range(7000, 7024)))["values"]
-    assert v["seeds"][0] == 7000 and v["seeds"][-1] == 7023 and v["perturb"]["joint_deg"] == 1.5 and v["perturb"]["ball_tol_m"] == 0.01 and v["perturb"]["friction_rand"] is True
+    assert v["seeds"][0] == 7000 and v["seeds"][-1] == 7023 and v["perturb"]["joint_deg"] == 1.5 and v["perturb"]["ball_tol_m"] == 0.01 and v["perturb"]["friction_rand"] is False and v["perturb"]["friction_range"] == [0.9, 1.1]
 
 def test_shot_status_uses_harness_bands():
     assert RG.shot_status("spin_rpm", 2600) == "pass" and RG.shot_status("spin_rpm", 3500) == "warn" and RG.shot_status("spin_rpm", 4500) == "fail"
     assert RG.shot_status("total_over_carry", 1.2) == "pass" and RG.shot_status("total_over_carry", 1.3) == "warn" and RG.shot_status("total_over_carry", 1.36) == "fail"
     assert RG.shot_status("smash", 1.45) == "pass" and RG.shot_status("club_speed_mph", 55) == "warn"
 
-def test_defaults_keep_v2_behaviour():
+def test_legacy_namespace_keeps_v2_worker_args():
     a = types.SimpleNamespace(grf_method="legacy", robustness=0, timing_res_ms=None, strike_gate_nx=None, club_len=1.15, eps_per_seed=8)
     assert not RC._fine_grf(a) and "seg1" not in RC.worker_args(a, "/r", "/c", 0.6, 4000)
     a.grf_method = "butter"; assert RC._fine_grf(a) and "seg1" in RC.worker_args(a, "/r", "/c", 0.6, 4000)
+
+
+# ---- v3b (2026-10-19): v3 rules are the default; --harness v2 reproduces v2 ----
+def _ns(**k):
+    d = dict(harness="v3b", grf_method=None, robustness=None, timing_res_ms=None, strike_gate_nx=None, club_len=1.15, eps_per_seed=8); d.update(k)
+    return types.SimpleNamespace(**d)
+
+def test_v3b_is_default_cli():
+    import sys as _s
+    ap_args = RC.resolve_harness(_ns())
+    assert ap_args.grf_method == "butter" and ap_args.robustness == 24 and ap_args.robust_wide_info is True
+
+def test_harness_v2_flag_reproduces_v2():
+    a = RC.resolve_harness(_ns(harness="v2"))
+    assert a.grf_method == "legacy" and a.robustness == 0 and a.robust_wide_info is False and not RC._fine_grf(a)
+    assert "seg1" not in RC.worker_args(a, "/r", "/c", 0.6, 4000)
+
+def test_explicit_options_override_harness_defaults():
+    a = RC.resolve_harness(_ns(grf_method="sustain3", robustness=8))
+    assert a.grf_method == "sustain3" and a.robustness == 8
+
+def test_gate_friction_narrow_and_wide_info_variant():
+    p, w = RG.default_perturb(), RG.wide_perturb()
+    assert p["friction_rand"] is False and p["friction_range"] == [0.9, 1.1] and "U(0.9,1.1)" in RG.friction_desc(p)
+    assert w["friction_rand"] is True and w["friction_range"] is None and "U(0.5,1.2)" in RG.friction_desc(w)
+    for k in ("joint_deg", "joint_vel", "ball_tol_m", "seed0", "n"): assert p[k] == w[k]
+
+def test_wide_info_row_does_not_gate():
+    from eval import swing_realism as SR
+    C = {"a": dict(status="pass"), "mine/robustness_wide_friction_info": dict(status="info")}
+    S = SR.summarize(C); assert S["verdict"] == "PASS" and S["n_checks"] == 1 and S["n_info"] == 1

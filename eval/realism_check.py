@@ -69,14 +69,22 @@ def _robust_ep(r, bw):
                total_over_carry=(gp or {}).get("total_over_carry"), az_abs=abs(az) if az is not None else None, lat_per100=lat)
     return out
 
-def run_robustness(a, repo, ck, arm, env):
+def resolve_harness(a):
+    """Fill unset v3 options from --harness: v3b -> butter + 24 robustness eps (+ wide info row); v2 -> legacy GRF, no robustness."""
+    v2 = getattr(a, "harness", "v3b") == "v2"
+    if getattr(a, "grf_method", None) is None: a.grf_method = "legacy" if v2 else "butter"
+    if getattr(a, "robustness", None) is None: a.robustness = 0 if v2 else 24
+    a.robust_wide_info = (not v2) and a.robustness > 0
+    return a
+
+def run_robustness(a, repo, ck, arm, env, P=None):
     """mine/robustness (PROVISIONAL, GATING): N seeded perturbed episodes through the v3 J worker. Returns (row, per-episode list)."""
     from eval import robust_grf as RG
-    n = int(a.robustness); s0 = int(a.robust_seed0); P = RG.default_perturb(); P.update(seed0=s0, n=n)
+    n = int(a.robustness); s0 = int(a.robust_seed0); P = dict(P or RG.default_perturb()); P.update(seed0=s0, n=n)
     x = worker_args(a, repo, ck, arm, s0)
     if "_v3" not in os.path.basename(x[1]):
         return dict(status="skip", passed=False, values=None, why=[f"worker {os.path.basename(x[1])} has no perturb support (needs _j_worker_gp_v3.py)"], ref=None, tag="derived"), []
-    x[6] = str(n); x = [y for y in x if y != "seg1"] + ["seg1", "perturb=" + json.dumps({k: P[k] for k in ("joint_deg", "joint_vel", "ball_tol_m", "friction_rand")})]
+    x[6] = str(n); x = [y for y in x if y != "seg1"] + ["seg1", "perturb=" + json.dumps({k: P[k] for k in ("joint_deg", "joint_vel", "ball_tol_m", "friction_rand", "friction_range")})]
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
     subprocess.run([outp if y == "{OUT}" else y for y in x], check=True, cwd=str(repo), env=env)
     J = json.load(open(outp)); os.unlink(outp)
@@ -208,6 +216,11 @@ def run_v5(a):
     ROB = None
     if getattr(a, "robustness", 0):
         C["mine/robustness"], ROB = run_robustness(a, repo, ck, arm, env)
+        if getattr(a, "robust_wide_info", False):   # INFO only: same seeds/noise, env friction U(0.5, 1.2); never gating
+            from eval import robust_grf as RG
+            w, _ = run_robustness(a, repo, ck, arm, env, RG.wide_perturb())
+            w = dict(w, status="info", passed=False, tag="info_only", gating=False, verdict_if_gating=w.get("status"), why=["INFO only (not gating): robustness under the env's wide friction U(0.5, 1.2)"] + list(w.get("why") or []))
+            C["mine/robustness_wide_friction_info"] = w
     S = SR.summarize(C); TR = None
     if tres:
         F = SR.agg_da(ok, "da_tres", "swing"); alt = dict(C); alt.update(F); S2 = SR.summarize(alt)
@@ -218,7 +231,7 @@ def run_v5(a):
                   sample_interval_ms=1000 * SR.med([e["dt_fine"] for e in ok]), default_rows=dict(tie_tolerance_ms=20, assumed_sample_interval_ms=1000 * SR.med([e["dt_used"] for e in ok]), pre_fix_assumed_ms=1000 * LEGACY_DT, measured_logged_interval_ms=1000 * SR.med([e["dt_logged_default"] for e in ok])),
                   checks={k.replace("swing/", f"swing@{tres:g}ms/"): v for k, v in F.items()}, verdict_if_these_rows_gate=S2["verdict"], n_warn_if_gate=S2["n_warn"], n_fail_if_gate=S2["n_fail"],
                   gating=False, note="verdict above is the DEFAULT (20 ms) verdict; these rows are reported alongside and do not change it")
-    return dict(harness_v3=dict(grf_method=getattr(a, "grf_method", "legacy"), grf_source=getattr(a, "grf_source", None), robustness_n=getattr(a, "robustness", 0), robust_seed0=getattr(a, "robust_seed0", None)), robustness_episodes=ROB, timing_resolution=TR, key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"],
+    return dict(harness_v3=dict(harness=getattr(a, "harness", None), robust_wide_info=getattr(a, "robust_wide_info", False), grf_method=getattr(a, "grf_method", "legacy"), grf_source=getattr(a, "grf_source", None), robustness_n=getattr(a, "robustness", 0), robust_seed0=getattr(a, "robust_seed0", None)), robustness_episodes=ROB, timing_resolution=TR, key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"],
                 club_mph_median=SR.med([e["club_mph"] for e in ok]), golfphys_total=_gp_summary(gp_rows),
                 sample_interval=dict(used_ms=1000 * SR.med([e["dt_used"] for e in out]), declared_ms=(1000 * float(out[0]["dt_declared"]) if out and out[0]["dt_declared"] is not None else None),
                                      n_declared_mismatch=sum(1 for e in out if e["dt_mismatch"]), method="measured median spacing of the worker's logged sim time per episode (dt fix 2026-10-19; pre-fix assumed 5 ms)"))
@@ -240,10 +253,10 @@ def main():
     ap.add_argument("--eps-per-seed", type=int, default=8); ap.add_argument("--seeds", default="4000,8000,9000"); ap.add_argument("--workers", type=int, default=2); ap.add_argument("--club-len", type=float, default=1.05)
     ap.add_argument("--arm-dist", type=float, default=None, help="v5 only: 0.6 (default, BEnv) for Stage B/C; 0 (TrainEnv) auto for paths containing stageA"); ap.add_argument("--strike-gate-nx", type=float, default=None, help="v5 only, default OFF: Trainer Stage G+ strike gate (e.g. 0.25), same definition as V5GolfEnv.strike_gate_nx"); ap.add_argument("--v5-repo", default=DEFAULT_V5); ap.add_argument("--json", default="")
     ap.add_argument("--timing-res-ms", type=float, default=None, help="v5 only, opt-in (default OFF = 20 ms tie tolerance, verdict unchanged): ALSO report kinematic-sequence order/timing from per-physics-substep traces with this tie tolerance (e.g. 5), alongside the default rows; not gating")
-    ap.add_argument("--grf-method", default="legacy", choices=["legacy", "sustain3", "butter", "raw"], help="v5 only. legacy (default) = v2 whole-episode raw peak; others = v3 PROVISIONAL rule: window top->impact on per-substep traces, de-spiked (butter = PRIMARY: 4th-order zero-lag Butterworth 50 Hz, window top->impact+20 ms, >=3-sample guard, 12/14 Hz sensitivity info; sustain3 = fallback >=3 consecutive 2 ms samples, top->impact); old value kept as INFO")
+    ap.add_argument("--grf-method", default=None, choices=["legacy", "sustain3", "butter", "raw"], help="v5 only. legacy (default) = v2 whole-episode raw peak; others = v3 PROVISIONAL rule: window top->impact on per-substep traces, de-spiked (butter = PRIMARY: 4th-order zero-lag Butterworth 50 Hz, window top->impact+20 ms, >=3-sample guard, 12/14 Hz sensitivity info; sustain3 = fallback >=3 consecutive 2 ms samples, top->impact); old value kept as INFO")
     ap.add_argument("--grf-cutoff-hz", type=float, default=None); ap.add_argument("--grf-order", type=int, default=None); ap.add_argument("--grf-source", default=None)
-    ap.add_argument("--robustness", type=int, default=0, help="v5 only, PROVISIONAL GATING row mine/robustness: N perturbed episodes (0 = off; v3 runs use 24)"); ap.add_argument("--robust-seed0", type=int, default=7000)
-    a = ap.parse_args(); r = run_v5(a) if a.env == "v5" else run_v1(a)
+    ap.add_argument("--harness", default="v3b", choices=["v3b", "v2"], help="v3b (default): Butterworth lead-GRF window + mine/robustness gate (friction 0.9-1.1) + wide-friction info row. v2: reproduce the v2 rules (whole-episode raw GRF, no robustness rows)"); ap.add_argument("--robustness", type=int, default=None, help="v5 only, PROVISIONAL GATING row mine/robustness: N perturbed episodes (0 = off; v3 runs use 24)"); ap.add_argument("--robust-seed0", type=int, default=7000)
+    a = ap.parse_args(); resolve_harness(a); r = run_v5(a) if a.env == "v5" else run_v1(a)
     print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}" + (f" info {r['n_info']} (not gating)" if r.get('n_info') else ""))
     for n, c in r["checks"].items():
         print(f"  {c['status'].upper():5s} {n}" + (f"  - {'; '.join(x for x in c['why'] if x)[:200]}" if c["status"] in ("fail", "warn") else "") + (f"  - {'; '.join(x for x in c['why'] if x)}" if c["status"] == "info" else ""))

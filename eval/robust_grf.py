@@ -5,7 +5,7 @@ A) mine/robustness: GATING for any full PASS. A policy is re-run on N seeded epi
      * initial actuated joint angles: uniform +/-JOINT_DEG (1.5 deg). The env has no joint-noise option; this is our own, inside the requested 1-2 deg.
      * actuated joint velocities: uniform +/-JOINT_VEL (0.05 rad/s). Our own choice; "small".
      * ball position: the env's own `ball_tol_m` option (V5GolfEnv.reset: tee xy += uniform(-1, 1, 2) * ball_tol) at 0.01 m = +/-1 cm.
-     * floor friction: the env's own `friction_rand` option (V5GolfEnv.reset: floor sliding mu ~ uniform(0.5, 1.2); nominal recorded by the worker).
+     * floor friction: v3b gate U(0.9, 1.1) drawn by the worker (PROVISIONAL, no turf source, centred on model mu 1.0); the env's U(0.5, 1.2) is the INFO row mine/robustness_wide_friction_info.
    Requirements across the N episodes:
      contact >= 95%; start_direction PASS >= 90%; lead_foot_plant PASS >= 90%; for club speed, smash, launch, spin and t/c (golfphys), the median
      episode is not FAIL and both p10 and p90 are not FAIL (inside the WARN band).
@@ -24,14 +24,26 @@ import math
 import numpy as np
 
 PROV = "PROVISIONAL"
-JOINT_DEG = 1.5; JOINT_VEL = 0.05; BALL_TOL_M = 0.01; FRICTION_RAND = True
+JOINT_DEG = 1.5; JOINT_VEL = 0.05; BALL_TOL_M = 0.01
+# v3b (Orchestrator-approved 2026-10-19): gate friction U(0.9, 1.1), PROVISIONAL, no turf source, centred on the model floor mu 1.0 (env/v5_body.py:86).
+# The env's own U(0.5, 1.2) (env/v5_golf_env.py:149, a Stage A training randomisation, off in the J trainer) is kept as the INFO row mine/robustness_wide_friction_info.
+FRICTION_RAND = False; FRICTION_RANGE = (0.9, 1.1); WIDE_FRICTION_RANGE = (0.5, 1.2)
 ROBUST_SEED0 = 7000; ROBUST_N = 24
 REQ_CONTACT = 0.95; REQ_SD = 0.90; REQ_FOOT = 0.90
 SUSTAIN_S = 0.006           # 3 x 2 ms
 _W = {"skip": -1, "info": -1, "pass": 0, "warn": 1, "fail": 2}
 
 def default_perturb():
-    return dict(joint_deg=JOINT_DEG, joint_vel=JOINT_VEL, ball_tol_m=BALL_TOL_M, friction_rand=FRICTION_RAND, seed0=ROBUST_SEED0, n=ROBUST_N)
+    return dict(joint_deg=JOINT_DEG, joint_vel=JOINT_VEL, ball_tol_m=BALL_TOL_M, friction_rand=FRICTION_RAND, friction_range=list(FRICTION_RANGE), seed0=ROBUST_SEED0, n=ROBUST_N)
+
+def wide_perturb():
+    """INFO variant: same joint/ball noise and seeds, floor friction from the env's own friction_rand U(0.5, 1.2)."""
+    return dict(default_perturb(), friction_rand=True, friction_range=None)
+
+def friction_desc(p):
+    r = p.get("friction_range")
+    return (f"floor friction U({r[0]:g},{r[1]:g}) (PROVISIONAL, no turf source, centred on model mu 1.0; worker rng seed+0xF41C)" if r else
+            "floor friction U(0.5,1.2) (env friction_rand)" if p.get("friction_rand") else "floor friction fixed at model nominal")
 
 FLOOR_MU_NOTE = ("floor_mu_nominal = floor geom friction of a freshly compiled model (env/v5_body.py build_model, floor friction [1.0, 0.005, 0.0001]), "
                  "read before any reset/randomisation. Until the 2026-10-19 label fix the worker read it after the env's construction-time reset, which had "
@@ -150,5 +162,5 @@ def robustness_row(eps, perturb, seeds):
     vals = dict(n=n, contact_frac=fc, start_direction_pass_frac=fsd, lead_foot_plant_pass_frac=ffoot, shot=stats, perturb=perturb, seeds=list(seeds))
     ref = (f"Orchestrator-approved robustness gate 2026-10-19 ({PROV}): contact >={REQ_CONTACT:.0%}, start_direction PASS >={REQ_SD:.0%}, lead_foot_plant PASS >={REQ_FOOT:.0%}, "
            "shot median and p10/p90 inside WARN band; WARN if any leaves PASS band. Magnitudes: joints +/-1.5 deg, +/-0.05 rad/s (ours); ball +/-1 cm (env ball_tol_m); "
-           "floor friction U(0.5,1.2) (env friction_rand)")
+           + friction_desc(perturb))
     return dict(status=st, passed=(st == "pass"), values=vals, why=why, ref=ref, tag="derived")
