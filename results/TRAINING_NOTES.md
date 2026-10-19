@@ -645,3 +645,11 @@ Unrelated modified tracked files (docs/hero_swing.gif, eval/leaderboard.py, eval
 - stageK9 s9 from K8 s8 400k (T0 72), s10 from K8 s7 500k (T0 76): spin_w 8 (hi 2700, scale 1000), centered-strike ctr_w 4, dynamic loft window 15-20, pelvis timing band 60-120 ms (pel_t_w 8), new sep_w 4 (arm peak >= ~5-20 ms before club peak), ord2_w 3, lr 5e-5, 600k cap.
 - Tried a later-hip ease (k 2.2/3.0) in the open-loop ref: pelvis lead only 156->152/132 ms and 3.0 broke the strike (18 mph); not used.
 
+
+## K9 result (2026-10-19 ~05:20 ET) — no full pass
+- Both runs ended at the 600k cap; snapshots _snap/K9_s{9,10}_{100..600}k; harness stageJ_harness/K9_*.json.
+- Best: K9 s9 300k = 12 pass / 3 warn / 0 fail, 71.8 mph, 24/24; spin 2956 now PASSES; warns: order (arm/club same sample), pelvis timing 160 ms, t/c 1.295.
+- s10 (from K8 s7 500k, 74 mph): sep term pulled the arm peak far forward (arm before thorax) -> order FAIL at 100/400/500k (10-11 pass).
+- Pelvis peak sits at t=1.475-1.485 s in every K7-K9 policy (160-175 ms before club) regardless of pel_t_w 3-8: it is set by the reference waist_yaw/hip phase; residual (0.7*0.2 rad) does not move it. Needs a reference-level change (pelvis keyframe/phase timing in the ES) rather than a reward.
+- spin vs t/c still trade at ~72 mph (s9 600k 73.1 mph spin 3121 t/c 1.36; s10 400k spin 3182 t/c 1.26).
+
