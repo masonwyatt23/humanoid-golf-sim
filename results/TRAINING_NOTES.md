@@ -667,3 +667,10 @@ Unrelated modified tracked files (docs/hero_swing.gif, eval/leaderboard.py, eval
 - At 75-79 mph the policies get t/c <=1.25 (descent 26-29) but only with spin 3800-5700; spin<3000 checkpoints have t/c 1.3-1.6. Pelvis peak moved 165->145-150 ms (band 40-140) via the ref phase delay but not inside the band. Arm/club peaks remain on the same 5 ms sample.
 - Overall best zero-fail: K9 s9 300k (12/3/0, 71.8 mph, spin pass) and K8 s8 400k (12/3/0, 72 mph).
 
+
+## K11 (2026-10-19 ~06:25 ET) — stock limits, reference-guided residual
+- scripts/v5_ref_fit_k11.py: K10 fitter + golfphys shot objectives in the open-loop ref (launch 11-15, spin 2200-2900, descent>=27, t/c<=1.22, smash), speed>=75 floor, arm >=10 ms before club; wider sigma on impact wrist/elbow/shoulder keys.
+- First pass (uncapped speed, stageK11_ref_s*): ES chased speed (83 mph) with spin ~9000. Second pass with speed cap 78 and wider spin window (stageK11b_ref_s*, 300 gens from the first):
+  s1 ref = open-loop 78.6 mph, launch 14.4, spin 3587, descent 28.1, t/c 1.23, smash 1.30, pelvis 96 ms before club, arm 84 ms before club, GRF 1.2 (5 ms), XF 62.9. (K10 ref: spin 8750, smash 0.90.)
+- Residual: stageK11 s14 from K10 s11 200k, s15 from K9 s9 300k, on the K11b s1 ref; ord2 4, sep 0.5, desc 4, lr 5e-5, 500k cap.
+
