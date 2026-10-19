@@ -6,6 +6,56 @@ Repository: <https://github.com/masonwyatt23/humanoid-golf-sim> (renamed 2026-10
 
 Autonomous pipeline for training a simulated humanoid to swing a golf club, using pure/textbook pro-swing references (including synthetic "style profile" references named `scott`, `scheffler`, `rory`; they are statistical style profiles, not models of any real person; see data provenance below) as style targets. This project is not affiliated with or endorsed by any named golfer.
 
+## Preview (still image)
+
+![K12 s18 400k, model-only physics, fails realism checks](docs/img/K12_s18_400k_still.png)
+
+*K12 s18 400k, model-only physics, fails realism checks.* One frame near impact from a Blender render of a K12 `s18` 400k rollout (mesh, scene and camera are cosmetic; ball flight is the golfphys model). **The overlay text in this frame is out of date.** It was burned in before the dt fix, the new gating checks and harness v3b. That checkpoint now scores **FAIL 11 pass / 4 warn / 3 fail** under v3b (`mine/start_direction`, `mine/lead_foot_plant`, `mine/robustness`), and it is no longer the "best so far" row. No GIFs or videos are committed.
+
+## Status at a glance (harness v3b, PROVISIONAL)
+
+Every v5 row is a single training seed, uses model-only physics (golfphys impact/flight; carry has no roll), and is reference-guided residual RL with tracking assistance on stock G1 torque, **not from scratch**. **No row passes every check. Every row below FAILs the PROVISIONAL `mine/robustness` gate.** There is no 350 yd result. Counts are pass / warn / fail, read from the committed JSONs.
+
+| Row | Club mph (median) | v3b pass / warn / fail | Failing checks | Scored by | Source |
+|---|---|---|---|---|---|
+| Target (this project) | 88-109 | - | - | - | project goal, not a result |
+| K22r5 `s51` 100k (most passes; first row with correct kinematic order) | 70.6 | 14 / 3 / 1 FAIL | robustness | Evaluator + Trainer agree | `results/v5_runs/stageJK_harness_summary/realism_v5_K22r5_s51_100k_dtfix_newchecks_v3b_gateoff_gp_arm06.json`, `results/v5_runs/stageJ_harness/K22r5_s51_100000_v3.json` |
+| K23b `s52` 300k | 70.6 | 14 / 3 / 1 FAIL | robustness | Trainer only | `results/v5_runs/stageJ_harness/K23b_s52_300000_v3.json` |
+| K25b `s56` 400k | 72.2 | 14 / 3 / 1 FAIL | robustness | Trainer only | `results/v5_runs/stageJ_harness/K25b_s56_400000_v3.json` |
+| K24a `s53` 200k (robustness-randomized training; ball noise re-applied per reset, worker fix `cec13eb`) | 70.6 | 13 / 4 / 1 FAIL | robustness (spin and t/c spread) | Evaluator + Trainer agree | `results/v5_runs/stageJK_harness_summary/realism_v5_K24a_s53_200k_v3b_gateoff_gp_arm06.json`, `results/v5_runs/stageJ_harness/K24a_s53_200000_v3.json` |
+| K19a `s39` 300k / 400k | 72.8 / 73.4 | 13 / 4 / 1 FAIL each | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K19a_s39_{300k,400k}_dtfix_newchecks_v3b_gateoff_gp_arm06.json` |
+| K22r4 `s49` 500k (zero-fail under v2, not under v3b) | 71.5 | 12 / 5 / 1 FAIL | robustness | Evaluator + Trainer agree | `results/v5_runs/stageJK_harness_summary/realism_v5_K22r4_s49_500k_dtfix_newchecks_v3b_gateoff_gp_arm06.json` |
+| K18e `s37` 200k | 74.1 | 12 / 5 / 1 FAIL | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K18e_s37_200k_dtfix_newchecks_v3b_gateoff_gp_arm06.json` |
+| K26s `s58` 100k (fastest K24-K26 row) | 75.0 | 12 / 5 / 1 FAIL | robustness | Trainer only | `results/v5_runs/stageJ_harness/K26s_s58_100000_v3.json` |
+| K12 `s18` 400k (fastest scored row; preview above) | 80.4 | 11 / 4 / 3 FAIL | start_direction, lead_foot_plant, robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K12_s18_400k_dtfix_newchecks_v3b_gateoff_gp_arm06.json` |
+
+All K24-K26 harness files (`results/v5_runs/stageJ_harness/K2[4-6]*_v3.json`) FAIL robustness; several also fail `shot/total_over_carry` or `shot/spin_rpm`. The `swing/grf_lead_vertical_bw` **1.7 BW upper limit has no published source**, and **the robustness gate's friction range (U(0.9,1.1)) has no turf source**. Both are PROVISIONAL. The detailed v2-era table further down is kept for history.
+
+## Quickstart
+
+```bash
+# 1. Virtual environment (Python 3.10+)
+python3 -m venv .venv && source .venv/bin/activate
+
+# 2. Install (exact versions used on the training machine; or requirements.txt for the unpinned list)
+pip install -r requirements.pinned.txt
+
+# 3. Run the tests (tests that need held-local files skip cleanly)
+OMP_NUM_THREADS=2 PYTHONPATH=. pytest tests
+
+# 4. Run one realism eval (needs a v5 checkpoint locally; checkpoints are not in git)
+PYTHONPATH=. python -m eval.realism_check <path/to/v5/ckpt> --env v5 --json out.json
+```
+
+## Running the realism harness
+
+`eval/realism_check.py` (rules in `eval/swing_realism.py`, `eval/robust_grf.py`) scores one policy against swing and shot bands.
+
+- **Default `--harness v3b` (PROVISIONAL).** Lead vertical GRF is scored on a 4th-order Butterworth 50 Hz zero-lag filter over a window from the top of the swing to impact +20 ms. There is a GATING `mine/robustness` row: 24 perturbed episodes (seeds 7000-7023; joint noise, ball offset up to 1 cm, floor friction U(0.9,1.1)). The wider U(0.5,1.2) friction is an INFO row only. The 1.7 BW limit and the robustness friction range are unsourced.
+- **`--harness v2`** reproduces the old rules: whole-episode raw GRF peak and no robustness rows.
+- **Inputs:** a checkpoint path (or `results/<name>.json` / model name for v1), `--env v1|v5`, and optionally `--seeds` (default 4000,8000,9000), `--eps-per-seed` (default 8), `--strike-gate-nx` (default off), `--arm-dist`, `--v5-repo`.
+- **Outputs:** a summary printed to stdout and, with `--json out.json`, a JSON with each check's `status` (pass/warn/fail/skip/info) and value, `checks_passed` / `n_warn` / `n_fail`, `verdict` (PASS / WARN / FAIL), `club_mph_median`, golfphys carry/total, and `floor_mu_summary`. Per-episode records also go in that file. The copies committed here are slimmed, with those records removed and local paths redacted.
+
 ## Status and honesty
 
 - **Not learned from scratch.** Every committed policy is scripted, script-distilled, or reference-guided (scripted swing, residual on a script, imitation of a script, or the v5 Stage J/K residual on a tuned joint-space reference). No from-scratch policy has produced a real swing yet: the from-scratch v5 Stages A-I only ever produced taps (< 20 mph legal forward strikes) or backward/closed-face strikes (`results/TRAINING_NOTES.md`).
@@ -347,7 +397,7 @@ None of this measures Mason (his 120+ mph is self-reported and unverified). Powe
 - Style comparison script (`eval/compare_styles.py`)
 - Catalog of public third-party swing footage used as a proxy (links only; no video is redistributed)
 
-## Quick Start
+## Quick Start (legacy v1 pipeline)
 
 ```bash
 pip install -r requirements.txt
