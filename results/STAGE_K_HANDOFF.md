@@ -101,3 +101,7 @@
 - Cause: the K11b ref objective "arm >=10 ms before club" let the ES move the arm peak 84 ms before club, ahead of the thorax (open-loop thorax-arm -88 ms).
 - Follow-up refs with explicit pelvis<thorax<arm<club order objective (K11_ORDER=1): stageK11c_ref_s1 = 78.3 mph, spin 2889, launch 14.6, t/c 1.26, pelvis 104 ms before club, thorax 20 ms before arm, but club peak 16 ms BEFORE arm in open loop; stageK11d_ref_s1 (arm-club weight 8) still -12 ms. No residual trained on these yet.
 
+
+## K12 (2026-10-19 ~07:10 ET) — stock limits, reference-guided residual
+- stageK12 s17 (K11c ref) and s18 (K11d ref), both from K11 s16 500k, K11 s16 shot terms (spin_w 12, dloft 13-18, AoA>=+1), ord2_w 6 (was 4), pelvis 60-120 ms, lr 3e-5, 400k cap.
+
