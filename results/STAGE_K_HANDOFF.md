@@ -93,3 +93,11 @@
 - Residual: stageK11 s14 from K10 s11 200k, s15 from K9 s9 300k, on the K11b s1 ref; ord2 4, sep 0.5, desc 4, lr 5e-5, 500k cap.
 
 - (06:15 ET) Per Evaluator: replaced s15 (K9 s9 300k start, ~2 min old) with stageK11 s16 from K10b s13 400k: spin_w 12, dynamic loft window 13-18 (w4), AoA >= +1, rest as s14.
+
+## K11 result (2026-10-19 ~07:05 ET) — no full pass; stock limits, reference-guided residual
+- Runs stageK11 s14 (from K10 s11 200k) and s16 (from K10b s13 400k; spin_w 12, dloft 13-18, AoA>=+1) ended at the 500k cap. Snapshots _snap/K11_s{14,16}_{100..500}k; harness stageJ_harness/K11_*.json.
+- BEST: K11 s16 500k = 13 pass / 1 warn / 1 fail, 80.0 mph, 24/24 contact. ALL shot checks pass (det: spin 2884, launch 14.2, descent 30.1, t/c 1.21, smash 1.45), GRF passes, X-factor passes. Only FAIL: kinematic order — arm peaks (1.555 s) before thorax (1.600 s); warn pelvis timing 150 ms.
+- s14 400k 12/2/1 at 82.7 mph (order fail, t/c 1.267 warn). s14 500k det 83.6 mph spin 4146.
+- Cause: the K11b ref objective "arm >=10 ms before club" let the ES move the arm peak 84 ms before club, ahead of the thorax (open-loop thorax-arm -88 ms).
+- Follow-up refs with explicit pelvis<thorax<arm<club order objective (K11_ORDER=1): stageK11c_ref_s1 = 78.3 mph, spin 2889, launch 14.6, t/c 1.26, pelvis 104 ms before club, thorax 20 ms before arm, but club peak 16 ms BEFORE arm in open loop; stageK11d_ref_s1 (arm-club weight 8) still -12 ms. No residual trained on these yet.
+

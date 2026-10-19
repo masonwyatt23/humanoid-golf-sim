@@ -11,7 +11,7 @@ from scripts.v5_ref_openloop import make_env, keys_from_vec
 from env.v5_ref import SwingRef, TUNED_KEYS
 from golfphys.sim import shot_from_launch
 EASE = ["wrist", "hip", "waist", "shoulder", "elbow"]; PHASE = ["hip_yaw", "waist"]
-_E = None
+_E = None; ORDER = os.environ.get('K11_ORDER') == '1'
 def build(x):
     n = len(TUNED_KEYS); keys = keys_from_vec(x[:n]); td = float(np.clip(0.24 + 0.05 * x[n], 0.20, 0.30))
     for i, g in enumerate(EASE): keys[("ease", g, "k")] = float(np.clip(1.6 * np.exp(0.5 * x[n + 1 + i]), 0.6, 4.0))
@@ -54,6 +54,7 @@ def run(e, ref):
     if ic and len(L["t"]) > 3:
         n_ = max(int(np.searchsorted(np.array(L["t"]), e.t_contact, side="right")), 2); tt = np.array(L["t"][:n_])
         r["pel_lead_ms"] = 1000 * float(tt[int(np.argmax(np.abs(L["club"][:n_])))] - tt[int(np.argmax(np.abs(L["pelvis"][:n_])))]); r["pel_dps"] = float(np.max(np.abs(L["pelvis"][:n_])))
+        pk_ = {k: float(tt[int(np.argmax(np.abs(L[k][:n_])))]) for k in ("pelvis", "thorax", "lead_arm", "club")}; r["thor_arm_ms"] = 1000 * (pk_["lead_arm"] - pk_["thorax"]); r["pel_thor_ms"] = 1000 * (pk_["thorax"] - pk_["pelvis"])
         r["arm_club_ms"] = 1000 * float(tt[int(np.argmax(np.abs(L["club"][:n_])))] - tt[int(np.argmax(np.abs(L["lead_arm"][:n_])))])
     return r
 def score(args):
@@ -68,7 +69,8 @@ def score(args):
     if r["contact"] and not r["foul"]:
         s += 20.0 + mw * min(r["mph"], cap) + 0.2 * min(r["carry"], 100.0)
         s += 4.0 * min(r.get("trunk_W", 0.0) / 1500.0, 1.0) + 10.0 * float(np.clip(1 - max(60 - r.get("pel_lead_ms", 0), r.get("pel_lead_ms", 0) - 120, 0) / 60, 0, 1))
-        s += 4.0 * float(np.clip((r.get("arm_club_ms", 0.0) - 10.0) / 10.0 + 1.0, -1, 1)) - 5.0 * max(75.0 - r["mph"], 0.0)
+        s += (8.0 * float(np.clip(1 - max(10.0 - r.get("arm_club_ms", 0.0), r.get("arm_club_ms", 0.0) - 50.0, 0.0) / 20.0, -1, 1)) + 6.0 * float(np.clip((r.get("thor_arm_ms", -50.0) - 5.0) / 15.0, -1, 1))
+              + 4.0 * float(np.clip((r.get("pel_thor_ms", -50.0) - 5.0) / 15.0, -1, 1))) if ORDER else 4.0 * float(np.clip((r.get("arm_club_ms", 0.0) - 10.0) / 10.0 + 1.0, -1, 1)) - 5.0 * max(75.0 - r["mph"], 0.0)
         s += 3.0 * min(r.get("lag_deg", 0.0) / 40.0, 1.0) - 6.0 * r.get("wr_sat", 0.0) - 3.0 * r.get("sh_sat", 0.0) - 4.0 * r.get("wr_last60", 0.0)
         s += 8.0 * float(np.clip(1 - max(11.0 - r["launch"], r["launch"] - 15.0, 0.0) / 6.0, 0, 1)) + 20.0 * float(np.clip(1 - max(2200.0 - r["spin"], r["spin"] - 2900.0, 0.0) / 7000.0, 0, 1))
         s += 6.0 * min(r.get("descent", 0.0) / 27.0, 1.0) + 8.0 * float(np.clip(1 - max(r.get("tc", 2.0) - 1.22, 0.0) / 0.4, 0, 1)) + 4.0 * float(np.clip((r.get("smash", 0.0) - 1.1) / 0.2, 0, 1))
