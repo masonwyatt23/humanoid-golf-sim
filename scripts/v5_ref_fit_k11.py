@@ -11,7 +11,7 @@ from scripts.v5_ref_openloop import make_env, keys_from_vec
 from env.v5_ref import SwingRef, TUNED_KEYS
 from golfphys.sim import shot_from_launch
 EASE = ["wrist", "hip", "waist", "shoulder", "elbow"]; PHASE = ["hip_yaw", "waist"]
-_E = None; ORDER = os.environ.get('K11_ORDER') == '1'
+_E = None; ORDER = os.environ.get('K11_ORDER') == '1'; AC_HI = float(os.environ.get('K11_AC_HI', '50')); PEL_W = float(os.environ.get('K11_PEL_W', '10'))
 def build(x):
     n = len(TUNED_KEYS); keys = keys_from_vec(x[:n]); td = float(np.clip(0.24 + 0.05 * x[n], 0.20, 0.30))
     for i, g in enumerate(EASE): keys[("ease", g, "k")] = float(np.clip(1.6 * np.exp(0.5 * x[n + 1 + i]), 0.6, 4.0))
@@ -68,8 +68,8 @@ def score(args):
     s = 0.0
     if r["contact"] and not r["foul"]:
         s += 20.0 + mw * min(r["mph"], cap) + 0.2 * min(r["carry"], 100.0)
-        s += 4.0 * min(r.get("trunk_W", 0.0) / 1500.0, 1.0) + 10.0 * float(np.clip(1 - max(60 - r.get("pel_lead_ms", 0), r.get("pel_lead_ms", 0) - 120, 0) / 60, 0, 1))
-        s += (8.0 * float(np.clip(1 - max(10.0 - r.get("arm_club_ms", 0.0), r.get("arm_club_ms", 0.0) - 50.0, 0.0) / 20.0, -1, 1)) + 6.0 * float(np.clip((r.get("thor_arm_ms", -50.0) - 5.0) / 15.0, -1, 1))
+        s += 4.0 * min(r.get("trunk_W", 0.0) / 1500.0, 1.0) + PEL_W * float(np.clip(1 - max(60 - r.get("pel_lead_ms", 0), r.get("pel_lead_ms", 0) - 120, 0) / 60, 0, 1))
+        s += (8.0 * float(np.clip(1 - max(10.0 - r.get("arm_club_ms", 0.0), r.get("arm_club_ms", 0.0) - AC_HI, 0.0) / 20.0, -1, 1)) + 6.0 * float(np.clip((r.get("thor_arm_ms", -50.0) - 5.0) / 15.0, -1, 1))
               + 4.0 * float(np.clip((r.get("pel_thor_ms", -50.0) - 5.0) / 15.0, -1, 1))) if ORDER else 4.0 * float(np.clip((r.get("arm_club_ms", 0.0) - 10.0) / 10.0 + 1.0, -1, 1)) - 5.0 * max(75.0 - r["mph"], 0.0)
         s += 3.0 * min(r.get("lag_deg", 0.0) / 40.0, 1.0) - 6.0 * r.get("wr_sat", 0.0) - 3.0 * r.get("sh_sat", 0.0) - 4.0 * r.get("wr_last60", 0.0)
         s += 8.0 * float(np.clip(1 - max(11.0 - r["launch"], r["launch"] - 15.0, 0.0) / 6.0, 0, 1)) + 20.0 * float(np.clip(1 - max(2200.0 - r["spin"], r["spin"] - 2900.0, 0.0) / 7000.0, 0, 1))

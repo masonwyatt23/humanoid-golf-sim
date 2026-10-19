@@ -704,3 +704,9 @@ Each dir holds ckpt_<N>.zip + ckpt_<N>_vecnorm.pkl + args.json (args.json points
 | 7 | K7_s6_800000/ckpt_800000 | 12/3/0 | 66.5 | old ref stageK_ref |
 Harness JSONs: results/v5_runs/stageJ_harness/<name>.json. Open blockers for a full pass: arm and club peaks on the same 5 ms sample, pelvis peak 145-155 ms (band 40-140), t/c 1.27-1.28 vs 1.25 (K11 s16 500k had 1.21 but order fail).
 
+
+## K13 (2026-10-19 ~08:00 ET)
+- K13a s19 (from K12 s18 400k, K11d ref, sep_w 2, pel_t_w 12, desc_w 7, 300k): harness 100k 12/2/1 (order fail), 200k 12/3/0 (79.3 mph; warns order arm after club, pelvis 155, t/c 1.284), 300k 12/2/1 (order fail, spin 3263 warn). The lead-arm speed curve has two humps (~1.54 s and ~1.65 s); the separation term flips the peak to the early hump (before thorax) instead of separating it from the club. Pelvis stayed 155 ms.
+- K13 ref (stageK13_ref, ES from K11d with pelvis 60-120 ms weight 15, arm 10-30 ms before club bounded, thorax before arm): open-loop 78.5 mph, launch 14.9, spin 2996, descent 28.0, t/c 1.25, smash 1.33, pelvis 112 ms, thorax 20 ms before arm, but arm-club still 0 ms (same sample); GRF 1.07, XF 61.7.
+- K13b s20: K12 s18 400k fine-tuned on the K13 ref (same terms as K13a), 300k cap — running.
+
