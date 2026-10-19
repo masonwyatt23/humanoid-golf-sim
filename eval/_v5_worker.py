@@ -37,4 +37,4 @@ for i in range(n):
     eps.append(dict(shot_extra=shx, t=L_["t"], pelvis_dps=L_["pelvis"], thorax_dps=L_["thorax"], arm_dps=L_["lead_arm"], club_dps=L_["club"], xfactor_deg=L_["xfactor_deg"], lead_share=L_["lead_share"],
                     grf=[list(map(float, g)) for g in grf], lead=e.lead, impact_idx=imp, contact=bool(e.contact), ep=info.get("ep"), foul=bool(info.get("foul", False)), seed=seed0 + i, t_contact=tc, sub=list(sub), seg_every=int(e.seg_every), seg_every_default=int(seg_def),
                     shot={k: info.get(k) for k in ("club_speed_mph", "ball_speed_mph", "launch_deg", "spin_rpm", "smash", "carry_m_noroll", "total_m_model", "lateral_carry_m")}))
-json.dump(dict(strike_gate_nx=GATE, arm_dist=ARM, env_class=("BEnv" if ARM > 0 else "TrainEnv"), bw_N=bw, dt=0.005, club_len=L, eps=eps), open(out, "w"))
+json.dump(dict(strike_gate_nx=GATE, arm_dist=ARM, env_class=("BEnv" if ARM > 0 else "TrainEnv"), bw_N=bw, dt=float(e.dt) * SEG_DEF, dt_note="declared = sim dt x default seg_every (4 ms at dt 0.002); the harness MEASURES the interval from t (dt fix 2026-10-19; was hard-coded 0.005)", club_len=L, eps=eps), open(out, "w"))

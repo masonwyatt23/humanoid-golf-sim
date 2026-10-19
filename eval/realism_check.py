@@ -45,7 +45,20 @@ def worker_args(a, repo, ck, arm, sd):
     if getattr(a, "timing_res_ms", None): x.append("seg1")     # opt-in: worker logs every physics substep (2 ms at dt 0.002); default argv unchanged
     return x
 
-LEGACY_DT = 0.005   # sample interval the default v5 path ASSUMES for the logged traces (worker json "dt"); see timing_res_rows for the measured interval
+LEGACY_DT = 0.005   # sample interval the v5 path ASSUMED before the 2026-10-19 dt fix (JEnv/BEnv actually log every 4 ms); kept only for reporting
+DT_TOL = 0.05       # relative disagreement between declared and measured sample interval that is flagged
+
+def episode_dt(r, declared=None):
+    """Sample interval (s) of ONE episode's logged traces, MEASURED from the worker's logged sim time r['t'] (median spacing). The worker's declared dt is
+    only a cross-check: pre-fix workers declared 0.005 while logging every 4 ms (seg_every = round(0.005/0.002) = 2 substeps), which inflated every
+    timing x1.25. Falls back to the declared dt only if the episode has fewer than 2 samples. Returns (dt, mismatch_flag)."""
+    t = np.asarray(r.get("t") or [], float)
+    if len(t) < 2:
+        if declared is None: raise ValueError("episode has no time axis and the worker declared no dt")
+        return float(declared), False
+    dt = float(np.median(np.diff(t)))
+    if not dt > 0: raise ValueError(f"non-increasing time axis (median spacing {dt})")
+    return dt, (declared is not None and abs(float(declared) - dt) > DT_TOL * dt)
 SEQ_ROWS = ("kinematic_sequence_order", "kinematic_sequence_timing_ms_before_club_peak")
 
 def legacy_view(r):
@@ -79,7 +92,9 @@ def run_v5(a):
     for sd in seeds:
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
         subprocess.run([outp if x == "{OUT}" else x for x in worker_args(a, repo, ck, arm, sd)], check=True, cwd=str(repo), env=env)
-        J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]; eps += J["eps"]
+        J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]
+        for r_ in J["eps"]: r_["_declared_dt"] = J.get("dt")
+        eps += J["eps"]
     out = []; gp_rows = []; tres = getattr(a, "timing_res_ms", None)
     for r_raw in eps:
         r = legacy_view(r_raw) if tres else r_raw
@@ -99,8 +114,9 @@ def run_v5(a):
             if gp:                                   # total/carry from the independent golfphys recompute (roll model) instead of the env-logged total; env number kept in gp_rows
                 shot["total_yd"] = gp["total_yd"]; shot["carry_yd"] = gp["carry_yd"]
         pk = [float(np.degrees(w[:, j]).max()) for j in range(4)]
+        dt_ep, dt_mis = episode_dt(r, r_raw.get("_declared_dt"))   # MEASURED sample interval (dt fix); tie tolerance (20 ms) and thresholds unchanged
         gp_rows.append(dict(seed=r.get("seed"), contact=bool(r["contact"]), **(gp or {}))) if gp else None
-        out.append(dict(true_contact=bool(r["contact"]), club_mph=club, ball_mph=sh.get("ball_speed_mph"), gp_toc=(gp or {}).get("total_over_carry"), da_swing=SR.da_swing(jt, 0.005, club, imp), da_shot=SR.da_shot(shot) if shot else [], seg_peak_dps=pk))
+        out.append(dict(true_contact=bool(r["contact"]), club_mph=club, ball_mph=sh.get("ball_speed_mph"), gp_toc=(gp or {}).get("total_over_carry"), da_swing=SR.da_swing(jt, dt_ep, club, imp), dt_used=dt_ep, dt_declared=r_raw.get("_declared_dt"), dt_mismatch=dt_mis, da_shot=SR.da_shot(shot) if shot else [], seg_peak_dps=pk))
         if tres:
             rows_f, dt_f = timing_res_rows(r_raw, tres, club); out[-1].update(da_tres=rows_f, dt_fine=dt_f, seg_every_fine=r_raw.get("seg_every"), dt_logged_default=float(np.median(np.diff(np.array(r["t"], float)))))
     ok = [e for e in out if e["true_contact"]] or out; C = {}
@@ -118,11 +134,13 @@ def run_v5(a):
         method = ("env substeps: worker logged segment speeds at EVERY physics substep (real samples, no interpolation)" if per_sub else
                   f"WARNING: worker did NOT log per substep (seg_every {segs}); rows use the default-cadence traces") + "; rows use the MEASURED sample interval and a %g ms tie tolerance" % tres
         TR = dict(timing_res_ms=float(tres), method=method, per_substep=per_sub,
-                  sample_interval_ms=1000 * SR.med([e["dt_fine"] for e in ok]), default_rows=dict(tie_tolerance_ms=20, assumed_sample_interval_ms=1000 * LEGACY_DT, measured_logged_interval_ms=1000 * SR.med([e["dt_logged_default"] for e in ok])),
+                  sample_interval_ms=1000 * SR.med([e["dt_fine"] for e in ok]), default_rows=dict(tie_tolerance_ms=20, assumed_sample_interval_ms=1000 * SR.med([e["dt_used"] for e in ok]), pre_fix_assumed_ms=1000 * LEGACY_DT, measured_logged_interval_ms=1000 * SR.med([e["dt_logged_default"] for e in ok])),
                   checks={k.replace("swing/", f"swing@{tres:g}ms/"): v for k, v in F.items()}, verdict_if_these_rows_gate=S2["verdict"], n_warn_if_gate=S2["n_warn"], n_fail_if_gate=S2["n_fail"],
                   gating=False, note="verdict above is the DEFAULT (20 ms) verdict; these rows are reported alongside and do not change it")
     return dict(timing_resolution=TR, key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"],
-                club_mph_median=SR.med([e["club_mph"] for e in ok]), golfphys_total=_gp_summary(gp_rows))
+                club_mph_median=SR.med([e["club_mph"] for e in ok]), golfphys_total=_gp_summary(gp_rows),
+                sample_interval=dict(used_ms=1000 * SR.med([e["dt_used"] for e in out]), declared_ms=(1000 * float(out[0]["dt_declared"]) if out and out[0]["dt_declared"] is not None else None),
+                                     n_declared_mismatch=sum(1 for e in out if e["dt_mismatch"]), method="measured median spacing of the worker's logged sim time per episode (dt fix 2026-10-19; pre-fix assumed 5 ms)"))
 
 def _gp_summary(rows):
     """Per-run summary of the golfphys total/carry recompute (medians over true-contact episodes with carry>0). env_* = the env-logged golfphys numbers (carry no roll; total = golfphys roll=True)."""
@@ -145,9 +163,11 @@ def main():
     print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}" + (f" info {r['n_info']} (not gating)" if r.get('n_info') else ""))
     for n, c in r["checks"].items():
         print(f"  {c['status'].upper():5s} {n}" + (f"  - {'; '.join(x for x in c['why'] if x)[:200]}" if c["status"] in ("fail", "warn") else "") + (f"  - {'; '.join(x for x in c['why'] if x)}" if c["status"] == "info" else ""))
+    SI = r.get("sample_interval")
+    if SI: print(f"  -- sample interval: {SI['used_ms']:.1f} ms measured from the logged sim time (worker declared {SI['declared_ms'] if SI['declared_ms'] is not None else 'n/a'} ms; {SI['n_declared_mismatch']} episodes disagree); tie tolerance 20 ms and thresholds unchanged")
     TR = r.get("timing_resolution")
     if TR:
-        d = TR["default_rows"]; print(f"  -- timing resolution (opt-in, reported ALONGSIDE, not gating): default rows above = 20 ms tie tolerance on default-cadence traces (assumed {d['assumed_sample_interval_ms']:.0f} ms/sample, measured {d['measured_logged_interval_ms']:.1f} ms)")
+        d = TR["default_rows"]; print(f"  -- timing resolution (opt-in, reported ALONGSIDE, not gating): default rows above = 20 ms tie tolerance on default-cadence traces (sample interval used {d['assumed_sample_interval_ms']:.1f} ms = measured {d['measured_logged_interval_ms']:.1f} ms; pre-fix assumed {d.get('pre_fix_assumed_ms', 5):.0f} ms)")
         print(f"     {TR['timing_res_ms']:g} ms rows: {'per-physics-substep traces' if TR['per_substep'] else 'WARNING: NOT per-substep traces'}, measured sample interval {TR['sample_interval_ms']:.1f} ms, tie tolerance {TR['timing_res_ms']:g} ms; verdict if these rows gated: {TR['verdict_if_these_rows_gate']}")
         for n, c in TR["checks"].items(): print(f"  {c['status'].upper():5s} {n}  value {c.get('values', c.get('value'))}" + (f"  - {'; '.join(x for x in c['why'] if x)[:200]}" if c["status"] in ("fail", "warn") else ""))
     if a.json: Path(a.json).write_text(json.dumps(r, indent=1, default=float))
