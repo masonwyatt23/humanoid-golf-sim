@@ -101,7 +101,9 @@ All K24-K26 harness files (`results/v5_runs/stageJ_harness/K2[4-6]*_v3.json`, sc
 
 - **golfphys spin audit (DEFERRED / not applied):** `docs/GOLFPHYS_SPIN_AUDIT.md`; an opt-in `s_t` calibration via `data/golfphys_spin_audit.proposed_params()` was reviewed and deferred, golfphys defaults are unchanged.
 
-Public-source launch, dispersion, lead-foot, GRF and turf-friction references are in `data/references/research_bands/` and `docs/research_bands/`. Every row has a source URL and a measured/model/derived label. **Rows transcribed from the TrackMan Driver Fitting Chart 2010 are held back, pending review** (open counsel question from the MIT audit), and so are the two notes files that quote them.
+Public-source launch, dispersion, lead-foot, GRF and turf-friction references are in `data/references/research_bands/` and `docs/research_bands/`. Every row has a source URL and a measured/model/derived label. **Rows transcribed from the TrackMan Driver Fitting Chart 2010 are held back, pending review** (open counsel question from the MIT audit), and so are the two notes files that quote them. **Likewise the raw digitized points from USGA/R&A R22-07 Figs 1-2 are held back pending review**; only derived constants (labelled "derived from digitized figure, approximate") are published.
+
+- **face_edge_adjust: opt-in side-by-side model, not the default** (`data/driver_face_offcentre.py`, `docs/DRIVER_FACE_OFFCENTRE_REFS.md`): 26.5 mm off-face FAIL, centre-strike input only; R22-07 digitized points held pending review.
 
 ## Quickstart
 
