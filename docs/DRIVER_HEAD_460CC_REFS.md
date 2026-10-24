@@ -80,7 +80,7 @@ Derivation chain:
 MyGolfSpy measures tee height "from ground level", so a 1.5 in tee puts the tee top at 38.1 mm. Taking the ball bottom at the tee top, the ball centre is 38.1 + 21.335 = 59.4 mm and the equator is 2.6 mm below a 62 mm crown, i.e. a little under half the ball is above the crown. Golf Digest's "at least half above the crown" needs a ball bottom of at least 40.7 mm for a 62 mm crown. The ball centre is about 30 mm above the 29 mm face centre, which is consistent with MyGolfSpy's higher impact with the 1.5 in tee.
 
 ## Data policy
-Only aggregates (range, median, n) with attribution are kept in git. The per-model and per-example breakdowns (manufacturer spec heads, patent example bands, rule36 heads) are held locally in /workspace/held_research_bands/.
+Only aggregates (range, median, n) with attribution are kept in git. The per-model and per-example breakdowns (manufacturer spec heads, patent example bands, rule36 heads) are held locally (not in the repo).
 
 ## Single-source (n=1) values
 - Face area 4800 mm2: single published manufacturer spec (n=1, one head; Wishon 919THI spec table), attributed. Not a measured range and not a multi-model aggregate.
