@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-10-24 (later)
+- **Trainer K31** (`38692cf`..`357687a`): `--face_h` (real 53 mm face, off-face = miss; default off), `--edge_w/--edge_dz`, `--loc_w/--loc_dy/--loc_dz` (default off); gear sweep + strike-location logs; `scripts/v3d_regrade.py` now path-free (`--eval-repo` / `V3D_EVAL_REPO`); slim K31a-d 100k-300k harness JSONs (Trainer only; best v3c 13/4/1, all FAIL robustness). Skipped: k31a-d cmd files, `k31_watch.sh`, checkpoints, logs.
 - face_edge_adjust: opt-in side-by-side model, not the default (Data Agent `d8a3985` + derived R22-07 constants from `e413c36`); R22-07 digitized points held pending review (with the TrackMan 2010 rows).
 - **golfphys spin audit** (Data Agent `2c6f2c5`): DEFERRED / not applied; opt-in `proposed_params()` only, defaults unchanged; 11 published TrackMan Combine/Tour rows, no TrackMan 2010 chart rows.
 - **Trainer** (`f0b82be`..`185439d`): `--sep_lo`/`--sep_span` arm-to-club lag flags (defaults unchanged); K30 reference fit (`b69fac9`, did not reach targets, **unused**); slim harness JSONs for K28a/b, K29a/b, K30a/b (v2 + v3c, v3d where present) and v3d re-grades (`e9672f0`, `0d31656`). Skipped: cmd files, `k28/k29/k30_watch.sh`, `scripts/v3d_regrade.py` (machine paths), `scripts/launch_cmd.py` (launcher for the skipped cmd files), checkpoints, logs.
