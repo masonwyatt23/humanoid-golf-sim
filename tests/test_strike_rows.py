@@ -68,7 +68,7 @@ def test_extent_info_rows():
     assert out["mine/strike_within_sim_box_info"]["status"] == "info"
 
 def test_face_edge_guard_rejects_non_centre():
-    with pytest.raises(ValueError): H.face_edge_eval(dict(C0, dz_used_m=-0.024), -24.0)
+    with pytest.raises(ValueError): H.face_edge_eval(dict(C0, dz_used_m=-0.024), -24.0)   # raised by the Data Agent module's own guard
     with pytest.raises(ValueError): H.face_edge_eval({k: v for k, v in C0.items() if k != "dz_used_m"}, -24.0)
     with pytest.raises(ValueError): H.face_edge_eval(None, -24.0)
 
@@ -77,6 +77,15 @@ def test_face_edge_capped_vs_linear():
     assert r["capped"]["spin_rpm"] == pytest.approx(2600 + k * 12.7) and r["linear"]["spin_rpm"] == pytest.approx(2600 + k * 24)
     r = H.face_edge_eval(C0, -5.0); assert r["capped"]["spin_rpm"] == pytest.approx(r["linear"]["spin_rpm"])
     assert H.face_edge_eval(C0, -30.0)["valid"] is False   # beyond 26.5 mm half-height: off face
+    r = H.face_edge_eval(C0, -15.0); assert r["r2207"]["spin_rpm"] == pytest.approx(2600 + 963 * 107 / 167)
+
+def test_r2207_rows_info_only_not_in_verdict():
+    R = H.face_edge_rows(_eps_c([-15.0]))
+    assert R["mine/spin_face_edge_r2207_info"]["status"] == "info" and R["mine/smash_r2207_info"]["status"] == "info"
+    C = {"shot/spin_rpm": dict(status="fail", passed=False, values=4300.0), "shot/club_speed_mph": dict(status="pass", passed=True, values=74.0)}; C.update(R)
+    a = H.face_edge_model_verdict(dict(checks=C), lambda rpm, club: H.spin_status(rpm, club, True))
+    R["mine/spin_face_edge_r2207_info"]["values"]["deterministic"]["spin_rpm"]["median"] = 99999.0
+    C.update(R); b = H.face_edge_model_verdict(dict(checks=C), lambda rpm, club: H.spin_status(rpm, club, True)); assert a == b
 
 def _eps_c(dz, spin=2600.0): return [dict(strike_dy_mm=0.0, strike_dz_mm=z, strike_centre=dict(C0, spin_rpm=spin)) for z in dz]
 

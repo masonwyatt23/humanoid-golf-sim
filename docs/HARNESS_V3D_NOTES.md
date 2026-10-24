@@ -94,3 +94,8 @@ provisional strike-height row (WARN beyond 15 mm, FAIL at the face edge).
 * Labels: 148 mph is a MODEL value (TrajectoWare); smash LOW confidence; leveling off beyond 12.7 mm is UNVERIFIED until R22-07 Fig 1 is read;
   51.3 rpm/mm and 0.201°/mm are DERIVED from measured Hotstix data (secondary source).
 * Check: K30a 300k seed 4000 — real strike dz −25.4 mm → env spin 4455 rpm; centre re-run (dz = 0) → 2688 rpm.
+* Update (16:15 ET): the module is now taken at Data Agent e413c36 (cherry-picked ec675dd..e413c36 in order: bf85b8b, 5f5542a, 81f80f9).
+  The centre-strike guard now lives in `face_edge_adjust` itself (ValueError unless `centre_dz_mm == 0`); `face_edge_eval` passes the worker's
+  `dz_used_m` through it and no longer duplicates the check (our tests still cover it). Capped/linear ball speed uses the module's
+  `smash_legacy_quadratic` (LOW confidence). New INFO rows `mine/spin_face_edge_r2207_info` and `mine/smash_r2207_info`:
+  **digitized R22-07 Fig 1-2, under Evaluator review** — not in any verdict. The 12.7 mm outside-measured flag is kept for now (may move to 21 mm after review).

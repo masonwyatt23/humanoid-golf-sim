@@ -43,23 +43,24 @@ def strike_extent_rows(info_row):
             "mine/strike_outside_measured_info": mk(m > MEASURED_DZ_MM, f"INFO: median |dz| {m:.1f} mm {'> ' + format(MEASURED_DZ_MM, 'g') + ' mm: outside measured Hotstix data' if m > MEASURED_DZ_MM else 'within the measured Hotstix span +/-12.7 mm'}")}
 
 def face_edge_eval(centre, dz_mm):
-    """Side-by-side model for one episode. centre MUST be a golfphys CENTRE strike (dz_used_m == 0) - guards against double counting the
-    off-centre effect (golfphys gear effect + face_edge_adjust). Returns capped (as written, +/-12.7 mm saturation) and linear (extrapolated)."""
-    if not centre or centre.get("error"): raise ValueError(f"no centre-strike golfphys result: {centre}")
-    if centre.get("dz_used_m") is None or abs(float(centre["dz_used_m"])) > 1e-12:
-        raise ValueError(f"face_edge_adjust needs a golfphys CENTRE strike (dz_used_m == 0), got dz_used_m={centre.get('dz_used_m')!r}: would double count")
-    from data.driver_face_offcentre import face_edge_adjust, GEAR_V_RPM_PER_MM_AT_148
+    """Side-by-side model for one episode (Data Agent module at e413c36, which owns the centre-strike guard: face_edge_adjust raises ValueError
+    unless centre_dz_mm == 0, so golfphys's own gear effect is never counted twice). The worker's centre re-run records dz_used_m (= 0).
+    capped / linear: spin as written (+/-12.7 mm saturation) and extrapolated; their ball speed uses the legacy quadratic smash (LOW confidence).
+    r2207: digitized R22-07 Fig 1-2 spin/smash, INFO only, under Evaluator review (not in any verdict)."""
+    if not centre or centre.get("error") or centre.get("dz_used_m") is None: raise ValueError(f"no centre-strike golfphys result: {centre}")
+    from data.driver_face_offcentre import face_edge_adjust
     from eval.golfphys_total import golfphys_total
-    cap = face_edge_adjust(centre, dz_mm)
-    if not cap["valid"]: return dict(status=cap["status"], valid=False, capped=None, linear=None)
-    k = GEAR_V_RPM_PER_MM_AT_148 * centre["ball_speed_mph"] / 148.0
-    lin = dict(cap, spin_rpm=max(0.0, centre["spin_rpm"] - k * dz_mm))
-    out = dict(status=cap["status"], valid=True)
-    for nm, m in (("capped", cap), ("linear", lin)):
-        bs = centre["ball_speed_mph"] * m["smash"] / centre["smash"]
-        try: gp = golfphys_total(bs, m["launch_deg"], m["spin_rpm"], 0.0, 0.0); carry = gp.get("carry_yd"); toc = gp.get("total_over_carry")
-        except Exception: carry = toc = None
-        out[nm] = dict(spin_rpm=m["spin_rpm"], launch_deg=m["launch_deg"], smash=m["smash"], ball_speed_mph=bs, carry_yd=carry, total_over_carry=toc)
+    m = face_edge_adjust(dict(centre, centre_dz_mm=1000.0 * float(centre["dz_used_m"])), dz_mm)
+    out = dict(status=m["status"], valid=m["valid"], capped=None, linear=None, r2207=None)
+    if not m["valid"]: return out
+    def fly(spin, smash):
+        bs = centre["ball_speed_mph"] * smash / centre["smash"]
+        try: gp = golfphys_total(bs, m["launch_deg"], spin, 0.0, 0.0); return bs, gp.get("carry_yd"), gp.get("total_over_carry")
+        except Exception: return bs, None, None
+    for nm, spin, smash in (("capped", m["spin_rpm_capped"], m["smash_legacy_quadratic"]), ("linear", m["spin_rpm_linear"], m["smash_legacy_quadratic"]), ("r2207", m.get("spin_rpm_r2207"), m.get("smash"))):
+        if spin is None or smash is None: continue
+        bs, carry, toc = fly(spin, smash)
+        out[nm] = dict(spin_rpm=spin, launch_deg=m["launch_deg"], smash=smash, ball_speed_mph=bs, carry_yd=carry, total_over_carry=toc)
     return out
 
 def _q(xs):
@@ -68,7 +69,7 @@ def _q(xs):
     if not xs: return None
     a = np.percentile(xs, [50, 10, 90]); return dict(median=float(a[0]), p10=float(a[1]), p90=float(a[2]), n=len(xs))
 
-FACE_EDGE_LABELS = ["148 mph is a MODEL value (TrajectoWare)", "smash: LOW confidence", "leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read",
+FACE_EDGE_LABELS = ["148 mph is a MODEL value (TrajectoWare)", "r2207 rows: digitized R22-07 Fig 1-2, under Evaluator review (info only)", "outside-measured flag at 12.7 mm (may move to 21 mm after review)", "smash: LOW confidence", "leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read",
                     "51.3 rpm/mm and 0.201 deg/mm DERIVED from measured Hotstix data (secondary source)", "side-by-side model only, never the default ball model"]
 
 def face_edge_rows(det_eps, rob_eps=None):
@@ -77,13 +78,19 @@ def face_edge_rows(det_eps, rob_eps=None):
     ev = lambda E: [face_edge_eval(e["strike_centre"], e["strike_dz_mm"]) for e in E if e.get("strike_centre") and e.get("strike_dz_mm") is not None]
     D, B = ev(det_eps), ev(rob_eps or [])
     if not D: return R
-    for nm in ("capped", "linear"):
-        g = lambda E, f: _q([x[nm][f] for x in E if x["valid"]])
-        R[f"mine/spin_face_edge_{nm}_info"] = dict(status="info", passed=False, tag="info_only", gating=False, model=nm,
+    for nm in ("capped", "linear", "r2207"):
+        g = lambda E, f: _q([x[nm][f] for x in E if x["valid"] and x.get(nm)])
+        key = f"mine/spin_face_edge_{nm}_info"
+        R[key] = dict(status="info", passed=False, tag="info_only", gating=False, model=nm,
             values=dict(deterministic={f: g(D, f) for f in ("spin_rpm", "launch_deg", "smash", "carry_yd", "total_over_carry", "ball_speed_mph")},
                         robustness={f: g(B, f) for f in ("spin_rpm", "launch_deg", "smash", "carry_yd", "total_over_carry")} if B else None,
                         n_off_face=dict(deterministic=sum(1 for x in D if not x["valid"]), robustness=sum(1 for x in B if not x["valid"]))),
-            why=[f"INFO: side-by-side face-edge model ({nm}{', +/-12.7 mm saturation as written' if nm == 'capped' else ', extrapolated linearly beyond 12.7 mm'}) on a golfphys centre strike"] + FACE_EDGE_LABELS)
+            why=[f"INFO: side-by-side face-edge model ({nm}{', +/-12.7 mm saturation as written' if nm == 'capped' else ', extrapolated linearly beyond 12.7 mm' if nm == 'linear' else ': digitized R22-07 Fig 1-2, under Evaluator review; NOT in any verdict'}) on a golfphys centre strike"] + FACE_EDGE_LABELS)
+    if "mine/spin_face_edge_r2207_info" in R:
+        r = R["mine/spin_face_edge_r2207_info"]["values"]
+        R["mine/smash_r2207_info"] = dict(status="info", passed=False, tag="info_only", gating=False, model="r2207",
+            values=dict(deterministic=r["deterministic"]["smash"], robustness=(r["robustness"] or {}).get("smash")),
+            why=["INFO: smash under digitized R22-07 Fig 1-2 (ball-speed ratio vs dz), under Evaluator review; NOT in any verdict"])
     return R
 
 def face_edge_model_verdict(r_v3d, spin_fn):
