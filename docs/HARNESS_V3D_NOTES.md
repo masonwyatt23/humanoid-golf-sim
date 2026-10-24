@@ -73,3 +73,5 @@ provisional strike-height row (WARN beyond 15 mm, FAIL at the face edge).
 * Evidence: the golfphys spin-audit review (Oct 24) — at seed 4000, K30a 300k struck 25 mm low (4455 rpm vs ~2631 centred) and K30b 400k
   31 mm low (4660 rpm vs ~2449 centred); K25b 400k 8 mm low. Strikes this far down sit at the edge of the sim face, where the vendored
   golfphys model barely loses ball speed (so the spin penalty's size is itself uncertain).
+* The face-edge threshold lives in ONE constant, `eval/harness_v3d.py: STRIKE_FACE_EDGE_MM` (default 32.0 = sim head-box half-height).
+  The Data Agent's sourced 53 mm face height (→ 26.5 mm half-height) is UNDER REVIEW and NOT adopted; switching would change only that constant.

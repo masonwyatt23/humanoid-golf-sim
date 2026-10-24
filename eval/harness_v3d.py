@@ -21,18 +21,18 @@ SPIN_PASS_V3D = (2000.0, 3700.0); SPIN_WARN = (1200.0, 4000.0); SPIN_SPEED_RANGE
 PELVIS_FLOOR_DPS = 250.0; PELVIS_INFO_TARGET_DPS = 340.0
 TA_INVERSION_MS = 30.0; ARM_CLUB_MIN_MS = 20.0; PELVIS_CLUB_MIN_MS = 15.0; SEQ_MAX_MS = 150.0
 CLUB_P10_MIN_FRAC = 0.93
-STRIKE_DZ_WARN_MM = 15.0; FACE_HALF_HEIGHT_MM = 32.0   # 15 = design choice (not sourced); 32 = sim geometry (head box half-height), not a real-driver source
+STRIKE_DZ_WARN_MM = 15.0; STRIKE_FACE_EDGE_MM = 32.0   # SINGLE source of the face-edge FAIL threshold. Default = sim geometry (head box half-height 0.032 m), not a real-driver source. A sourced value (e.g. 26.5 mm = half of a 53 mm face height, Data Agent proposal UNDER REVIEW, not adopted) would change only this line. 15 mm WARN = design choice (not sourced)
 
 def strike_height_status(med_abs_dz_mm):
     if med_abs_dz_mm is None: return "skip"
-    return "fail" if med_abs_dz_mm >= FACE_HALF_HEIGHT_MM else "warn" if med_abs_dz_mm > STRIKE_DZ_WARN_MM else "pass"
+    return "fail" if med_abs_dz_mm >= STRIKE_FACE_EDGE_MM else "warn" if med_abs_dz_mm > STRIKE_DZ_WARN_MM else "pass"
 
 def strike_height_row(info_row):
     d = ((info_row or {}).get("values") or {}).get("deterministic") or {}; m = d.get("median_abs")
     s = strike_height_status(m)
     return dict(status=s, passed=s == "pass", tag="provisional", gating=True, values=dict(median_abs_dz_mm=m, median_dz_mm=d.get("median")),
-                expected=dict(pass_max_mm=STRIKE_DZ_WARN_MM, fail_at_mm=FACE_HALF_HEIGHT_MM),
-                why=[f"PROVISIONAL (v3d only): deterministic median |dz| {m:.1f} mm; WARN > {STRIKE_DZ_WARN_MM:g} mm (design choice, not sourced), FAIL >= {FACE_HALF_HEIGHT_MM:g} mm face edge (sim geometry: head box half-height 0.032 m in humanoid_golf_v5_g1_lh/rh.xml, not a real-driver source)"] if m is not None else ["no strike data"],
+                expected=dict(pass_max_mm=STRIKE_DZ_WARN_MM, fail_at_mm=STRIKE_FACE_EDGE_MM),
+                why=[f"PROVISIONAL (v3d only): deterministic median |dz| {m:.1f} mm; WARN > {STRIKE_DZ_WARN_MM:g} mm (design choice, not sourced), FAIL >= {STRIKE_FACE_EDGE_MM:g} mm face edge (STRIKE_FACE_EDGE_MM; default = sim geometry, head box half-height in humanoid_golf_v5_g1_lh/rh.xml, not a real-driver source)"] if m is not None else ["no strike data"],
                 ref="docs/HARNESS_V3D_NOTES.md (strike height)")
 _W = {"skip": -1, "info": -1, "pass": 0, "warn": 1, "fail": 2}
 

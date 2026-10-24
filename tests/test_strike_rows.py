@@ -51,7 +51,7 @@ def test_face_edge_matches_sim_geometry():
     if not xs:
         import pytest; pytest.skip("v5 G1 models not in this checkout")
     for x in xs:
-        m = re.search(r'<geom name="head" size="([\d.]+) ([\d.]+) ([\d.]+)"', x.read_text()); assert m and abs(float(m.group(3)) * 1000 - H.FACE_HALF_HEIGHT_MM) < 1e-9
+        m = re.search(r'<geom name="head" size="([\d.]+) ([\d.]+) ([\d.]+)"', x.read_text()); assert m and abs(float(m.group(3)) * 1000 - H.STRIKE_FACE_EDGE_MM) < 1e-9
 
 def test_worker_records_strike():
     src = (Path(__file__).resolve().parents[1] / "results" / "overnight" / "_j_worker_gp_v3.py").read_text()
