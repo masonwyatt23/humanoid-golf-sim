@@ -39,6 +39,7 @@ def face_edge_for(r):
     Data Agent's 54 mm nominal face). Otherwise STRIKE_FACE_EDGE_MM (26.5, Wishon 919THI)."""
     H_ = ((r or {}).get("tee_info") or {}).get("head") or {}
     if H_.get("mode") in ("realistic", "v4") and H_.get("face_limits_m"):
+        if H_.get("mode") == "v4": return 1000.0 * float(H_["face_limits_m"][0]), "env face_limits() vertical half-height (v4 head; 54 mm sourced face, cross-checked vs V4_SPEC 0.5 mm)"
         return 1000.0 * float(H_["face_limits_m"][0]), "env face_limits() vertical half-height (realistic head; Data Agent JSON face height, cross-checked 0.5 mm)"
     return STRIKE_FACE_EDGE_MM, "STRIKE_FACE_EDGE_MM = 53/2 mm, measured spec, single brand (Wishon 919THI 53x105 mm), provisional"
 

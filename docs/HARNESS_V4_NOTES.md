@@ -1,6 +1,6 @@
 # Harness v4 (Evaluator, 2026-10-24 ET): v3d bands on the sourced v4 head/address
 
-> **Status: PROVISIONAL, opt-in (`--harness v4`).** The default harness stays v3c and is unchanged. Single seed, model-only physics. No row passes every check; no v4 rows are scored yet. Never compare pass/warn/fail counts across harness versions (v3c, v3d, v4 use different bands and envs).
+> **Status: PROVISIONAL, opt-in (`--harness v4`).** The default harness stays v3c and is unchanged. Single seed, model-only physics. No row passes every check. v4 rows are now scored (Evaluator V4 re-baseline, V4a/V4b + K34a ref): every gating 1.5 in row FAILs, best 14/3/2 (`results/v5_runs/stageJK_harness_summary/realism_v5_V4b_s81_300k_15in_v4_gateoff_gp_arm06.json`); crown 1.6 in rows are info only, not passes. See `docs/V4_REBASELINE.md`. Never compare pass/warn/fail counts across harness versions (v3c, v3d, v4 use different bands and envs).
 Status: READY, cross-check PENDING the Trainer's v4 flag being committed (seen only in the Trainer's dirty tree as `--env_v4` / `env.set_env_v4()` /
 `--tee_mode 1.5in`; not scored, not probed: harness scores read-only exports of commits only).
 
@@ -44,3 +44,7 @@ Swingweight: compiled club 300 g, along-shaft COM -0.99355 m and moment about th
 m_butt 5.673 g (head CG 16.31 mm further down the shaft); TRAINING_NOTES says 5.47 g / 15.7 mm (doc mismatch, behaviour correct). Club COM lateral offset changes (x 0 -> -16.9 mm, y 16.5 -> 23.3 mm in the club frame).
 Smoke (K32a 200k, Trainer scripts/v4_smoke.py rerun from the export, 25 seeds): CSV byte-identical to the Trainer's. Policy: default/crown tee 22/25 hits, median dz 0.09, dy -18.04 mm,
 spin 2128, launch 12.84, smash 1.38, 69.76 mph; 1.5 in tee 22/25, dz -2.33, dy -20.89, spin 2290, launch 12.42, smash 1.37, 69.76 mph; 2/25 off-face at each tee.
+
+## V4 re-baseline done (2026-10-24 ~18:40 ET): see docs/V4_REBASELINE.md
+V4a_s80 50k-200k and V4b_s81 50k-300k (Trainer 54b49c6 export), K34a 200k cross-head ref: every gating v4 1.5 in row FAILs (mine/robustness, shot/total_over_carry);
+no full pass, no crown-only pass. Cross-check passes on every run. K32a 200k ref blocked by its args face_h 0.053 (face_half_h 26.5 vs 27); rerun with V3_FACE_H=none pending.

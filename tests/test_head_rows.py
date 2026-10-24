@@ -42,3 +42,11 @@ def test_worker_head_passthrough_source():
     s = w.read_text()
     for k in ("V3_HEAD", "set_head", "face_limits()", "head geometry mismatch", "HEAD_TOL_M = 5e-4", "head_shell", "TEE_INFO = dict(head=HEAD_INFO"):
         assert k in s
+
+def test_v4_head_labels():
+    V = dict(T, head=dict(mode="v4", source="Trainer v4 env", face_limits_m=[0.027, 0.0525], expected={}, measured={}))
+    R = tee_info_rows(V)
+    assert "v4 head (sourced 460 cc, lie 58.5, Izz 5600 (n=1 manufacturer claim), CFZ 39, face centre 29 mm" in R["mine/head_info"]["why"][0]
+    w = R["mine/tee_dz_info"]["why"][0]; assert "v4 head, 1.6 in crown tee (equator at sourced crown)" in w and "COMPENSATES" not in w
+    assert "COMPENSATES" not in tee_info_rows(dict(V, mode="1.5in"))["mine/tee_dz_info"]["why"][0]
+    e, src = H.face_edge_for(dict(tee_info=V)); assert abs(e - 27.0) < 1e-9 and "v4 head" in src
