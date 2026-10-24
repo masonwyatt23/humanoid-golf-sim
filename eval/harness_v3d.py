@@ -215,8 +215,15 @@ def apply_v3d(r, _spin=True):
     r["harness_v3"] = dict(r.get("harness_v3") or {}, harness="v3d", base_run="v3c")
     return r
 
-def apply_v3d_flagged(r):
+def apply_v3d_flagged(r, r_tee0=None):
+    """r_tee0 (optional): the SAME checkpoint scored at tee_dz 0 (the v3c run). If r is PASS but apply_v3d(r_tee0) is not, the verdict is
+    'not a pass (new-tee-only)': it passes only because of the crown-level tee."""
     out = apply_v3d(r, True)
+    out["new_tee_only"] = False
+    if r_tee0 is not None:
+        cf = apply_v3d(r_tee0, True); out["tee0_counterfactual"] = dict(verdict=cf["verdict"], n_pass=cf["checks_passed"], n_warn=cf["n_warn"], n_fail=cf["n_fail"],
+                                                                        fails=sorted(k for k, v in cf["checks"].items() if v.get("status") == "fail"))
+        if out["verdict"] == "PASS" and cf["verdict"] != "PASS": out["verdict"] = "not a pass (new-tee-only)"; out["new_tee_only"] = True
     if out["verdict"] == "PASS" and apply_v3d(r, False)["verdict"] != "PASS":
         out["verdict"] = "not a pass (spin-band-only)"; out["spin_band_only"] = True
     else: out["spin_band_only"] = False

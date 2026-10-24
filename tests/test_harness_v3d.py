@@ -47,6 +47,7 @@ FILES = sorted(glob.glob(os.path.join(os.path.dirname(os.path.dirname(os.path.ab
 def test_v3c_spin_fallback_reproduces_v3c():
     for f in FILES:
         r = json.load(open(f)); C = r["checks"]
+        if "shot/spin_rpm" not in C: continue   # no true-contact episode (e.g. K32a 100k at tee 0 with args face_h 0.053: all off-face misses)
         assert H.spin_status(C["shot/spin_rpm"]["values"], C["shot/club_speed_mph"]["values"], v3d=False) == C["shot/spin_rpm"]["status"], f
         rs = C["mine/robustness"]["values"]["shot"]; cm = rs["club_speed_mph"]["median"]
         for q in ("median", "p10", "p90"): assert H.spin_status(rs["spin_rpm"][q], cm, v3d=False) == rs["spin_rpm"]["status"][q], (f, q)

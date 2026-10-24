@@ -13,7 +13,7 @@ real club-head centre, local -z along the real shaft (grip->head), local +x alon
 Scene is translated (no rotation) so the tee sits at the renderer's v1 tee (0.41, 0, z)."""
 import argparse, json, os, sys
 import numpy as np
-CFG = ('xf_hard', 'grf_lo', 'grf_w', 'xf_cap_lo', 'xf_cap_w', 'track_floor', 'ord2_w', 'launch_w', 'desc_w', 'dloft_w', 'spin_lo_w', 'smash_w', 'spin_w', 'spin_hi', 'spin_scale', 'fine_grf', 'launch_hi', 'dl_lo', 'dl_hi', 'aoa_lo', 'spd_w', 'pel_w', 'pel_t_w', 'pel_dps', 'pel_t_lo', 'pel_t_hi', 'sep_w', 'ctr_w', 'ctrl_dt')  # CFG-FIX (Evaluator 2026-10-24): same configure() as results/overnight/_j_worker_gp_v3.py; the nopath exporter omitted res_mult + newer keys
+CFG = ('xf_hard', 'grf_lo', 'grf_w', 'xf_cap_lo', 'xf_cap_w', 'track_floor', 'ord2_w', 'launch_w', 'desc_w', 'dloft_w', 'spin_lo_w', 'smash_w', 'spin_w', 'spin_hi', 'spin_scale', 'fine_grf', 'launch_hi', 'dl_lo', 'dl_hi', 'aoa_lo', 'spd_w', 'pel_w', 'pel_t_w', 'pel_dps', 'pel_t_lo', 'pel_t_hi', 'sep_w', 'ctr_w', 'ctrl_dt', 'tee_dz', 'ball_dx', 'face_h', 'tee_mode')  # (+K31/K32 geometry keys 2026-10-24; configure() skips None so old args are unchanged) CFG-FIX (Evaluator 2026-10-24): same configure() as results/overnight/_j_worker_gp_v3.py; the nopath exporter omitted res_mult + newer keys
 # Repo root: V5_REPO env, else the directory that contains render_blender/ (no machine-path default).
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TR = os.environ.get("V5_REPO", _ROOT)

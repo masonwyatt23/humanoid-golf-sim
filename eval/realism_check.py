@@ -70,6 +70,25 @@ def strike_info_rows(det_eps, rob_eps=None):
             why=[f"INFO only (not gating): strike {ax} at impact, mm from the face centre (env info['{ax}'])"], ref=None)
     return R
 
+def tee_info_rows(T):
+    """INFO rows (never gating) from the worker's tee_info: mine/tee_dz_info, mine/face_h_info, mine/tee_height_info (ball centre / bottom above ground from env geometry).
+    No rows when the worker predates tee_info, so counts are unchanged."""
+    if not T: return {}
+    G = T.get("geometry") or {}; A_ = T.get("args") or {}; mm = lambda v: None if v is None else 1000.0 * float(v)
+    mk = lambda vals, why: dict(status="info", passed=False, tag="info_only", gating=False, values=vals, why=[why], ref=None)
+    R = {"mine/tee_dz_info": mk(dict(tee_dz_used_mm=mm(T.get("tee_dz_used_m")), tee_dz_args_mm=mm(A_.get("tee_dz")), tee_mode_args=A_.get("tee_mode"), harness_tee=T.get("mode"),
+                                     ball_dx_used_mm=mm(T.get("ball_dx_used_m")), ball_dx_args_mm=mm(A_.get("ball_dx")), crown=T.get("crown")),
+                             "INFO only: tee offset used (V3_TEE=%s; 'crown' = derived from sim head geometry, crown-level per GOLF.com / Golf Digest / Golf Monthly advice)" % T.get("mode")),
+         "mine/face_h_info": mk(dict(face_h_used_mm=mm(T.get("face_h_used_m")), face_h_args_mm=mm(A_.get("face_h")), head_box_height_mm=mm(2 * G["head_half_height_m"]) if G.get("head_half_height_m") else None,
+                                     non_default=T.get("face_h_used_m") is not None),
+                                "INFO only: env face_h used (None = 64 mm head box; non-None = off-face contacts beyond face_h/2 become misses, which changes what is scored)")}
+    if G:
+        R["mine/tee_height_info"] = mk(dict(ball_centre_mm=mm(G["ball_centre_z_m"]), ball_bottom_mm=mm(G["ball_bottom_z_m"]), ball_bottom_in=G["ball_bottom_z_m"] / 0.0254,
+                                            crown_mm=mm(G["crown_z_m"]), face_centre_mm=mm(G["face_centre_z_m"]), equator_minus_crown_mm=mm(G["ball_centre_z_m"] - G["crown_z_m"]),
+                                            ball_minus_face_centre_along_up_mm=mm(G["ball_minus_face_centre_along_up_m"]), sole_mm=mm(G["sole_min_z_m"])),
+                                       "INFO only: address geometry above ground (env, after reset): ball centre / bottom (tee peg), head-box crown at the face, face centre")
+    return R
+
 def _robust_ep(r, bw):
     """Per-episode numbers for mine/robustness (same definitions as the deterministic rows: golfphys t/c and lateral, ball azimuth, address-referenced plant)."""
     from eval import swing_realism as SR
@@ -161,11 +180,11 @@ def run_v5(a):
     repo = Path(a.v5_repo); ck = str(Path(a.target).with_suffix("")) if a.target.endswith(".zip") else a.target
     if not (repo / "env" / "v5_golf_env.py").exists(): sys.exit(f"v5 env not found in {repo} (it is a Trainer-local commit, not on origin/main)")
     if not Path(ck + "_vecnorm.pkl").exists(): sys.exit(f"missing {ck}_vecnorm.pkl (PPO checkpoints need VecNormalize stats)")
-    arm = resolve_arm_dist(a.target, a.arm_dist); seeds = [int(s) for s in a.seeds.split(",")]; eps = []; bw = None; env = dict(os.environ, OMP_NUM_THREADS="2", MKL_NUM_THREADS="2", OPENBLAS_NUM_THREADS="2", NUMEXPR_NUM_THREADS="2")
+    arm = resolve_arm_dist(a.target, a.arm_dist); seeds = [int(s) for s in a.seeds.split(",")]; eps = []; bw = None; TEE = None; env = dict(os.environ, OMP_NUM_THREADS="2", MKL_NUM_THREADS="2", OPENBLAS_NUM_THREADS="2", NUMEXPR_NUM_THREADS="2")
     for sd in seeds:
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
         subprocess.run([outp if x == "{OUT}" else x for x in worker_args(a, repo, ck, arm, sd)], check=True, cwd=str(repo), env=env)
-        J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]
+        J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]; TEE = J.get("tee_info") or TEE
         for r_ in J["eps"]: r_["_declared_dt"] = J.get("dt")
         eps += J["eps"]
     out = []; gp_rows = []; tres = getattr(a, "timing_res_ms", None)
@@ -255,6 +274,7 @@ def run_v5(a):
                 C["mine/robustness_stress_friction_info"] = dict(w, status="info", passed=False, tag="info_only", gating=False, verdict_if_gating=w.get("status"), why=["INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md)"] + list(w.get("why") or []))
     if getattr(a, "harness", None) != "v2":   # INFO rows, all v3 harnesses (v3b/v3c/v3d); counts unchanged
         C.update(strike_info_rows([e for e in ok if e["true_contact"]], [e for e in (ROB or []) if e.get("contact")]))
+        C.update(tee_info_rows(TEE))
     S = SR.summarize(C); TR = None
     if tres:
         F = SR.agg_da(ok, "da_tres", "swing"); alt = dict(C); alt.update(F); S2 = SR.summarize(alt)
@@ -266,7 +286,7 @@ def run_v5(a):
                   checks={k.replace("swing/", f"swing@{tres:g}ms/"): v for k, v in F.items()}, verdict_if_these_rows_gate=S2["verdict"], n_warn_if_gate=S2["n_warn"], n_fail_if_gate=S2["n_fail"],
                   gating=False, note="verdict above is the DEFAULT (20 ms) verdict; these rows are reported alongside and do not change it")
     STK = [{k: e.get(k) for k in ("strike_dy_mm", "strike_dz_mm", "strike_centre")} for e in ok if e["true_contact"] and e.get("strike_dz_mm") is not None]
-    return dict(strike_episodes=STK, harness_v3=dict(harness=getattr(a, "harness", None), robust_wide_info=getattr(a, "robust_wide_info", False), grf_method=getattr(a, "grf_method", "legacy"), grf_source=getattr(a, "grf_source", None), robustness_n=getattr(a, "robustness", 0), robust_seed0=getattr(a, "robust_seed0", None)), robustness_episodes=ROB, timing_resolution=TR, key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"],
+    return dict(tee_info=TEE, strike_episodes=STK, harness_v3=dict(harness=getattr(a, "harness", None), robust_wide_info=getattr(a, "robust_wide_info", False), grf_method=getattr(a, "grf_method", "legacy"), grf_source=getattr(a, "grf_source", None), robustness_n=getattr(a, "robustness", 0), robust_seed0=getattr(a, "robust_seed0", None)), robustness_episodes=ROB, timing_resolution=TR, key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"],
                 club_mph_median=SR.med([e["club_mph"] for e in ok]), golfphys_total=_gp_summary(gp_rows),
                 sample_interval=dict(used_ms=1000 * SR.med([e["dt_used"] for e in out]), declared_ms=(1000 * float(out[0]["dt_declared"]) if out and out[0]["dt_declared"] is not None else None),
                                      n_declared_mismatch=sum(1 for e in out if e["dt_mismatch"]), method="measured median spacing of the worker's logged sim time per episode (dt fix 2026-10-19; pre-fix assumed 5 ms)"))
