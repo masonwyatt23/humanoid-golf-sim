@@ -13,11 +13,12 @@ v3d = v3c run (same episodes, friction gate U(0.7,1.05), info rows) + the re-gra
  (6) mine/strike_height (PROVISIONAL, Orchestrator-approved 2026-10-24): deterministic median |dz| (strike height from the face centre, mm).
      PASS <= 15 mm (DESIGN CHOICE, not sourced); WARN > 15 mm; FAIL >= STRIKE_FACE_EDGE_MM = 26.5 mm (measured spec, single brand: Wishon 919THI
      53x105 mm face, provisional). Info: mine/strike_within_sim_box_info (|dz| <= 32 mm sim head-box half-height, sim geometry) and
-     mine/strike_outside_measured_info (|dz| > 12.7 mm = outside measured Hotstix data).
+     outside-measured flags per quantity: mine/strike_outside_measured_speed_spin_info (|dz| > 21 mm, R22-07 range),
+     mine/strike_outside_measured_launch_info (|dz| > 12.7 mm, Hotstix 0.20 deg/mm), mine/strike_beyond_r2207_info (|dz| > 21 mm).
  (7) Side-by-side face-edge ball model (INFO rows, never the default): golfphys CENTRE strike (dz = 0, same club vel/normal/dy) -> data/driver_face_offcentre
      face_edge_adjust with the real dz, CAPPED (+/-12.7 mm as written) and LINEAR (extrapolated). Spin passes under the model only if BOTH pass.
      A verdict that would be PASS only under this model is 'not a pass (face-edge-model-only)'. Labels: 148 mph is a MODEL value (TrajectoWare);
-     smash LOW confidence; leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read; 51.3 rpm/mm and 0.201 deg/mm derived from measured Hotstix data (secondary source).
+     smash LOW confidence; R22-07 Fig 2: spin rises to a peak near -15 mm, then falls (capped variant kept for comparison); 51.3 rpm/mm and 0.201 deg/mm derived from measured Hotstix data (secondary source).
      Skipped (no row) when the run did not log strike offsets.
  Info flag: if the v3d verdict is PASS only because of (1), verdict becomes 'not a pass (spin-band-only)'.
 """
@@ -29,7 +30,8 @@ CLUB_P10_MIN_FRAC = 0.93
 STRIKE_DZ_WARN_MM = 15.0; STRIKE_FACE_EDGE_MM = 26.5   # SINGLE source of the face-edge FAIL threshold: 53 mm / 2. MEASURED SPEC, SINGLE BRAND (Wishon 919THI 53x105 mm), PROVISIONAL
                               # (data/references/driver_face_offcentre_refs.*; Orchestrator-approved Oct 24). Was 32.0 = sim head-box half-height. 15 mm WARN = design choice (not sourced)
 SIM_BOX_HALF_HEIGHT_MM = 32.0  # sim geometry (env/models/humanoid_golf_v5_g1_{lh,rh}.xml head box size z 0.032), not a real-driver source; INFO row only
-MEASURED_DZ_MM = 12.7          # Hotstix robot data span +/-0.5 in (secondary source); INFO row only
+MEASURED_DZ_MM = 12.7          # Hotstix robot data span +/-0.5 in (secondary source): launch flag only
+R2207_DZ_MM = 21.0             # R22-07 Fig 1-2 digitized span (-21..+21 mm): ball speed/smash and spin flag
 
 def strike_height_status(med_abs_dz_mm):
     if med_abs_dz_mm is None: return "skip"
@@ -40,13 +42,14 @@ def strike_extent_rows(info_row):
     if m is None: return {}
     mk = lambda ok, why: dict(status="info", passed=False, tag="info_only", gating=False, values=dict(median_abs_dz_mm=m, flag=ok), why=[why])
     return {"mine/strike_within_sim_box_info": mk(m <= SIM_BOX_HALF_HEIGHT_MM, f"INFO: median |dz| {m:.1f} mm {'within' if m <= SIM_BOX_HALF_HEIGHT_MM else 'OUTSIDE'} the sim head-box half-height {SIM_BOX_HALF_HEIGHT_MM:g} mm (sim geometry)"),
-            "mine/strike_outside_measured_info": mk(m > MEASURED_DZ_MM, f"INFO: median |dz| {m:.1f} mm {'> ' + format(MEASURED_DZ_MM, 'g') + ' mm: outside measured Hotstix data' if m > MEASURED_DZ_MM else 'within the measured Hotstix span +/-12.7 mm'}")}
+            "mine/strike_outside_measured_speed_spin_info": mk(m > R2207_DZ_MM, f"INFO: median |dz| {m:.1f} mm {'>' if m > R2207_DZ_MM else '<='} {R2207_DZ_MM:g} mm (R22-07 measured range for ball speed/smash and spin)"),
+            "mine/strike_outside_measured_launch_info": mk(m > MEASURED_DZ_MM, f"INFO: median |dz| {m:.1f} mm {'>' if m > MEASURED_DZ_MM else '<='} {MEASURED_DZ_MM:g} mm (launch uses Hotstix 0.20 deg/mm, measured to +/-12.7 mm)"),
+            "mine/strike_beyond_r2207_info": mk(m > R2207_DZ_MM, f"INFO: median |dz| {m:.1f} mm {'> 21 mm: beyond R22-07 data - smash extrapolated (LOW), r2207 spin None' if m > R2207_DZ_MM else '<= 21 mm: within R22-07 data'}")}
 
 def face_edge_eval(centre, dz_mm):
     """Side-by-side model for one episode (Data Agent module at e413c36, which owns the centre-strike guard: face_edge_adjust raises ValueError
     unless centre_dz_mm == 0, so golfphys's own gear effect is never counted twice). The worker's centre re-run records dz_used_m (= 0).
-    capped / linear: spin as written (+/-12.7 mm saturation) and extrapolated; their ball speed uses the legacy quadratic smash (LOW confidence).
-    r2207: digitized R22-07 Fig 1-2 spin/smash, INFO only, under Evaluator review (not in any verdict)."""
+    capped / linear / r2207 spin; smash = R22-07 ratio (MEDIUM, derived, |dz| <= 21 mm; LOW beyond); legacy quadratic smash kept as info."""
     if not centre or centre.get("error") or centre.get("dz_used_m") is None: raise ValueError(f"no centre-strike golfphys result: {centre}")
     from data.driver_face_offcentre import face_edge_adjust
     from eval.golfphys_total import golfphys_total
@@ -57,10 +60,13 @@ def face_edge_eval(centre, dz_mm):
         bs = centre["ball_speed_mph"] * smash / centre["smash"]
         try: gp = golfphys_total(bs, m["launch_deg"], spin, 0.0, 0.0); return bs, gp.get("carry_yd"), gp.get("total_over_carry")
         except Exception: return bs, None, None
-    for nm, spin, smash in (("capped", m["spin_rpm_capped"], m["smash_legacy_quadratic"]), ("linear", m["spin_rpm_linear"], m["smash_legacy_quadratic"]), ("r2207", m.get("spin_rpm_r2207"), m.get("smash"))):
-        if spin is None or smash is None: continue
-        bs, carry, toc = fly(spin, smash)
-        out[nm] = dict(spin_rpm=spin, launch_deg=m["launch_deg"], smash=smash, ball_speed_mph=bs, carry_yd=carry, total_over_carry=toc)
+    sm = m.get("smash"); sconf = "MEDIUM, derived (R22-07 one robot driver ~115 mph; ratio assumed speed-independent)" if abs(dz_mm) <= R2207_DZ_MM else "LOW (beyond R22-07 21 mm: extrapolated)"
+    if sm is None: sm, sconf = m["smash_legacy_quadratic"], "LOW (legacy quadratic; R22-07 undefined above +21 mm)"
+    out.update(smash_confidence=sconf, smash_legacy_quadratic=m["smash_legacy_quadratic"])
+    for nm, spin in (("capped", m["spin_rpm_capped"]), ("linear", m["spin_rpm_linear"]), ("r2207", m.get("spin_rpm_r2207"))):
+        if spin is None: continue   # r2207 spin None beyond +/-21 mm = 'no data'
+        bs, carry, toc = fly(spin, sm)
+        out[nm] = dict(spin_rpm=spin, launch_deg=m["launch_deg"], smash=sm, ball_speed_mph=bs, carry_yd=carry, total_over_carry=toc)
     return out
 
 def _q(xs):
@@ -69,7 +75,7 @@ def _q(xs):
     if not xs: return None
     a = np.percentile(xs, [50, 10, 90]); return dict(median=float(a[0]), p10=float(a[1]), p90=float(a[2]), n=len(xs))
 
-FACE_EDGE_LABELS = ["148 mph is a MODEL value (TrajectoWare)", "r2207 rows: digitized R22-07 Fig 1-2, under Evaluator review (info only)", "outside-measured flag at 12.7 mm (may move to 21 mm after review)", "smash: LOW confidence", "leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read",
+FACE_EDGE_LABELS = ["148 mph is a MODEL value (TrajectoWare)", "R22-07 = R&A/USGA equipment research report 'The effect of impact position on driving distance' (~2022; PDF header says Nov 2006 but it cites the 2019 ODS; PDF author metadata Andrew Johnson); spin rises to a peak near -15 mm then falls", "smash: LOW confidence", "leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read",
                     "51.3 rpm/mm and 0.201 deg/mm DERIVED from measured Hotstix data (secondary source)", "side-by-side model only, never the default ball model"]
 
 def face_edge_rows(det_eps, rob_eps=None):
@@ -86,30 +92,41 @@ def face_edge_rows(det_eps, rob_eps=None):
                         robustness={f: g(B, f) for f in ("spin_rpm", "launch_deg", "smash", "carry_yd", "total_over_carry")} if B else None,
                         n_off_face=dict(deterministic=sum(1 for x in D if not x["valid"]), robustness=sum(1 for x in B if not x["valid"]))),
             why=[f"INFO: side-by-side face-edge model ({nm}{', +/-12.7 mm saturation as written' if nm == 'capped' else ', extrapolated linearly beyond 12.7 mm' if nm == 'linear' else ': digitized R22-07 Fig 1-2, under Evaluator review; NOT in any verdict'}) on a golfphys centre strike"] + FACE_EDGE_LABELS)
+    lq = _q([x["smash_legacy_quadratic"] for x in D if x["valid"]])
+    if lq: R["mine/smash_legacy_quadratic_info"] = dict(status="info", passed=False, tag="info_only", gating=False, values=dict(deterministic=lq, robustness=_q([x["smash_legacy_quadratic"] for x in B if x["valid"]])),
+        why=["INFO: legacy quadratic smash (MyGolfSpy-derived, LOW confidence), superseded by the R22-07 ratio"])
     if "mine/spin_face_edge_r2207_info" in R:
         r = R["mine/spin_face_edge_r2207_info"]["values"]
         R["mine/smash_r2207_info"] = dict(status="info", passed=False, tag="info_only", gating=False, model="r2207",
             values=dict(deterministic=r["deterministic"]["smash"], robustness=(r["robustness"] or {}).get("smash")),
-            why=["INFO: smash under digitized R22-07 Fig 1-2 (ball-speed ratio vs dz), under Evaluator review; NOT in any verdict"])
+            why=["INFO: smash under digitized R22-07 Fig 1-2 (ball-speed ratio vs dz): MEDIUM, derived for |dz| <= 21 mm (one robot driver ~115 mph, ratio assumed speed-independent); LOW beyond"])
     return R
 
 def face_edge_model_verdict(r_v3d, spin_fn):
-    """Verdict if spin (deterministic + robustness median/p10/p90) came from the side-by-side model; spin passes only if BOTH capped and linear pass."""
-    C = r_v3d["checks"]; cap, lin = C.get("mine/spin_face_edge_capped_info"), C.get("mine/spin_face_edge_linear_info")
-    if not (cap and lin): return None
-    club = (C.get("shot/club_speed_mph") or {}).get("values"); W = {"skip": -1, "pass": 0, "warn": 1, "fail": 2}
-    def worst(*ss): return max(ss, key=lambda x: W.get(x, -1))
-    det = [m["values"]["deterministic"]["spin_rpm"] for m in (cap, lin)]
-    if None in det: return dict(verdict="n/a (off face)")
-    sdet = worst(*(spin_fn(d["median"], club) for d in det))
-    C2 = copy.deepcopy(C); C2["shot/spin_rpm"] = dict(C2.get("shot/spin_rpm") or {}, status=sdet, passed=sdet == "pass")
-    rb = C2.get("mine/robustness")
-    if rb and rb.get("values", {}).get("shot", {}).get("spin_rpm") and cap["values"]["robustness"] and lin["values"]["robustness"]:
+    """Verdict if spin (deterministic median + robustness median/p10/p90) came from the side-by-side model. Spin passes only if capped AND
+    linear AND r2207 all pass where r2207 is defined (|dz| <= 21 mm); r2207 undefined = 'no_data' (not a pass, not a fail)."""
+    C = r_v3d["checks"]; M = [C.get(f"mine/spin_face_edge_{n}_info") for n in ("capped", "linear")]; r22 = C.get("mine/spin_face_edge_r2207_info")
+    if not all(M): return None
+    club = (C.get("shot/club_speed_mph") or {}).get("values"); W = {"skip": -1, "no_data": -1, "pass": 0, "warn": 1, "fail": 2}
+    def combo(vals, r22v, club_):
+        if None in vals: return "fail"
+        ss = [spin_fn(v, club_) for v in vals]
+        if r22v is not None: ss.append(spin_fn(r22v, club_))
+        w = max(ss, key=lambda x: W.get(x, -1))
+        return "no_data" if (w == "pass" and r22v is None) else w
+    g = lambda m, part, q: (((m or {}).get("values") or {}).get(part) or {}).get("spin_rpm", {}) and ((((m or {}).get("values") or {}).get(part) or {}).get("spin_rpm") or {}).get(q)
+    if any(g(m, "deterministic", "median") is None for m in M): return dict(verdict="n/a (off face)")
+    sdet = combo([g(m, "deterministic", "median") for m in M], g(r22, "deterministic", "median"), club)
+    C2 = copy.deepcopy(C); C2["shot/spin_rpm"] = dict(C2.get("shot/spin_rpm") or {}, status=sdet, passed=sdet == "pass"); nod = sdet == "no_data"
+    rb = C2.get("mine/robustness"); st = None
+    if rb and rb.get("values", {}).get("shot", {}).get("spin_rpm") and all(m["values"].get("robustness") for m in M):
         cm = (rb["values"]["shot"].get("club_speed_mph") or {}).get("median")
-        st = {q: worst(*(spin_fn(m["values"]["robustness"]["spin_rpm"][q], cm) for m in (cap, lin))) for q in ("median", "p10", "p90")}
-        C2["mine/robustness"] = _regrade_robust(rb, True, st)
-    S = summarize(C2)
-    return dict(verdict=S["verdict"], n_pass=S["n_pass"], n_warn=S["n_warn"], n_fail=S["n_fail"], spin_status_det=sdet, rule="spin passes only if BOTH capped and linear pass")
+        st = {q: combo([g(m, "robustness", q) for m in M], g(r22, "robustness", q), cm) for q in ("median", "p10", "p90")}
+        C2["mine/robustness"] = _regrade_robust(rb, True, st); nod = nod or "no_data" in st.values()
+    S = summarize(C2); v = S["verdict"]
+    if v == "PASS" and nod: v = "no data (r2207 undefined)"
+    return dict(verdict=v, n_pass=S["n_pass"], n_warn=S["n_warn"], n_fail=S["n_fail"], spin_status_det=sdet, spin_status_robust=st,
+                rule="spin passes only if capped AND linear AND r2207 (where defined, |dz|<=21 mm) pass; r2207 undefined = no data")
 
 def strike_height_row(info_row):
     d = ((info_row or {}).get("values") or {}).get("deterministic") or {}; m = d.get("median_abs")

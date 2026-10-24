@@ -91,7 +91,7 @@ provisional strike-height row (WARN beyond 15 mm, FAIL at the face edge).
   `mine/spin_face_edge_linear_info` carry spin, launch, smash, ball speed, carry and total/carry (golfphys_total re-flight), deterministic + robustness.
 * Verdict rule: under the model, spin passes only if BOTH capped and linear pass (`face_edge_model` in the v3d JSON). A result that would PASS
   only under the model is reported as **'not a pass (face-edge-model-only)'** (`face_edge_model_only = true`), like the spin-band-only flag.
-* Labels: 148 mph is a MODEL value (TrajectoWare); smash LOW confidence; leveling off beyond 12.7 mm is UNVERIFIED until R22-07 Fig 1 is read;
+* Labels: 148 mph is a MODEL value (TrajectoWare); smash LOW confidence; (superseded, see final spec below: R22-07 shows spin rising to a peak near −15 mm, then falling — not leveling off at 12.7 mm);
   51.3 rpm/mm and 0.201°/mm are DERIVED from measured Hotstix data (secondary source).
 * Check: K30a 300k seed 4000 — real strike dz −25.4 mm → env spin 4455 rpm; centre re-run (dz = 0) → 2688 rpm.
 * Update (16:15 ET): the module is now taken at Data Agent e413c36 (cherry-picked ec675dd..e413c36 in order: bf85b8b, 5f5542a, 81f80f9).
@@ -99,3 +99,18 @@ provisional strike-height row (WARN beyond 15 mm, FAIL at the face edge).
   `dz_used_m` through it and no longer duplicates the check (our tests still cover it). Capped/linear ball speed uses the module's
   `smash_legacy_quadratic` (LOW confidence). New INFO rows `mine/spin_face_edge_r2207_info` and `mine/smash_r2207_info`:
   **digitized R22-07 Fig 1-2, under Evaluator review** — not in any verdict. The 12.7 mm outside-measured flag is kept for now (may move to 21 mm after review).
+
+## Face-edge side-by-side model — final spec (Orchestrator-approved direction; Evaluator R22-07 review done, /workspace/spinrev), v3d only
+
+Source: **R22-07** = R&A/USGA equipment research report *"The effect of impact position on driving distance"*, c. 2022 (the PDF header says
+Nov 2006, but it cites the 2019 ODS; PDF metadata author Andrew Johnson). Digitized Figs 1-2: `data/references/r2207_fig1_fig2_digitized.csv`.
+Fig 2: backspin rises as the strike moves down to a **peak near −15 mm, then falls** (+963 → +539 rpm at −21 mm); it does not level off at 12.7 mm.
+
+1. Outside-measured INFO flags (deterministic median |dz|): `mine/strike_outside_measured_speed_spin_info` (> 21 mm, R22-07 range for ball
+   speed/smash and spin); `mine/strike_outside_measured_launch_info` (> 12.7 mm; launch still uses Hotstix 0.20°/mm);
+   `mine/strike_beyond_r2207_info` (> 21 mm: smash extrapolated, r2207 spin None). (Replaces the single 12.7 mm row.)
+2. Smash: R22-07 ratio (`smash_r2207`) is primary — MEDIUM, derived for |dz| ≤ 21 mm (one robot driver at ~115 mph; ratio assumed
+   speed-independent); LOW beyond 21 mm (extrapolated). Legacy quadratic smash kept as `mine/smash_legacy_quadratic_info`.
+3. Spin rule under the model: capped AND linear AND r2207 must all pass where r2207 is defined (|dz| ≤ 21 mm). r2207 undefined = 'no data'
+   (not a pass, not a fail; the model verdict cannot be PASS). r2207 spin: MEDIUM, derived (Fig 2 delta scaled by ball speed / 167 mph).
+4. A pass that comes only from the face-edge model is 'not a pass (face-edge-model-only)'.
