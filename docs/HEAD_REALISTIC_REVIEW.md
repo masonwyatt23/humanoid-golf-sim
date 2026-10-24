@@ -27,3 +27,9 @@ Realistic-head contact plate envelope is 80 mm tall (top 71.3 mm above ground, b
 Crown tee label: for the realistic head the crown tee is NOT a compensation for an oversized head (default tee is only 4.1 mm below equator-at-crown); label 'realistic head, crown tee (equator at sourced 62 mm crown)'.
 Earlier Evaluator ~34 mm peg estimate (unsourced) is superseded: sourced-derived ball bottom 40.7 mm above the sole.
 Interaction: K32a args face_h 0.053 overrides the JSON 54 mm face under the realistic head (face_limits 26.5 mm) unless V3_FACE_H=none.
+
+## Orchestrator decision (Oct 24, 2026)
+- Realistic-head crown-tee rows are labelled 'realistic head, crown tee (equator at sourced crown)'. Box crown-tee rows keep 'compensates for the oversized sim head'. The default-tee pass requirement stays.
+- K33 and K34 are scored on BOTH heads (box and realistic) until harness v4.
+- Harness v4 will follow the Trainer's v4 address solve (lie 58.5 deg, swingweight compensated, realistic head), with a single re-baseline at that point.
+- K34 drops face_h 0.053 and tee_dz 0.020 (Trainer), so the realistic head's own 54 mm face (27 mm edge) applies.

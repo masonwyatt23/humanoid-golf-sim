@@ -17,7 +17,7 @@ def test_head_info_row_only_when_present():
     assert "REALISTIC" in r["why"][0]
 
 def test_crown_label_per_head():
-    assert "REALISTIC HEAD crown tee" in tee_info_rows(T)["mine/tee_dz_info"]["why"][0]
+    assert "realistic head, crown tee (equator at sourced crown)" in tee_info_rows(T)["mine/tee_dz_info"]["why"][0]
     box = dict(T, head=dict(mode="box", face_limits_m=None))
     assert "COMPENSATES FOR THE OVERSIZED SIM HEAD" in tee_info_rows(box)["mine/tee_dz_info"]["why"][0]
     assert "COMPENSATES" in tee_info_rows(dict(T, head=None))["mine/tee_dz_info"]["why"][0]   # old workers (no head) = box
