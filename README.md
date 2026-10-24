@@ -16,21 +16,42 @@ Autonomous pipeline for training a simulated humanoid to swing a golf club, usin
 
 Every v5 row is a single training seed, uses model-only physics (golfphys impact/flight; carry has no roll), and is reference-guided residual RL with tracking assistance on stock G1 torque, **not from scratch**. **No row passes every check. Every v3c-scored row FAILs the PROVISIONAL `mine/robustness` gate.** There is no 350 yd result. Counts are pass / warn / fail, read from the committed JSONs.
 
-Harness v3c (Evaluator `47f30f8`, the default since 2026-10-19) is scored by the **Trainer only** so far: the Evaluator has committed no v3c re-scores, and none of the v3b rows below has been re-run under v3c. Their v3b counts are therefore not v3c counts.
+Harness v3c (Evaluator `47f30f8`, the default since 2026-10-19). The Evaluator has now committed independent v3c scores for 12 rows (Evaluator `f817e7d`; notes in `results/v5_runs/stageJK_harness_summary/HARNESS_V3_RESCORE.md`). The Trainer's own v3c files for K27a and K27c are listed separately; where both exist (K27a 400k, K27c 300k) the counts match exactly. Robustness sub-checks are contact >= 0.95, start direction >= 0.90 and lead-foot plant >= 0.90 of the 24 perturbed episodes; several rows clear all three and still FAIL robustness on the perturbed-shot spin and total/carry spread.
 
 | Row | Club mph (median) | v3c pass / warn / fail | Failing checks | Scored by | Source |
 |---|---|---|---|---|---|
 | Target (this project) | 88-109 | - | - | - | project goal, not a result |
-| K27a `s59` 200k | 70.4 | 12 / 5 / 1 FAIL | robustness | Trainer only | `results/v5_runs/stageJ_harness/K27a_s59_200000_v3.json` |
-| K27a `s59` 300k | 70.2 | 12 / 4 / 2 FAIL | total_over_carry, robustness | Trainer only | `results/v5_runs/stageJ_harness/K27a_s59_300000_v3.json` |
-| K27a `s59` 400k | 70.3 | 12 / 3 / 3 FAIL | spin_rpm, total_over_carry, robustness | Trainer only | `results/v5_runs/stageJ_harness/K27a_s59_400000_v3.json` |
+| K12 `s18` 400k | 80.4 | 11 / 4 / 3 FAIL | start_direction, lead_foot_plant, robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K12_s18_400k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K18e `s37` 200k | 74.1 | 12 / 5 / 1 FAIL | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K18e_s37_200k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K19a `s39` 300k | 72.8 | 13 / 4 / 1 FAIL | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K19a_s39_300k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K19a `s39` 400k | 73.4 | 13 / 4 / 1 FAIL | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K19a_s39_400k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K22r4 `s49` 500k | 71.5 | 12 / 5 / 1 FAIL | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K22r4_s49_500k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K22r5 `s51` 100k | 70.6 | 14 / 3 / 1 FAIL | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K22r5_s51_100k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K23b `s52` 300k | 70.6 | 14 / 3 / 1 FAIL | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K23b_s52_300k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K24a `s53` 200k | 70.6 | 13 / 4 / 1 FAIL | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K24a_s53_200k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K25b `s56` 400k | 72.2 | 14 / 3 / 1 FAIL | robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K25b_s56_400k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K27a `s59` 400k | 70.3 | 12 / 3 / 3 FAIL | spin_rpm, total_over_carry, robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K27a_s59_400k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K27b `s60` 400k | 74.0 | 13 / 3 / 2 FAIL | spin_rpm, robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K27b_s60_400k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K27c `s61` 300k | 73.9 | 12 / 4 / 2 FAIL | spin_rpm, robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K27c_s61_300k_dtfix_newchecks_v3c_gateoff_gp_arm06.json` |
+| K27a `s59` 200k | 70.4 | 12 / 5 / 1 FAIL | robustness | Trainer | `results/v5_runs/stageJ_harness/K27a_s59_200000_v3.json` |
+| K27a `s59` 300k | 70.2 | 12 / 4 / 2 FAIL | total_over_carry, robustness | Trainer | `results/v5_runs/stageJ_harness/K27a_s59_300000_v3.json` |
+| K27a `s59` 400k | 70.3 | 12 / 3 / 3 FAIL | spin_rpm, total_over_carry, robustness | Trainer | `results/v5_runs/stageJ_harness/K27a_s59_400000_v3.json` |
+| K27c `s61` 100k | 74.1 | 13 / 3 / 2 FAIL | spin_rpm, robustness | Trainer | `results/v5_runs/stageJ_harness/K27c_s61_100000_v3.json` |
+| K27c `s61` 200k | 74.1 | 12 / 4 / 2 FAIL | spin_rpm, robustness | Trainer | `results/v5_runs/stageJ_harness/K27c_s61_200000_v3.json` |
+| K27c `s61` 300k | 73.9 | 12 / 4 / 2 FAIL | spin_rpm, robustness | Trainer | `results/v5_runs/stageJ_harness/K27c_s61_300000_v3.json` |
 
-K27b `s60` 400k (74.0 mph) has only a non-robustness run so far (`results/v5_runs/stageJ_harness/K27b_s60_400000.json`, robustness row skipped): 13 / 3 / 1 FAIL on `shot/spin_rpm`, with kinematic order and timing at warn. It has **no v3c robustness score**, so it is not in the table above. (The Trainer reported K27b 400k as 13/3/2 with foot-plant robustness 0.75. No committed JSON shows that: the committed file is 13/3/1 with the robustness row skipped.)
+Best by the agreed order (fewest FAILs, then WARNs): K22r5 100k, K23b 300k and K25b 400k at 14/3/1, each FAILing robustness only. **K27b 400k re-checked:** the Evaluator's v3c file shows 13/3/2 (spin_rpm, robustness; foot-plant robustness 0.75), which confirms the Trainer-reported 13/3/2 that had no committed file before. **K27c 300k:** passes all three robustness sub-checks (contact 1.00, start direction 0.92, foot 0.96) but FAILs nominal spin (3978 rpm) and robustness (spin p90 4683, total/carry p90 1.76). It is not the first row to clear the three sub-checks: K24a 200k (1.00/1.00/1.00), K22r4 500k, K27a 300k and K27a 400k already do in the committed files.
+
+## Harness v3d (PROVISIONAL, opt-in, under review)
+
+`--harness v3d` (Evaluator `6b0db8c`; v3c stays the default) re-grades the v3c episodes with DERIVED bands from a Trainer band check: spin PASS 2000-3700 rpm at 70-85 mph, pelvis floor 250 dps (info target 340), thorax/arm tie or inversion <= 30 ms and arm-to-club >= 20 ms, plus a LOW CONFIDENCE robustness rule (club p10 >= 0.93 x median) and a "not a pass (spin-band-only)" flag. Rules and sources: [`docs/HARNESS_V3D_NOTES.md`](docs/HARNESS_V3D_NOTES.md). These bands are derived, not published thresholds.
+
+Comparison (Evaluator `2a8f897`, all 12 rows, `HARNESS_V3_RESCORE.md`): **no row passes under v3c or v3d**, and every row still FAILs robustness. v3d mostly turns WARNs into PASSes (kinematic order, spin, pelvis), so counts look better (K27b 400k 15/1/2, K22r5 100k 15/2/1) without any new pass. 11 of 12 rows fail the new club p10 rule (only K27a 400k, 0.99, clears it), and the arm-to-club >= 20 ms rule keeps the timing row at WARN for every row (max 16 ms, K25b). A live `--harness v3d` run of K25b 400k reproduced the re-grade exactly.
 
 ## Previous default: harness v3b (PROVISIONAL)
 
 
-Scored under v3b (gate friction U(0.9,1.1)), kept until these rows are re-scored under v3c. Same labels: single seed, model-only physics, not from scratch, **no row passes every check, every row FAILs `mine/robustness`**.
+Scored under v3b (gate friction U(0.9,1.1)), kept for history; the Evaluator rows are now re-scored under v3c above. Same labels: single seed, model-only physics, not from scratch, **no row passes every check, every row FAILs `mine/robustness`**.
 
 | Row | Club mph (median) | v3b pass / warn / fail | Failing checks | Scored by | Source |
 |---|---|---|---|---|---|
@@ -62,6 +83,7 @@ pip install -r requirements.pinned.txt
 
 # 3. Run the tests (tests that need held-local files skip cleanly)
 OMP_NUM_THREADS=2 PYTHONPATH=. pytest tests
+# CI: add -m "not slow" (the slow exporter/harness parity test needs local checkpoints and skips when they are absent)
 
 # 4. Run one realism eval (needs a v5 checkpoint locally; checkpoints are not in git)
 PYTHONPATH=. python -m eval.realism_check <path/to/v5/ckpt> --env v5 --json out.json
