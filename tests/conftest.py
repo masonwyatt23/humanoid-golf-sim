@@ -35,3 +35,7 @@ def pytest_collection_modifyitems(config, items):
         nid = it.nodeid.split("tests/", 1)[-1]
         if any(nid == k or nid.startswith(k) for k in _DATA_TESTS):
             it.add_marker(skip)
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "slow: long-running integration test (needs local checkpoints; skipped when absent). CI: -m \"not slow\"")
