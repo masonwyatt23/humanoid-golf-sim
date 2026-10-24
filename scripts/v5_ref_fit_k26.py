@@ -15,7 +15,7 @@ def extra2(r):
     if not r.get("contact"): return 0.0
     dl = r.get("dloft", 20.0)
     DL0, DL1 = (float(v) for v in os.environ.get("K26_DL", "11,13").split(",")); LA0, LA1 = (float(v) for v in os.environ.get("K26_LA", "0,99").split(",")); la = r.get("launch", 0.0)
-    return -DLW * min(max(DL0 - dl, dl - DL1, 0.0) / 2.0, 4.0) - DLW * min(max(LA0 - la, la - LA1, 0.0) / 1.0, 4.0) - K25.W * (min(max(r.get("spin", 5000.0) - float(os.environ.get("K26_SPIN_HI", "2800")), 0.0) / 400.0, 6.0) + min(max(r.get("tc", 1.6) - float(os.environ.get("K26_TC_HI", "1.22")), 0.0) / 0.04, 5.0))
+    return -DLW * min(max(DL0 - dl, dl - DL1, 0.0) / 2.0, 4.0) - DLW * min(max(LA0 - la, la - LA1, 0.0) / 1.0, 4.0) - float(os.environ.get("K26_AOA_W", "0")) * min(max(1.0 - (r.get("aoa") if r.get("aoa") is not None else -10.0), (r.get("aoa") or 0.0) - 3.0, 0.0) / 2.0, 4.0) - K25.W * (min(max(r.get("spin", 5000.0) - float(os.environ.get("K26_SPIN_HI", "2800")), 0.0) / 400.0, 6.0) + min(max(r.get("tc", 1.6) - float(os.environ.get("K26_TC_HI", "1.22")), 0.0) / 0.04, 5.0))
 def score(args):
     S = []; R = None
     for pid in [None] + list(range(K25.NP)):

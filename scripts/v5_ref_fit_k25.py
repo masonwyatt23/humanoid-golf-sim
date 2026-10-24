@@ -13,7 +13,7 @@ def run(e, ref):
         def reset(*a, **k):
             out = r0(*a, **k); g = np.random.default_rng(1000 + pid)
             e.d.qpos[e.qa] += g.uniform(-np.radians(1.5), np.radians(1.5), len(e.qa)); e.d.qvel[e.da] += g.uniform(-0.05, 0.05, len(e.da))
-            e.m.geom_friction[e.floor, 0] = g.uniform(0.9, 1.1)
+            e.m.geom_friction[e.floor, 0] = g.uniform(*(float(v) for v in os.environ.get("K25_FR", "0.9,1.1").split(",")))
             if hasattr(e, "tee"): e.tee[:2] += g.uniform(-0.01, 0.01, 2)
             import mujoco; mujoco.mj_forward(e.m, e.d); return out
         e.reset = reset
