@@ -503,3 +503,8 @@ def to_md(out):
     return "\n".join(L) + "\n"
 
 if __name__ == "__main__": main()
+
+# ---- harness v3d (opt-in, --harness v3d; v3c stays default) --------------------------------------------------------------------------------------------------
+# Bands live in eval/harness_v3d.py (DERIVED / LOW CONFIDENCE labels and citations: docs/HARNESS_V3D_NOTES.md). Re-exported here for callers of this module.
+from eval.harness_v3d import (SPIN_PASS_V3D, SPIN_WARN, SPIN_SPEED_RANGE, PELVIS_FLOOR_DPS, PELVIS_INFO_TARGET_DPS, TA_INVERSION_MS, ARM_CLUB_MIN_MS,  # noqa: E402,F401
+                              CLUB_P10_MIN_FRAC, apply_v3d, apply_v3d_flagged)
