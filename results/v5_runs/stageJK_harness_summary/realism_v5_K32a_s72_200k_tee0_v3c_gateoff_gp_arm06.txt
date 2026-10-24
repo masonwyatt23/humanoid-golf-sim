@@ -1,0 +1,39 @@
+
+REALISM FAIL  K32a_s72_200k/ckpt_200000  [v5 (G1, club_len 1.15, tether 0, strike gate OFF, arm_dist 0.6 [BEnv, as B2-B4/C train])]  episodes 24 (true contact 24)  pass 12 warn 4 fail 2 skip 8 info 10 (not gating)
+  WARN  swing/kinematic_sequence_order  - peak order pelvis->thorax->arm->club; not resolvable at dt=20 ms (same sample or reversed by one sample): [('thorax', 'arm'), ('arm', 'club')]
+  WARN  swing/kinematic_sequence_timing_ms_before_club_peak  - outside band: {'thorax': 12, 'arm': 4} (pro means 87/68/65 ms, amateur 78/59/64)
+  WARN  swing/peak_speed_pelvis_deg_s  - 0.57 x target at 73 mph (target EXTRAPOLATED beyond measured 88-109 mph)
+  PASS  swing/peak_speed_thorax_deg_s
+  PASS  swing/peak_speed_arm_deg_s
+  PASS  swing/peak_speed_club_deg_s
+  PASS  swing/x_factor_top_deg
+  SKIP  swing/actuator_torque_speed_limits
+  SKIP  swing/pelvis_yaw_avg_torque_Nm
+  PASS  swing/grf_lead_vertical_bw
+  PASS  shot/smash
+  PASS  shot/club_speed_mph
+  WARN  shot/spin_rpm  - driver spin gate (published windows, derived thresholds)
+  PASS  shot/launch_deg
+  SKIP  shot/descent_deg
+  FAIL  shot/total_over_carry  - total/carry (normal turf 1.07-1.13, firm to ~1.2; env without roll gives 1.0)
+  PASS  shot/carry_vs_golfphys_yd
+  PASS  mine/segments_rotate
+  SKIP  mine/ground_contact_weight_shift
+  SKIP  mine/joint_limits
+  SKIP  mine/torque_saturation_smoothness
+  SKIP  mine/tempo
+  SKIP  mine/carry_vs_trackman_band
+  PASS  mine/start_direction
+  PASS  mine/lead_foot_plant
+  INFO  mine/total_over_carry_speed_matched (golfphys model, info only, not gating)  - actual total/carry 1.391 vs golfphys speed-matched minimum 1.222 at 104.4 mph ball speed (launch 16 deg, backspin 3000 rpm); golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict
+  INFO  mine/grf_lead_vertical_raw_info  - OLD rule, INFO only: whole-episode raw lead-GRF peak (includes follow-through and single-sample contact spikes); not gating; sensitivity (INFO, not gating): same window + guard with 4th-order zero-lag Butterworth at 12Hz -> 1.631 BW, 14Hz -> 1.625 BW (lower cutoffs lower the peak)
+  INFO  mine/lead_foot_shear_ratio_info  - lead-foot shear/vertical top->impact: peak median 0.870 (max 0.870), p95 median 0.758; reference <= 0.65-0.75
+  FAIL  mine/robustness  - contact 75% < 95%; start_direction PASS 71% < 90%; lead_foot_plant PASS 67% < 90%; spin_rpm p90 outside WARN band (median 3.53e+03, p10 1.3e+03, p90 4.19e+03); total_over_carry median/p90 outside WARN
+  INFO  mine/robustness_wide_friction_info  - INFO only (not gating): robustness under the env's wide friction U(0.5, 1.2); contact 38% < 95%; start_direction PASS 33% < 90%; lead_foot_plant PASS 38% < 90%; total_over_carry median/p10/p90 outside WARN band (median 1.44, p10 1.36, p90 1.83); spin_rpm leaves PASS band (median, p90; median 3.69e+03, p10 2.99e+03, p90 3.93e+03); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/robustness_stress_friction_info  - INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md); contact 71% < 95%; start_direction PASS 62% < 90%; lead_foot_plant PASS 62% < 90%; spin_rpm p90 outside WARN band (median 3.66e+03, p10 2.45e+03, p90 4.06e+03); total_over_carry median/p90 outside WARN band (median 1.39, p10 1.29, p90 1.78); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/strike_dy_info  - INFO only (not gating): strike dy at impact, mm from the face centre (env info['dy'])
+  INFO  mine/strike_dz_info  - INFO only (not gating): strike dz at impact, mm from the face centre (env info['dz'])
+  INFO  mine/tee_dz_info  - INFO only: tee offset used (V3_TEE=0; 'crown' = derived from sim head geometry, crown-level per GOLF.com / Golf Digest / Golf Monthly advice)
+  INFO  mine/face_h_info  - INFO only: env face_h used (None = 64 mm head box; non-None = off-face contacts beyond face_h/2 become misses, which changes what is scored)
+  INFO  mine/tee_height_info  - INFO only: address geometry above ground (env, after reset): ball centre / bottom (tee peg), head-box crown at the face, face centre
+  -- sample interval: 4.0 ms measured from the logged sim time (worker declared 4.0 ms; 0 episodes disagree); tie tolerance 20 ms and thresholds unchanged

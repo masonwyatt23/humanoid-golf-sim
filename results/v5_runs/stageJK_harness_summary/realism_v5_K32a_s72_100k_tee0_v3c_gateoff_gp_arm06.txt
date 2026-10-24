@@ -1,0 +1,30 @@
+
+REALISM FAIL  K32a_s72_100k/ckpt_100000  [v5 (G1, club_len 1.15, tether 0, strike gate OFF, arm_dist 0.6 [BEnv, as B2-B4/C train])]  episodes 24 (true contact 0)  pass 7 warn 3 fail 1 skip 9 info 7 (not gating)
+  WARN  swing/kinematic_sequence_order  - peak order pelvis->thorax->arm->club; not resolvable at dt=20 ms (same sample or reversed by one sample): [('thorax', 'arm'), ('arm', 'club')]
+  WARN  swing/kinematic_sequence_timing_ms_before_club_peak  - outside band: {'thorax': 8, 'arm': 4} (pro means 87/68/65 ms, amateur 78/59/64)
+  WARN  swing/peak_speed_pelvis_deg_s  - 0.51 x target at 97 mph (between measured groups)
+  PASS  swing/peak_speed_thorax_deg_s
+  PASS  swing/peak_speed_arm_deg_s
+  PASS  swing/peak_speed_club_deg_s
+  PASS  swing/x_factor_top_deg
+  SKIP  swing/actuator_torque_speed_limits
+  SKIP  swing/pelvis_yaw_avg_torque_Nm
+  PASS  swing/grf_lead_vertical_bw
+  PASS  mine/segments_rotate
+  SKIP  mine/ground_contact_weight_shift
+  SKIP  mine/joint_limits
+  SKIP  mine/torque_saturation_smoothness
+  SKIP  mine/tempo
+  SKIP  mine/carry_vs_trackman_band
+  SKIP  mine/start_direction
+  PASS  mine/lead_foot_plant
+  SKIP  mine/total_over_carry_speed_matched (golfphys model, info only, not gating)
+  INFO  mine/grf_lead_vertical_raw_info  - OLD rule, INFO only: whole-episode raw lead-GRF peak (includes follow-through and single-sample contact spikes); not gating; sensitivity (INFO, not gating): same window + guard with 4th-order zero-lag Butterworth at 12Hz -> 1.304 BW, 14Hz -> 1.303 BW (lower cutoffs lower the peak)
+  INFO  mine/lead_foot_shear_ratio_info  - lead-foot shear/vertical top->impact: peak median 0.755 (max 0.755), p95 median 0.691; reference <= 0.65-0.75
+  FAIL  mine/robustness  - contact 75% < 95%; start_direction PASS 71% < 90%; lead_foot_plant PASS 67% < 90%; spin_rpm p90 outside WARN band (median 3.31e+03, p10 1.52e+03, p90 4.08e+03); total_over_carry median/p90 outside WAR
+  INFO  mine/robustness_wide_friction_info  - INFO only (not gating): robustness under the env's wide friction U(0.5, 1.2); contact 62% < 95%; start_direction PASS 62% < 90%; lead_foot_plant PASS 58% < 90%; spin_rpm p90 outside WARN band (median 3.71e+03, p10 1.83e+03, p90 4.15e+03); total_over_carry median/p90 outside WARN band (median 1.41, p10 1.32, p90 1.95); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/robustness_stress_friction_info  - INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md); contact 83% < 95%; start_direction PASS 83% < 90%; lead_foot_plant PASS 71% < 90%; spin_rpm p90 outside WARN band (median 3.52e+03, p10 1.48e+03, p90 4.18e+03); total_over_carry median/p90 outside WARN band (median 1.42, p10 1.25, p90 2.21); club_speed_mph leaves PASS band (p10; median 73.3, p10 57.3, p90 74); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/tee_dz_info  - INFO only: tee offset used (V3_TEE=0; 'crown' = derived from sim head geometry, crown-level per GOLF.com / Golf Digest / Golf Monthly advice)
+  INFO  mine/face_h_info  - INFO only: env face_h used (None = 64 mm head box; non-None = off-face contacts beyond face_h/2 become misses, which changes what is scored)
+  INFO  mine/tee_height_info  - INFO only: address geometry above ground (env, after reset): ball centre / bottom (tee peg), head-box crown at the face, face centre
+  -- sample interval: 4.0 ms measured from the logged sim time (worker declared 4.0 ms; 0 episodes disagree); tie tolerance 20 ms and thresholds unchanged
