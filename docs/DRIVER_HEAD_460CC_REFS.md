@@ -74,10 +74,15 @@ Derivation chain:
 ## Face-centre to shaft axis, heel-toe length, modern Izz
 - Face-centre to shaft-axis distance (CFZ) is 35-45 mm across the example bands and 38-40 mm in the narrowest; nominal 39 mm. **Caveat: this is a single manufacturer's (TaylorMade) design range**, not a cross-industry measurement. It is distinct from FP. The CG analogue DELTA2 is 34-42 mm. The face centre sits 9-18 mm ahead of the hosel centre point (CFY).
 - Heel-to-toe: the rule is <=127 mm, measured at 60 deg lie between vertical projections of the outermost heel and toe points. If the heel point is not clearly defined, it is taken 22.23 mm above the ground (Rule 4b(i)). No head-specific spec was found, so the ~120 mm nominal is an estimate.
-- Modern Izz: the conforming range is 4800-5900 g cm2 (rule cap 5900 + 100 tolerance), nominal 5600. The 5600 is a manufacturer claim (n=1, Tour Edge 2023 press release; its "g/ cm2" is a typo for g cm2). TaylorMade's patent bands run 4800-7000 g cm2, and the top of that range is beyond the rule cap.
+- Modern Izz: the conforming range is 4800-5900 g cm2 (rule cap 5900 + 100 tolerance), nominal 5600. The 5600 is a single published manufacturer claim (n=1, one head; Tour Edge 2023 press release), attributed, not a measured value or multi-model aggregate (the release's its "g/ cm2" is a typo for g cm2). TaylorMade's patent bands run 4800-7000 g cm2, and the top of that range is beyond the rule cap.
 
 ## Tee-height check
 MyGolfSpy measures tee height "from ground level", so a 1.5 in tee puts the tee top at 38.1 mm. Taking the ball bottom at the tee top, the ball centre is 38.1 + 21.335 = 59.4 mm and the equator is 2.6 mm below a 62 mm crown, i.e. a little under half the ball is above the crown. Golf Digest's "at least half above the crown" needs a ball bottom of at least 40.7 mm for a 62 mm crown. The ball centre is about 30 mm above the 29 mm face centre, which is consistent with MyGolfSpy's higher impact with the 1.5 in tee.
 
 ## Data policy
 Only aggregates (range, median, n) with attribution are kept in git. The per-model and per-example breakdowns (manufacturer spec heads, patent example bands, rule36 heads) are held locally in /workspace/held_research_bands/.
+
+## Single-source (n=1) values
+- Face area 4800 mm2: single published manufacturer spec (n=1, one head; Wishon 919THI spec table), attributed. Not a measured range and not a multi-model aggregate.
+- Modern Izz nominal 5600 g cm2: single published manufacturer claim (n=1, one head; Tour Edge 2023 press release), attributed. Not measured and not an aggregate; 4800-5900 is the rule-conforming band.
+- Both are kept as attributed public manufacturer claims (not a copied third-party compilation like the held rule36 table).

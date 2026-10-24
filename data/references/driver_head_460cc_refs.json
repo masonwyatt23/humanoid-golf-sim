@@ -50,11 +50,11 @@
    "nominal": "4800",
    "range": "4800 (n=1 head, Wishon spec table)",
    "unit": "mm2",
-   "label": "spec",
+   "label": "spec (single published manufacturer spec, n=1)",
    "confidence": "low",
    "source_url": "https://wishongolf.com/designs/designs-drivers/919thi/",
    "table_or_page": "spec table 'FACE AREA'",
-   "note": ""
+   "note": "Single published manufacturer spec (n=1, one head; Wishon 919THI spec table), attributed. Not a measured range and not a multi-model aggregate."
   },
   {
    "quantity": "head depth (front-back)",
@@ -336,11 +336,11 @@
    "nominal": "5600",
    "range": "4800-5900 conforming (+100 test tolerance); manufacturer claim 5600 (n=1, Tour Edge 2023); patent bands 4800-7000 (TaylorMade), top of which exceeds the rule cap",
    "unit": "g cm2",
-   "label": "manufacturer claim / manufacturer patent claim / rule",
+   "label": "manufacturer claim (n=1 nominal) / manufacturer patent claim / rule",
    "confidence": "medium",
    "source_url": "https://www.firstcallgolf.com/industry-news/release/2023-03-02/mygolfspy-ranks-tour-edge-exotics-e723-most-forgiving-driver-of-2023 ; https://patents.us/US12649090 ; https://www.usga.org/equipment-standards/equipment-rules-2019/equipment-rules/part-2-rule-5.html",
    "table_or_page": "First Call press release 2023-03-02 (Tour Edge statement); US 12,649,090 Tables 3-4 and claim 1",
-   "note": "Tour Edge text 'g/ cm2' is a typo for g cm2. Patent band top (7000) is beyond the 5900+100 rule cap, so only 4800-5900 is used as the conforming range. PING 'combined >10,000' not cited (snippet only, page 404)"
+   "note": "Nominal 5600 = single published manufacturer claim (n=1, one head; Tour Edge 2023 press release), attributed. Not a measured value and not a multi-model aggregate; the 4800-5900 range is the rule-conforming band, not a measured spread. Tour Edge text 'g/ cm2' is a typo for g cm2. Patent band top (7000) is beyond the 5900+100 rule cap, so only 4800-5900 is used as the conforming range. PING 'combined >10,000' not cited (snippet only, page 404)"
   },
   {
    "quantity": "tee check: 1.5 in tee (MGS, measured from ground level)",
