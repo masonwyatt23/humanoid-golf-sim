@@ -75,3 +75,22 @@ provisional strike-height row (WARN beyond 15 mm, FAIL at the face edge).
   golfphys model barely loses ball speed (so the spin penalty's size is itself uncertain).
 * The face-edge threshold lives in ONE constant, `eval/harness_v3d.py: STRIKE_FACE_EDGE_MM` (default 32.0 = sim head-box half-height).
   The Data Agent's sourced 53 mm face height (→ 26.5 mm half-height) is UNDER REVIEW and NOT adopted; switching would change only that constant.
+
+## Face-edge extension (Orchestrator-approved 2026-10-24, v3d only; v3c verdicts unchanged)
+
+* `STRIKE_FACE_EDGE_MM = 26.5` (= 53/2): **measured spec, single brand (Wishon 919THI 53x105 mm), provisional** (replaces the 32 mm sim-geometry
+  default). `mine/strike_height`: FAIL on deterministic median |dz| ≥ 26.5 mm, WARN > 15 mm (design choice, not sourced).
+* INFO rows: `mine/strike_within_sim_box_info` (|dz| ≤ 32 mm sim head-box half-height; sim geometry) and `mine/strike_outside_measured_info`
+  (|dz| > 12.7 mm, outside measured Hotstix data).
+* Side-by-side ball model (never the default): Data Agent commit ec675dd (branch golfphys-face-edge-refs) cherry-picked here as bf85b8b —
+  `data/driver_face_offcentre.py:face_edge_adjust()`, `docs/DRIVER_FACE_OFFCENTRE_REFS.md`, `data/references/driver_face_offcentre_refs.*`.
+  Per episode the v3 worker re-runs the env's own golfphys `shot_from_contact` with the same club velocity, face normal and dy but **dz = 0**
+  (centre strike; recorded as `strike.centre`, `dz_used_m = 0`), then `eval/harness_v3d.face_edge_eval` applies `face_edge_adjust` with the real dz.
+  Guard: `face_edge_eval` raises ValueError unless the input is a centre strike (`dz_used_m == 0`), so the off-centre effect is never counted twice.
+  Two variants: CAPPED (±12.7 mm saturation, as written) and LINEAR (extrapolated). INFO rows `mine/spin_face_edge_capped_info` /
+  `mine/spin_face_edge_linear_info` carry spin, launch, smash, ball speed, carry and total/carry (golfphys_total re-flight), deterministic + robustness.
+* Verdict rule: under the model, spin passes only if BOTH capped and linear pass (`face_edge_model` in the v3d JSON). A result that would PASS
+  only under the model is reported as **'not a pass (face-edge-model-only)'** (`face_edge_model_only = true`), like the spin-band-only flag.
+* Labels: 148 mph is a MODEL value (TrajectoWare); smash LOW confidence; leveling off beyond 12.7 mm is UNVERIFIED until R22-07 Fig 1 is read;
+  51.3 rpm/mm and 0.201°/mm are DERIVED from measured Hotstix data (secondary source).
+* Check: K30a 300k seed 4000 — real strike dz −25.4 mm → env spin 4455 rpm; centre re-run (dz = 0) → 2688 rpm.

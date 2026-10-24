@@ -50,7 +50,7 @@ def _fine_grf(a): return getattr(a, "grf_method", "legacy") not in (None, "legac
 def _strike_mm(r):
     """Strike offset at impact (mm) from the v3 worker's per-episode 'strike' record (env info dy/dz); {} if not logged."""
     s = r.get("strike") or {}
-    return {} if s.get("dz_m") is None else dict(strike_dy_mm=1000.0 * float(s["dy_m"]), strike_dz_mm=1000.0 * float(s["dz_m"]))
+    return {} if s.get("dz_m") is None else dict(strike_dy_mm=1000.0 * float(s["dy_m"]), strike_dz_mm=1000.0 * float(s["dz_m"]), strike_centre=s.get("centre"))
 
 def _pct(xs):
     xs = [float(x) for x in xs if x is not None]
@@ -255,6 +255,9 @@ def run_v5(a):
                 C["mine/robustness_stress_friction_info"] = dict(w, status="info", passed=False, tag="info_only", gating=False, verdict_if_gating=w.get("status"), why=["INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md)"] + list(w.get("why") or []))
     if getattr(a, "harness", None) != "v2":   # INFO rows, all v3 harnesses (v3b/v3c/v3d); counts unchanged
         C.update(strike_info_rows([e for e in ok if e["true_contact"]], [e for e in (ROB or []) if e.get("contact")]))
+        if getattr(a, "harness", None) == "v3d":   # v3d side-by-side face-edge ball model (INFO rows; verdict rule in eval/harness_v3d.py)
+            from eval.harness_v3d import face_edge_rows
+            C.update(face_edge_rows([e for e in ok if e["true_contact"]], [e for e in (ROB or []) if e.get("contact")]))
     S = SR.summarize(C); TR = None
     if tres:
         F = SR.agg_da(ok, "da_tres", "swing"); alt = dict(C); alt.update(F); S2 = SR.summarize(alt)
