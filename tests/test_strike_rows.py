@@ -132,3 +132,10 @@ def test_launch_r2207_k30_inputs_and_rule():
     assert verdict(-21.0, 13.5)["launch_status_det"] == "fail"        # Hotstix 9.3 in band but r2207 ~6.0 out: BOTH required
     v = verdict(-23.0, 14.55); assert v["launch_status_det"] == "no_data" and v["verdict"] != "PASS"
     R = H.face_edge_rows([dict(strike_dy_mm=0.0, strike_dz_mm=-15.0, strike_centre=dict(C0))]); assert R["mine/launch_face_edge_r2207_info"]["status"] == "info"
+
+def test_apply_v3d_builds_face_edge_rows_from_strike_episodes():
+    r = _res([-15.0]); r["strike_episodes"] = [dict(strike_dy_mm=0.0, strike_dz_mm=-15.0, strike_centre=dict(C0))]
+    r["robustness_episodes"] = [dict(contact=True, strike_dy_mm=0.0, strike_dz_mm=-10.0, strike_centre=dict(C0)), dict(contact=False)]
+    out = H.apply_v3d_flagged(r)
+    assert "mine/spin_face_edge_capped_info" in out["checks"] and out["face_edge_model"] is not None
+    assert out["checks"]["mine/spin_face_edge_capped_info"]["values"]["robustness"]["spin_rpm"]["n"] == 1

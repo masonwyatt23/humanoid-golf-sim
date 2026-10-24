@@ -208,6 +208,8 @@ def apply_v3d(r, _spin=True):
     if "mine/robustness" in C and C["mine/robustness"].get("status") not in ("skip",): C["mine/robustness"] = _regrade_robust(C["mine/robustness"], _spin)
     if (C.get("mine/strike_dz_info") or {}).get("status") == "info": C["mine/strike_height"] = strike_height_row(C["mine/strike_dz_info"])
     if (C.get("mine/strike_dz_info") or {}).get("status") == "info": C.update(strike_extent_rows(C["mine/strike_dz_info"]))
+    if r.get("strike_episodes") and "mine/spin_face_edge_capped_info" not in C:   # side-by-side face-edge model (INFO rows) from the run's per-episode strike records
+        C.update(face_edge_rows(r["strike_episodes"], [e for e in (r.get("robustness_episodes") or []) if e.get("contact")]))
     S = summarize(C)
     r.update(checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"])
     r["harness_v3"] = dict(r.get("harness_v3") or {}, harness="v3d", base_run="v3c")
