@@ -25,7 +25,7 @@ Harness v3c (Evaluator `47f30f8`, the default since 2026-10-19) is scored by the
 | K27a `s59` 300k | 70.2 | 12 / 4 / 2 FAIL | total_over_carry, robustness | Trainer only | `results/v5_runs/stageJ_harness/K27a_s59_300000_v3.json` |
 | K27a `s59` 400k | 70.3 | 12 / 3 / 3 FAIL | spin_rpm, total_over_carry, robustness | Trainer only | `results/v5_runs/stageJ_harness/K27a_s59_400000_v3.json` |
 
-K27b `s60` 400k (74.0 mph) has only a non-robustness run so far (`results/v5_runs/stageJ_harness/K27b_s60_400000.json`, robustness row skipped): 13 / 3 / 1 FAIL on `shot/spin_rpm`, with kinematic order and timing at warn. It has **no v3c robustness score**, so it is not in the table above.
+K27b `s60` 400k (74.0 mph) has only a non-robustness run so far (`results/v5_runs/stageJ_harness/K27b_s60_400000.json`, robustness row skipped): 13 / 3 / 1 FAIL on `shot/spin_rpm`, with kinematic order and timing at warn. It has **no v3c robustness score**, so it is not in the table above. (The Trainer reported K27b 400k as 13/3/2 with foot-plant robustness 0.75. No committed JSON shows that: the committed file is 13/3/1 with the robustness row skipped.)
 
 ## Previous default: harness v3b (PROVISIONAL)
 
@@ -47,6 +47,10 @@ Scored under v3b (gate friction U(0.9,1.1)), kept until these rows are re-scored
 
 All K24-K26 harness files (`results/v5_runs/stageJ_harness/K2[4-6]*_v3.json`, scored under v3b, including K26r `s57` / K26s `s58` 300k at 12/5/1 and 11/6/1) FAIL robustness; several also fail `shot/total_over_carry` or `shot/spin_rpm`. The `swing/grf_lead_vertical_bw` **1.7 BW upper limit has no published source**, and **the v3b robustness gate's friction range (U(0.9,1.1)) has no turf source**. Both are PROVISIONAL. The v3c range is sourced but only with medium-low confidence (see the harness section). The detailed v2-era table further down is kept for history.
 
+## Research bands
+
+Public-source launch, dispersion, lead-foot, GRF and turf-friction references are in `data/references/research_bands/` and `docs/research_bands/`. Every row has a source URL and a measured/model/derived label. **Rows transcribed from the TrackMan Driver Fitting Chart 2010 are held back, pending review** (open counsel question from the MIT audit), and so are the two notes files that quote them.
+
 ## Quickstart
 
 ```bash
@@ -67,7 +71,7 @@ PYTHONPATH=. python -m eval.realism_check <path/to/v5/ckpt> --env v5 --json out.
 
 `eval/realism_check.py` (rules in `eval/swing_realism.py`, `eval/robust_grf.py`) scores one policy against swing and shot bands.
 
-- **Default `--harness v3c` (PROVISIONAL).** Same lead vertical GRF rule as v3b: a 4th-order Butterworth 50 Hz zero-lag filter over a window from the top of the swing to impact +20 ms. **The 1.7 BW upper limit has no published source.** The GATING `mine/robustness` row runs 24 perturbed episodes (seeds 7000-7023; joint noise, ball offset up to 1 cm), now with floor friction **U(0.7,1.05)** per episode. That range is sourced with **medium-low confidence** from golf-shoe and turf studies: Worsfold et al. 2007 (PMC3794489), with in-swing shear/vertical 0.62 +/- 0.03; Worsfold, Smith and Dyson (PMC3761538), front foot 0.61-0.63; and Worsfold 2006 slip coefficients. The pass thresholds of the robustness gate itself are harness choices, not literature values. Deterministic rows stay at mu 1.0. INFO-only rows (never gating): wide friction U(0.5,1.2), a fixed mu 1.1 stress run, and `mine/lead_foot_shear_ratio_info` (lead-foot shear/vertical, 50 Hz Butterworth, vertical >= 0.1 BW, top to impact; reference about <= 0.65-0.75 from the same studies).
+- **Default `--harness v3c` (PROVISIONAL).** Same lead vertical GRF rule as v3b: a 4th-order Butterworth 50 Hz zero-lag filter over a window from the top of the swing to impact +20 ms. **The 1.7 BW upper limit has no published source.** The GATING `mine/robustness` row runs 24 perturbed episodes (seeds 7000-7023; joint noise, ball offset up to 1 cm), now with floor friction **U(0.7,1.05)** per episode. That range is sourced with **medium-low confidence** from golf-shoe and turf studies: Worsfold et al. 2007 (PMC3794489), with in-swing shear/vertical 0.62 +/- 0.03; Worsfold, Smith and Dyson (PMC3761538), front foot 0.61-0.63; and Worsfold 2006 slip coefficients. Notes: `docs/research_bands/turf_friction_NOTES.md`; GRF filter/window notes: `docs/research_bands/grf_filter_window_NOTES.md`. The pass thresholds of the robustness gate itself are harness choices, not literature values. Deterministic rows stay at mu 1.0. INFO-only rows (never gating): wide friction U(0.5,1.2), a fixed mu 1.1 stress run, and `mine/lead_foot_shear_ratio_info` (lead-foot shear/vertical, 50 Hz Butterworth, vertical >= 0.1 BW, top to impact; reference about <= 0.65-0.75 from the same studies).
 - **`--harness v3b`** keeps the previous rule, with gate friction U(0.9,1.1) (no turf source) and the wide-friction INFO row.
 - **`--harness v2`** reproduces the old rules: whole-episode raw GRF peak and no robustness rows.
 - **Inputs:** a checkpoint path (or `results/<name>.json` / model name for v1), `--env v1|v5`, and optionally `--seeds` (default 4000,8000,9000), `--eps-per-seed` (default 8), `--strike-gate-nx` (default off), `--arm-dist`, `--v5-repo`.
