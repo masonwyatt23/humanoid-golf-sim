@@ -64,7 +64,7 @@ C0 = dict(dz_used_m=0.0, smash=1.45, spin_rpm=2600.0, launch_deg=14.0, ball_spee
 
 def test_extent_info_rows():
     out = H.apply_v3d(_res([-24.0]))["checks"]
-    assert out["mine/strike_within_sim_box_info"]["values"]["flag"] is True and out["mine/strike_outside_measured_launch_info"]["values"]["flag"] is True and out["mine/strike_outside_measured_speed_spin_info"]["values"]["flag"] is True and out["mine/strike_beyond_r2207_info"]["values"]["flag"] is True
+    assert out["mine/strike_within_sim_box_info"]["values"]["flag"] is True and out["mine/strike_outside_measured_info"]["values"]["flag"] is True and "mine/strike_outside_measured_launch_info" not in out and out["mine/strike_beyond_r2207_info"]["values"]["flag"] is True
     assert out["mine/strike_within_sim_box_info"]["status"] == "info"
 
 def test_face_edge_guard_rejects_non_centre():
@@ -115,3 +115,20 @@ def test_face_edge_model_only_flag():
     C = {"shot/spin_rpm": dict(status="fail", passed=False, values=4300.0), "shot/club_speed_mph": dict(status="pass", passed=True, values=74.0)}; C.update(R)
     out = H.apply_v3d_flagged(dict(checks=C))
     assert out["verdict"] == "FAIL" and out["face_edge_model_only"] is True and out["face_edge_model"]["note"] == "not a pass (face-edge-model-only)"
+
+
+def test_launch_r2207_k30_inputs_and_rule():
+    c = dict(C0, launch_deg=14.55, spin_rpm=2568.0)
+    for dz, l22, lh in ((-10, 12.39, 12.55), (-15, 10.30, 11.55), (-21, 7.09, 10.35)):
+        r = H.face_edge_eval(c, float(dz)); assert r["launch"]["r2207"] == pytest.approx(l22, abs=0.01) and r["launch"]["hotstix"] == pytest.approx(lh, abs=0.01)
+    assert H.face_edge_eval(c, -23.0)["launch"]["r2207"] is None
+    fn = lambda rpm, club: H.spin_status(rpm, club, True)
+    def verdict(dz, launch0):
+        E = [dict(strike_dy_mm=0.0, strike_dz_mm=dz, strike_centre=dict(C0, launch_deg=launch0, spin_rpm=2000.0))]
+        C = {"shot/spin_rpm": dict(status="fail", values=4300.0), "shot/club_speed_mph": dict(status="pass", values=74.0), "shot/launch_deg": dict(status="pass", values=launch0)}; C.update(H.face_edge_rows(E))
+        return H.face_edge_model_verdict(dict(checks=C), fn)
+    assert verdict(-10.0, 14.55)["launch_status_det"] == "pass"
+    assert verdict(-21.0, 11.0)["launch_status_det"] == "fail"        # r2207 ~3.5 deg < 7 while Hotstix 6.8 also < 7
+    assert verdict(-21.0, 13.5)["launch_status_det"] == "fail"        # Hotstix 9.3 in band but r2207 ~6.0 out: BOTH required
+    v = verdict(-23.0, 14.55); assert v["launch_status_det"] == "no_data" and v["verdict"] != "PASS"
+    R = H.face_edge_rows([dict(strike_dy_mm=0.0, strike_dz_mm=-15.0, strike_centre=dict(C0))]); assert R["mine/launch_face_edge_r2207_info"]["status"] == "info"

@@ -13,8 +13,8 @@ v3d = v3c run (same episodes, friction gate U(0.7,1.05), info rows) + the re-gra
  (6) mine/strike_height (PROVISIONAL, Orchestrator-approved 2026-10-24): deterministic median |dz| (strike height from the face centre, mm).
      PASS <= 15 mm (DESIGN CHOICE, not sourced); WARN > 15 mm; FAIL >= STRIKE_FACE_EDGE_MM = 26.5 mm (measured spec, single brand: Wishon 919THI
      53x105 mm face, provisional). Info: mine/strike_within_sim_box_info (|dz| <= 32 mm sim head-box half-height, sim geometry) and
-     outside-measured flags per quantity: mine/strike_outside_measured_speed_spin_info (|dz| > 21 mm, R22-07 range),
-     mine/strike_outside_measured_launch_info (|dz| > 12.7 mm, Hotstix 0.20 deg/mm), mine/strike_beyond_r2207_info (|dz| > 21 mm).
+     outside-measured flags: mine/strike_outside_measured_info (|dz| > 21 mm, R22-07 range for speed, spin AND launch),
+     mine/strike_beyond_r2207_info (|dz| > 21 mm). Launch under the model passes only if BOTH Hotstix and R22-07 Fig 3 launch are in band.
  (7) Side-by-side face-edge ball model (INFO rows, never the default): golfphys CENTRE strike (dz = 0, same club vel/normal/dy) -> data/driver_face_offcentre
      face_edge_adjust with the real dz, CAPPED (+/-12.7 mm as written) and LINEAR (extrapolated). Spin passes under the model only if BOTH pass.
      A verdict that would be PASS only under this model is 'not a pass (face-edge-model-only)'. Labels: 148 mph is a MODEL value (TrajectoWare);
@@ -31,6 +31,7 @@ STRIKE_DZ_WARN_MM = 15.0; STRIKE_FACE_EDGE_MM = 26.5   # SINGLE source of the fa
                               # (data/references/driver_face_offcentre_refs.*; Orchestrator-approved Oct 24). Was 32.0 = sim head-box half-height. 15 mm WARN = design choice (not sourced)
 SIM_BOX_HALF_HEIGHT_MM = 32.0  # sim geometry (env/models/humanoid_golf_v5_g1_{lh,rh}.xml head box size z 0.032), not a real-driver source; INFO row only
 MEASURED_DZ_MM = 12.7          # Hotstix robot data span +/-0.5 in (secondary source): launch flag only
+LAUNCH_BAND = (7.0, 16.0)      # same band as shot/launch_deg (derived)
 R2207_DZ_MM = 21.0             # R22-07 Fig 1-2 digitized span (-21..+21 mm): ball speed/smash and spin flag
 
 def strike_height_status(med_abs_dz_mm):
@@ -42,8 +43,7 @@ def strike_extent_rows(info_row):
     if m is None: return {}
     mk = lambda ok, why: dict(status="info", passed=False, tag="info_only", gating=False, values=dict(median_abs_dz_mm=m, flag=ok), why=[why])
     return {"mine/strike_within_sim_box_info": mk(m <= SIM_BOX_HALF_HEIGHT_MM, f"INFO: median |dz| {m:.1f} mm {'within' if m <= SIM_BOX_HALF_HEIGHT_MM else 'OUTSIDE'} the sim head-box half-height {SIM_BOX_HALF_HEIGHT_MM:g} mm (sim geometry)"),
-            "mine/strike_outside_measured_speed_spin_info": mk(m > R2207_DZ_MM, f"INFO: median |dz| {m:.1f} mm {'>' if m > R2207_DZ_MM else '<='} {R2207_DZ_MM:g} mm (R22-07 measured range for ball speed/smash and spin)"),
-            "mine/strike_outside_measured_launch_info": mk(m > MEASURED_DZ_MM, f"INFO: median |dz| {m:.1f} mm {'>' if m > MEASURED_DZ_MM else '<='} {MEASURED_DZ_MM:g} mm (launch uses Hotstix 0.20 deg/mm, measured to +/-12.7 mm)"),
+            "mine/strike_outside_measured_info": mk(m > R2207_DZ_MM, f"INFO: median |dz| {m:.1f} mm {'>' if m > R2207_DZ_MM else '<='} {R2207_DZ_MM:g} mm (R22-07 measured range for ball speed/smash, spin and launch; only 2 of 3 tee series reach +/-18/21 mm)"),
             "mine/strike_beyond_r2207_info": mk(m > R2207_DZ_MM, f"INFO: median |dz| {m:.1f} mm {'> 21 mm: beyond R22-07 data - smash extrapolated (LOW), r2207 spin None' if m > R2207_DZ_MM else '<= 21 mm: within R22-07 data'}")}
 
 def face_edge_eval(centre, dz_mm):
@@ -62,7 +62,8 @@ def face_edge_eval(centre, dz_mm):
         except Exception: return bs, None, None
     sm = m.get("smash"); sconf = "MEDIUM, derived (R22-07 one robot driver ~115 mph; ratio assumed speed-independent)" if abs(dz_mm) <= R2207_DZ_MM else "LOW (beyond R22-07 21 mm: extrapolated)"
     if sm is None: sm, sconf = m["smash_legacy_quadratic"], "LOW (legacy quadratic; R22-07 undefined above +21 mm)"
-    out.update(smash_confidence=sconf, smash_legacy_quadratic=m["smash_legacy_quadratic"])
+    out.update(smash_confidence=sconf, smash_legacy_quadratic=m["smash_legacy_quadratic"],
+               launch=dict(hotstix=m["launch_deg"], r2207=m.get("launch_deg_r2207")))   # r2207 launch: R22-07 Fig 3 table, MEDIUM, derived; None beyond +/-21 mm
     for nm, spin in (("capped", m["spin_rpm_capped"]), ("linear", m["spin_rpm_linear"]), ("r2207", m.get("spin_rpm_r2207"))):
         if spin is None: continue   # r2207 spin None beyond +/-21 mm = 'no data'
         bs, carry, toc = fly(spin, sm)
@@ -92,6 +93,11 @@ def face_edge_rows(det_eps, rob_eps=None):
                         robustness={f: g(B, f) for f in ("spin_rpm", "launch_deg", "smash", "carry_yd", "total_over_carry")} if B else None,
                         n_off_face=dict(deterministic=sum(1 for x in D if not x["valid"]), robustness=sum(1 for x in B if not x["valid"]))),
             why=[f"INFO: side-by-side face-edge model ({nm}{', +/-12.7 mm saturation as written' if nm == 'capped' else ', extrapolated linearly beyond 12.7 mm' if nm == 'linear' else ': digitized R22-07 Fig 1-2, under Evaluator review; NOT in any verdict'}) on a golfphys centre strike"] + FACE_EDGE_LABELS)
+    lg = lambda E, k: _q([x["launch"][k] for x in E if x["valid"] and x.get("launch")])
+    R["mine/launch_face_edge_r2207_info"] = dict(status="info", passed=False, tag="info_only", gating=False,
+        values=dict(deterministic=dict(r2207=lg(D, "r2207"), hotstix=lg(D, "hotstix")), robustness=dict(r2207=lg(B, "r2207"), hotstix=lg(B, "hotstix")) if B else None,
+                    n_r2207_none=dict(deterministic=sum(1 for x in D if x["valid"] and x.get("launch") and x["launch"]["r2207"] is None))),
+        why=["INFO: launch under R22-07 Fig 3 averaged table (MEDIUM, derived; None beyond +/-21 mm; only 2 of 3 tee series reach +/-18/21 mm) next to Hotstix 0.20 deg/mm"])
     lq = _q([x["smash_legacy_quadratic"] for x in D if x["valid"]])
     if lq: R["mine/smash_legacy_quadratic_info"] = dict(status="info", passed=False, tag="info_only", gating=False, values=dict(deterministic=lq, robustness=_q([x["smash_legacy_quadratic"] for x in B if x["valid"]])),
         why=["INFO: legacy quadratic smash (MyGolfSpy-derived, LOW confidence), superseded by the R22-07 ratio"])
@@ -123,9 +129,15 @@ def face_edge_model_verdict(r_v3d, spin_fn):
         cm = (rb["values"]["shot"].get("club_speed_mph") or {}).get("median")
         st = {q: combo([g(m, "robustness", q) for m in M], g(r22, "robustness", q), cm) for q in ("median", "p10", "p90")}
         C2["mine/robustness"] = _regrade_robust(rb, True, st); nod = nod or "no_data" in st.values()
+    lr = (C.get("mine/launch_face_edge_r2207_info") or {}).get("values", {}).get("deterministic") or {}
+    lh, l22 = (lr.get("hotstix") or {}).get("median"), (lr.get("r2207") or {}).get("median"); slaunch = None
+    if lh is not None and "shot/launch_deg" in C2:
+        inb = lambda x: LAUNCH_BAND[0] <= x <= LAUNCH_BAND[1]
+        slaunch = "fail" if (not inb(lh) or (l22 is not None and not inb(l22))) else ("no_data" if l22 is None else "pass")
+        C2["shot/launch_deg"] = dict(C2["shot/launch_deg"], status=slaunch, passed=slaunch == "pass"); nod = nod or slaunch == "no_data"
     S = summarize(C2); v = S["verdict"]
     if v == "PASS" and nod: v = "no data (r2207 undefined)"
-    return dict(verdict=v, n_pass=S["n_pass"], n_warn=S["n_warn"], n_fail=S["n_fail"], spin_status_det=sdet, spin_status_robust=st,
+    return dict(verdict=v, n_pass=S["n_pass"], n_warn=S["n_warn"], n_fail=S["n_fail"], spin_status_det=sdet, spin_status_robust=st, launch_status_det=slaunch, launch_rule="BOTH Hotstix 0.20 deg/mm and R22-07 Fig 3 launch in 7-16 deg (deterministic median); r2207 None = no data",
                 rule="spin passes only if capped AND linear AND r2207 (where defined, |dz|<=21 mm) pass; r2207 undefined = no data")
 
 def strike_height_row(info_row):

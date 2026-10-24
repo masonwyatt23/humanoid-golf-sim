@@ -114,3 +114,13 @@ Fig 2: backspin rises as the strike moves down to a **peak near −15 mm, then f
 3. Spin rule under the model: capped AND linear AND r2207 must all pass where r2207 is defined (|dz| ≤ 21 mm). r2207 undefined = 'no data'
    (not a pass, not a fail; the model verdict cannot be PASS). r2207 spin: MEDIUM, derived (Fig 2 delta scaled by ball speed / 167 mph).
 4. A pass that comes only from the face-edge model is 'not a pass (face-edge-model-only)'.
+
+### Launch rule (separate commit; module at Data Agent d7731c6 = main 9881d7c4d)
+
+* `launch_deg_r2207` = centre launch + R22-07 Fig 3 averaged launch-change table (`data/references/r2207_fig3_launch_delta_table.csv`),
+  MEDIUM, derived; None beyond ±21 mm. **Only 2 of the 3 tee series reach ±18/21 mm.**
+* Under the side-by-side model, launch passes only if BOTH the Hotstix (0.20°/mm) and the R22-07 launch are inside the launch band 7–16°
+  (deterministic median); R22-07 None = no data (not a pass). INFO row `mine/launch_face_edge_r2207_info`.
+* Outside-data flags are now one 21 mm flag for speed, spin and launch (`mine/strike_outside_measured_info`) plus `mine/strike_beyond_r2207_info`
+  (the 12.7 mm launch flag and the separate speed/spin flag are removed).
+* Check at the K30 inputs (centre launch 14.55°): −10 mm 12.39 (R22-07) vs 12.55 (Hotstix); −15 mm 10.30 vs 11.55; −21 mm 7.09 vs 10.35 — reproduced in tests.
