@@ -119,6 +119,7 @@ All K24-K26 harness files (`results/v5_runs/stageJ_harness/K2[4-6]*_v3.json`, sc
 
 ## Research bands
 
+- **`--head realistic` (opt-in, K34 prep)**: `train/v5_train_j.py --head realistic` / `V5GolfEnv(head="realistic")` builds a sourced 460 cc head (54x105 mm face, 62 mm crown, 200 g, nominal values read from `data/references/driver_head_460cc_refs.json`; some are estimates). **Default unchanged**: the 64 mm box head stays the default (model arrays and K32a 200k strike log byte-identical). No checkpoint has been trained on it; head sweep (no training, Trainer-only, single seed): `results/v5_runs/k34_head_sweep/table.txt`.
 - **Driver head 460cc refs** (`docs/DRIVER_HEAD_460CC_REFS.md`): reference data for the v4 sourced head; the sim head has not changed yet. Per-model rule36.net rows are held locally pending review.
 - **golfphys spin audit (DEFERRED / not applied):** `docs/GOLFPHYS_SPIN_AUDIT.md`; an opt-in `s_t` calibration via `data/golfphys_spin_audit.proposed_params()` was reviewed and deferred, golfphys defaults are unchanged.
 

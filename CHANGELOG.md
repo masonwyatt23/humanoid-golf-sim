@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-10-24 (later)
+- **Trainer K34 prep** (`a9d917e`): opt-in `--head realistic` (default box head unchanged: model arrays and K32a 200k strike log byte-identical), crown-tee `tee_mode` support it builds on, `scripts/head_sweep.py`, K34 head sweep table/CSV, notes. Refs read from `data/references/driver_head_460cc_refs.json`; the Trainer's `data/driver_head_460cc_refs.json` copy (contains the 21 held rule36 rows) NOT committed. Skipped: cmd files, watchers, checkpoints.
 - **Driver head 460cc refs** (Data Agent `driver-head-refs` `ba9f681`): reference data for the v4 sourced head; sim unchanged. 21 per-model rule36.net rows held locally (aggregates only published).
 - **Evaluator** `scott-e` `2cc93ac` + `6210641`: harness/exporter pass `tee_dz`, `ball_dx`, `face_h`, `tee_mode` from args.json; `V3_TEE` (args | metres | crown) and `V3_FACE_H` overrides; tee/face INFO rows; v3d "not a pass (new-tee-only)" flag. K32a re-scored: v3d crown tee 200k 15/3/1 FAIL (robustness), not a pass; 64 mm box primary, face_h 0.053 sensitivity only; K30a regression identical. Held: worker changes (untracked worker), two batch scripts (machine paths).
 - **Trainer K32** (`8e91bd0`..`13f0d2b`): `--tee_dz`/`--ball_dx` (default 0), geometry sweep on K31a 200k (`scripts/geom_sweep.py`), K32 keys, strike log, slim K32a/b 100k-300k harness JSONs (Trainer only; all FAIL; K32a scored at the default tee because the harness does not apply tee_dz). Skipped: cmd files, `k32_watch.sh`, checkpoints, logs.

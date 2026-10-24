@@ -73,7 +73,7 @@ def club_geometry(handed="LH", club_len=0.90):
     return dict(R=R, toe_sign=toe_sign, n_w=n_w, Rb_w=Rb_w, half=half, c_off_w=c_off_w, toe_world=toe_world, away=away, club_len=club_len)
 
 
-def build_spec(handed="LH", club_len=0.90, dt=DT, force_scale=1.0, kp_scale=1.0, grip_quat=None):
+def build_spec(handed="LH", club_len=0.90, dt=DT, force_scale=1.0, kp_scale=1.0, grip_quat=None, head="box"):
     spec = mujoco.MjSpec.from_file(f"{MENAG}/unitree_g1/scene.xml")
     for k in list(spec.keys):
         spec.delete(k)
@@ -114,8 +114,21 @@ def build_spec(handed="LH", club_len=0.90, dt=DT, force_scale=1.0, kp_scale=1.0,
     Rb_loc = g["R"].T @ g["Rb_w"]                      # head box frame in club local frame
     c_loc = g["R"].T @ g["c_off_w"] + np.array([0, 0, -Ls])
     face_ctr_loc = c_loc + Rb_loc[:, 0] * g["half"][0]
-    club.add_geom(name="head", type=mujoco.mjtGeom.mjGEOM_BOX, pos=c_loc.tolist(), quat=mat2quat(Rb_loc).tolist(), size=g["half"].tolist(), mass=HEAD_M,
+    if head == "box":
+        club.add_geom(name="head", type=mujoco.mjtGeom.mjGEOM_BOX, pos=c_loc.tolist(), quat=mat2quat(Rb_loc).tolist(), size=g["half"].tolist(), mass=HEAD_M,
                   contype=2, conaffinity=3, solref=[0.002, 1], solimp=[0.95, 0.99, 0.001, 0.5, 2], friction=[0.5, 0.01, 0.001], rgba=[.75, .75, .8, 1])
+    elif head == "realistic":   # K34 opt-in sourced head (realistic_head_geometry); box path above untouched
+        hg = realistic_head_geometry(g); g["realistic"] = hg; Rt = g["R"].T; hos = np.array([0, 0, -Ls])
+        loc = lambda w: (Rt @ w + hos).tolist(); Rw_loc = mat2quat(Rt @ hg["Rw"]).tolist()
+        club.add_geom(name="head", type=mujoco.mjtGeom.mjGEOM_BOX, pos=loc(hg["plate_c_w"]), quat=mat2quat(Rb_loc).tolist(), size=hg["plate_half"].tolist(), mass=0.0,
+                      contype=2, conaffinity=2, solref=[0.002, 1], solimp=[0.95, 0.99, 0.001, 0.5, 2], friction=[0.5, 0.01, 0.001], rgba=[.75, .75, .8, 0.6])
+        club.add_geom(name="head_shell", type=mujoco.mjtGeom.mjGEOM_BOX, pos=loc(hg["shell_c_w"]), quat=Rw_loc, size=hg["shell_half"].tolist(), mass=0.0,
+                      contype=0, conaffinity=1, solref=[0.002, 1], solimp=[0.95, 0.99, 0.001, 0.5, 2], friction=[0.5, 0.01, 0.001], rgba=[.3, .3, .35, 0.5])
+        club.add_geom(name="head_mass", type=mujoco.mjtGeom.mjGEOM_BOX, pos=loc(hg["cg_w"]), quat=Rw_loc, size=hg["mass_half"].tolist(), mass=hg["spec"]["mass"],
+                      contype=0, conaffinity=0, group=5, rgba=[0, 0, 0, 0])
+        face_ctr_loc = np.array(loc(hg["fc_w"])); c_loc = np.array(loc(hg["cg_w"]))
+    else:
+        raise ValueError(f"unknown head {head!r} (box|realistic)")
     gq = grip_quat or {}
     club.add_site(name="grip_lead", pos=[0, 0, 0], size=[0.01, 0, 0], group=4, quat=gq.get("grip_lead", [1, 0, 0, 0]))
     club.add_site(name="grip_trail", pos=[0, 0, -SHAFT_BELOW_GRIP], size=[0.01, 0, 0], group=4, quat=gq.get("grip_trail", [1, 0, 0, 0]))
@@ -247,10 +260,10 @@ def solve_address(handed="LH", club_len=0.90, stance=0.28, ball_xy=(0.10, 0.50),
     return out
 
 
-def build_model(handed="LH", club_len=0.90, dt=DT, force_scale=1.0, addr=None, kp_scale=1.0):
+def build_model(handed="LH", club_len=0.90, dt=DT, force_scale=1.0, addr=None, kp_scale=1.0, head="box"):
     """Compile the full v5 model (welds included). addr = result of solve_address (or loaded json)."""
     addr = addr or load_address(handed, club_len)
-    spec, g = build_spec(handed, club_len, dt, force_scale, kp_scale, grip_quat=addr.get("grip_quat_in_club"))
+    spec, g = build_spec(handed, club_len, dt, force_scale, kp_scale, grip_quat=addr.get("grip_quat_in_club"), head=head)
     lead, trail = lead_trail(handed)
     for s, gs in ((lead, "grip_lead"), (trail, "grip_trail")):
         # site-to-site weld: MuJoCo makes the two site FRAMES coincide (position + orientation); grip sites are oriented from the IK solution
@@ -295,3 +308,61 @@ def write_xml(path, handed="LH", club_len=0.87, addr=None):
     xml = spec.to_xml()
     open(path, "w").write(xml)
     return path
+
+
+# ---------------- K34 opt-in realistic driver head (--head realistic). Default head='box' is UNCHANGED (bit-identical model).
+HEAD_REF_JSON = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "references", "driver_head_460cc_refs.json")   # main's sourced refs (aggregates only; per-model rule36 rows held); only rows[].nominal is read
+SOLE_CLEAR = 0.002   # same 2 mm sole-to-ground clearance as the box head at address (solve_address)
+
+
+def realistic_head_spec():
+    """Nominal 460 cc driver head from the Data Agent's sourced table (values read directly from the JSON 'nominal' column; '~' rows are ESTIMATES).
+    Returns SI values + list of estimate keys."""
+    import re
+    rows = {r["quantity"]: r for r in json.load(open(HEAD_REF_JSON))["rows"]}
+    def num(q):
+        return float(re.search(r"[-+]?\d+(\.\d+)?", rows[q]["nominal"]).group(0))
+    est = [q for q, r in rows.items() if "estimate" in r["nominal"] or "estimate" in r.get("label", "")]
+    s = dict(face_h=num("face height") * 1e-3, face_w=num("face width") * 1e-3, depth=num("head depth (front-back)") * 1e-3,
+             heel_toe=num("heel-to-toe length (head)") * 1e-3, crown_h=num("sole-to-crown (crown height when soled)") * 1e-3,
+             fc_h=num("face-centre height when soled") * 1e-3, mass=num("head mass") * 1e-3, loft=num("loft"), lie=num("lie"),
+             izz=num("MOI vertical axis (heel-toe twist, Izz)") * 1e-7, iv=num("MOI horizontal (heel-toe) axis (Iv, face up/down rotation)") * 1e-7,
+             cg_depth=num("CG depth behind face") * 1e-3, cg_h=num("CG height") * 1e-3, cg_shaft=num("CG distance from shaft axis") * 1e-3,
+             fp=num("face progression (FP: leading edge ahead of shaft axis)") * 1e-3, fc_shaft=num("shaft-axis offset to face centre (heel-toe)") * 1e-3)
+    return s, est
+
+
+def realistic_head_geometry(g):
+    """Place the realistic head on the UNCHANGED shaft/address pose (same club frame, hosel at local z=-club_len, same hands/joints), soled 2 mm above
+    the ground like the box head. All offsets are built in world address axes (x = target, toe = away from golfer, z = up) relative to the hosel, then
+    expressed in the club frame. Geoms:
+      head       : thin lofted CONTACT plate (ball only), front face = hitting face; envelope 130 x 80 mm (> 105 x 54 face) so off-face strikes register
+                   with their true |dy|/|dz| and the env can flag them as misses. Its local axes (normal, toe, up) are used by the contact code exactly as before.
+      head_shell : world-aligned 112 x 120 x 62 mm box (depth x heel-toe x crown), floor collisions only (sole/fat shots), massless; its top = crown.
+      head_mass  : invisible, collision-free box carrying the 200 g at the CG; dims chosen so Izz = m(d^2+w^2)/12 ~ 4500 g cm2 and Iv = m(d^2+h^2)/12 ~ 3000.
+    Lie: the address shaft angle stays LIE_DEG (56) because changing it needs a new address IK (new q_addr -> invalidates checkpoints); the sourced
+    58.5 deg is reported, not applied (documented in TRAINING_NOTES)."""
+    s, est = realistic_head_spec()
+    lie, loft = math.radians(LIE_DEG), math.radians(LOFT_DEG)
+    # box-head soling (identical computation to solve_address) -> hosel world height at address
+    corners = [g["Rb_w"] @ (g["half"] * np.array([sx, sy, sz])) for sx in (-1, 1) for sy in (-1, 1) for sz in (-1, 1)]
+    hosel_z = SOLE_CLEAR - min(c[2] for c in corners) - g["c_off_w"][2]
+    toe = g["toe_world"]; ez = np.array([0.0, 0.0, 1.0])
+    def toe_off(d_perp, z_world):   # toe offset u so the point at height z is d_perp from the shaft axis (in the toe/up plane; shaft tilts toward the golfer)
+        w = z_world - hosel_z; return (d_perp - w * math.cos(lie)) / math.sin(lie)
+    z_fc = SOLE_CLEAR + s["fc_h"]
+    x_fc = s["fp"] - s["fc_h"] * math.tan(loft)            # FP is at the leading edge (sole); lofted face sets back by fc_h*tan(loft) at face centre
+    fc_w = np.array([x_fc, 0, 0]) + toe * toe_off(s["fc_shaft"], z_fc) + ez * (z_fc - hosel_z)
+    z_cg = SOLE_CLEAR + s["cg_h"]
+    cg_w = np.array([x_fc - s["cg_depth"], 0, 0]) + toe * toe_off(s["cg_shaft"], z_cg) + ez * (z_cg - hosel_z)
+    PL_T = 0.004
+    plate_half = np.array([PL_T, 0.065, 0.040])
+    plate_c_w = fc_w - g["n_w"] * PL_T
+    Rw = np.stack([np.array([1.0, 0, 0]), toe, np.cross([1.0, 0, 0], toe)], axis=1)   # world-aligned head axes (x, toe, up)
+    shell_half = np.array([s["depth"], s["heel_toe"], s["crown_h"]]) / 2
+    shell_c_w = np.array([s["fp"] - shell_half[0], 0, 0]) + toe * toe_off(s["fc_shaft"], z_fc) + ez * (SOLE_CLEAR + shell_half[2] - hosel_z)
+    # inertia box: d^2+w^2 = 12 Izz/m, d^2+h^2 = 12 Iv/m, d = head depth -> w, h
+    d2 = s["depth"] ** 2; w2 = 12 * s["izz"] / s["mass"] - d2; h2 = 12 * s["iv"] / s["mass"] - d2
+    mass_half = np.sqrt([d2, max(w2, 1e-6), max(h2, 1e-6)]) / 2
+    return dict(spec=s, estimates=est, hosel_z=hosel_z, fc_w=fc_w, cg_w=cg_w, plate_half=plate_half, plate_c_w=plate_c_w, Rw=Rw,
+                shell_half=shell_half, shell_c_w=shell_c_w, mass_half=mass_half, crown_z=SOLE_CLEAR + s["crown_h"])
