@@ -78,3 +78,10 @@ Output ranges: `smash` (R22-07) is None above +21 mm (no data) and extrapolates 
 Fig 3 launch (derived from digitized figure, approximate; raw points held locally, not in repo): slope 0.21 deg/mm over -12..+12 mm
 (series: forward 0.216, intermediate 0.201, neutral 0.214), 0.26 deg/mm over 0..-12 mm, 0.28 deg/mm over -21..+21 (steepens near both edges;
 neutral tee launches ~0.7 deg at -12/-15 mm). Consistent with Hotstix 0.20 and the Evaluator's rough 0.22-0.23 read.
+
+### Fig 3 averaged launch-change table (derived from digitized figure, approximate)
+`data/references/r2207_fig3_launch_delta_table.csv` (mean over tee series of launch minus that series' centre launch; n=2 at -18/-21 mm;
+extraction script `data/extract_r2207_fig3.py`, local PDF only, not run in CI; raw per-series points held locally, counsel-pending):
+-21: -7.46 | -18: -5.34 | -15: -4.25 | -12: -3.40 | -9: -1.54 | -6: -1.03 | -3: -0.62 | 0: +0.00 | 3: +0.60 | 6: +1.04 | 9: +1.48 | 12: +2.47 | 15: +3.16 | 18: +4.65 | 21: +7.45 (dz mm: deg).
+`face_edge_adjust` now also returns `launch_deg_r2207` = centre launch + table (linear interpolation within +/-21 mm, None beyond);
+MEDIUM, derived: one robot driver ~115 mph, launch change assumed speed-independent. `launch_deg` (Hotstix 0.20 deg/mm) stays the legacy output; defaults unchanged.

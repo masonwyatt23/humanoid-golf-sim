@@ -270,6 +270,15 @@
    "label": "derived from digitized figure, approximate",
    "table_or_figure": "R22-07 Fig 3 | R&A/USGA research report R22-07 'The effect of impact position on driving distance' (about 2022; header says 2006; cites the 2019 ODS; PDF dated Apr 2022)",
    "url": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf"
+  },
+  {
+   "id": "r2207_fig3_launch_table",
+   "quantity": "launch change vs centre by dz (mean of tee series)",
+   "value": "-21: -7.46; -18: -5.34; -15: -4.25; -12: -3.40; -9: -1.54; -6: -1.03; -3: -0.62; 0: +0.00; 3: +0.60; 6: +1.04; 9: +1.48; 12: +2.47; 15: +3.16; 18: +4.65; 21: +7.45",
+   "unit": "deg",
+   "label": "derived from digitized figure, approximate",
+   "table_or_figure": "R22-07 Fig 3 | R&A/USGA research report R22-07 'The effect of impact position on driving distance' (about 2022; header says 2006); table in data/references/r2207_fig3_launch_delta_table.csv; n=2 series at -18/-21",
+   "url": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf"
   }
  ],
  "gaps": [

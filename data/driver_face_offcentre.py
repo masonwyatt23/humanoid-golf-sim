@@ -32,6 +32,19 @@ R2207_LOW_SLOPE_PER_MM = 0.00178   # extrapolation below -21 mm (last measured s
 # 0.28 deg/mm over -21..+21 (curve steepens near both edges). Hotstix 0.20 kept as LAUNCH_DEG_PER_MM.
 R2207_LAUNCH_DEG_PER_MM_C12 = 0.21
 R2207_LAUNCH_DEG_PER_MM_FULL = 0.28
+# R22-07 Fig 3 launch change vs centre (deg; mean of tee series; derived from digitized figure, approximate;
+# data/references/r2207_fig3_launch_delta_table.csv). MEDIUM, derived: one robot driver ~115 mph; launch change assumed speed-independent.
+R2207_LAUNCH_DZ = [-21, -18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18, 21]
+R2207_LAUNCH_DELTA = [-7.46, -5.34, -4.25, -3.4, -1.54, -1.03, -0.62, 0.0, 0.6, 1.04, 1.48, 2.47, 3.16, 4.65, 7.45]
+
+
+def r2207_launch_delta(dz_mm):
+    import numpy as np
+    if not (R2207_LAUNCH_DZ[0] <= dz_mm <= R2207_LAUNCH_DZ[-1]):
+        return None
+    return float(np.interp(dz_mm, R2207_LAUNCH_DZ, R2207_LAUNCH_DELTA))
+
+
 # R22-07 Fig 2 spin minus centre spin (rpm, at ~167 mph ball): peak +963 at -15 mm then falls (+539 at -21)
 R2207_SPIN_DZ = [-21, -18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18, 21]
 R2207_SPIN_DELTA = [539, 864, 963, 852, 679, 600, 299, 0, -280, -564, -817, -1060, -1074, -858, -330]
@@ -69,7 +82,8 @@ def face_edge_adjust(centre, dz_mm, dx_mm=0.0):
     ball_speed_mph. dz_mm + = above face centre. Returns capped AND linear spin; a spin check passes only if BOTH pass.
     Levelling-off: R22-07 Fig 2 (derived from digitized figure, approximate; one driver, ~115 mph robot) shows low-face spin peaking
     near -15 mm and falling toward -21 mm, so the +/-12.7 mm cap is supported for that driver only (not verified across heads/speeds).
-    Returns None for: smash (R22-07) above +21 mm (no data; below -21 mm it extrapolates the last segment); spin_rpm_r2207 beyond +/-21 mm."""
+    launch_deg (legacy, Hotstix 0.20 deg/mm) is unchanged; launch_deg_r2207 = centre + R22-07 Fig 3 table.
+    Returns None for: launch_deg_r2207 beyond +/-21 mm; smash (R22-07) above +21 mm (no data; below -21 mm it extrapolates the last segment); spin_rpm_r2207 beyond +/-21 mm."""
     cdz = centre.get("centre_dz_mm", None)
     if cdz is None and "y_high_m" in centre:
         cdz = centre["y_high_m"] * 1000.0
@@ -85,5 +99,7 @@ def face_edge_adjust(centre, dz_mm, dx_mm=0.0):
     return dict(info, valid=True, smash=None if rr is None else centre["smash"] * rr,
                 smash_legacy_quadratic=centre["smash"] * (1.0 - SMASH_K_PER_MM2 * dz_mm ** 2),
                 spin_rpm_r2207=None if sd is None else centre["spin_rpm"] + sd,
+                launch_deg_r2207=None if r2207_launch_delta(dz_mm) is None else centre["launch_deg"] + r2207_launch_delta(dz_mm),
+                launch_r2207_confidence="MEDIUM, derived: one robot driver ~115 mph; launch change assumed speed-independent; None beyond +/-21 mm",
                 spin_rpm_capped=max(0.0, centre["spin_rpm"] - k * dzs), spin_rpm_linear=max(0.0, centre["spin_rpm"] - k * dz_mm),
                 launch_deg=centre["launch_deg"] + LAUNCH_DEG_PER_MM * dz_mm, smash_confidence="MEDIUM within -21..+21 mm (R22-07 digitized, one driver, 115 mph robot); LOW beyond; model-only pass does not count")
