@@ -32,3 +32,11 @@ def test_rejects_non_centre_input():
     with pytest.raises(ValueError):
         face_edge_adjust({k: v for k, v in C.items() if k != "centre_dz_mm"}, -10)
     face_edge_adjust(dict({k: v for k, v in C.items() if k != "centre_dz_mm"}, y_high_m=0.0), -10)
+
+
+def test_r2207_table():
+    from data.driver_face_offcentre import r2207_ratio
+    assert abs(r2207_ratio(0) - 1.0) < 1e-9 and r2207_ratio(-15) < 0.96 and r2207_ratio(-25) < r2207_ratio(-21)
+    d = json.load(open(Path(__file__).resolve().parent.parent / "data/references/driver_face_offcentre_refs.json"))
+    r = [x for x in d["rows"] if x["id"].startswith("r2207_fig")]
+    assert len(r) == 2 and all(x["label"] == "derived from digitized figure, approximate" for x in r)  # raw digitized CSV is held locally, not needed

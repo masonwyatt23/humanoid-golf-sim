@@ -243,12 +243,30 @@
    "label": "model",
    "table_or_figure": "Tutelman GE2 model columns",
    "url": "https://tutelman.com/golf/ballflight/gearEffect2.php"
+  },
+  {
+   "id": "r2207_fig1_ratio",
+   "quantity": "ball speed / centre vs dz (mean of 3 tee positions)",
+   "value": "-10: 0.973, -15: 0.948, -21: 0.936, +12: 0.976, +21: 0.924 (peak 1.001 at +3)",
+   "unit": "ratio",
+   "label": "derived from digitized figure, approximate",
+   "table_or_figure": "USGA/R&A R22-07 Fig 1",
+   "url": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf"
+  },
+  {
+   "id": "r2207_fig2_spin",
+   "quantity": "spin minus centre vs dz (rpm, ~167 mph ball)",
+   "value": "-12: +852, -15: +963 (peak), -21: +539; +12: -1060, +21: -330",
+   "unit": "rpm",
+   "label": "derived from digitized figure, approximate",
+   "table_or_figure": "USGA/R&A R22-07 Fig 2",
+   "url": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf"
   }
  ],
  "gaps": [
-  "No digitized ball-speed-vs-height curve to the face edge: R22-07 Fig 1 has it but values are in a chart image (text extraction gave axes only, 152-170 mph).",
   "No measured spin/launch per mm beyond +/-12.7 mm.",
-  "Golfphys roll 12 in / bulge 10 in: sourced range is bulge 11-13.5 in, roll 10-20 in (or graduated)."
+  "Golfphys roll 12 in / bulge 10 in: sourced range is bulge 11-13.5 in, roll 10-20 in (or graduated).",
+  "R22-07 is one driver (Aeson, 53 mm face) at ~115 mph on a robot; data reach dz -21..+21 mm (neutral tee only -15..+21)."
  ],
  "usage": "SIDE-BY-SIDE scoring model only, never a default (Evaluator review of ec675dd)"
 }

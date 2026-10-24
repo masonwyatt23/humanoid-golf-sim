@@ -47,4 +47,28 @@ Caveats: Hotstix launched ~7 deg at centre vs K30's 17.3 deg dynamic loft; Hotst
 Wishon is a single brand; Tutelman's corrected model gives ~63 rpm/mm, which supports golfphys (105 rpm/mm) being ~2x too strong.
 
 ## Limits
-Hotstix data is secondary (Golf Magazine 2009 via Tutelman), one driver, no ball speed. MGS bands are coarse. R22-07 curve not digitized. Bulge/roll vary by brand and are rarely published.
+Hotstix data is secondary (Golf Magazine 2009 via Tutelman), one driver, no ball speed. MGS bands are coarse. R22-07 constants are derived from a digitized figure (approximate, one driver); raw points held pending review. Bulge/roll vary by brand and are rarely published.
+
+## USGA/R&A R22-07 Figs 1-2: derived constants (derived from digitized figure, approximate; 2026-10-24 ET)
+PDF obtained from the web.archive.org `id_` snapshot of the USGA URL (USGA itself returns Akamai 403). Figures are vector, so marker centres
+were read from the PDF drawing commands (PyMuPDF) and axes calibrated linearly from tick-label positions. **The raw digitized point table is held locally pending counsel review (like the TrackMan 2010 chart rows) and is not in this repo;** only the derived constants below are published
+(label 'derived from digitized figure, approximate'; est. +/-0.2 mph, +/-25 rpm, +/-0.3 mm). Face centre = 26.5 mm above the bottom of a 53 mm face; impacts at dz -21..+21 mm
+(neutral tee -15..+21), one driver, robot ~115 mph, 6 shots per point. The ball-speed peak at dz +3 mm is real in all three series (report text: ~2 mm).
+
+Ball speed vs centre (mean of series normalised to own max, then to dz 0): -21 0.936, -18 0.941, -15 0.948, -12 0.962, -9 0.976, -6 0.987, -3 0.994, 0 1, +3 1.001, +6 1.000, +9 0.991, +12 0.976, +15 0.963, +18 0.948, +21 0.925.
+Model: piecewise-linear interpolation of that table (quadratic fit was rejected: RMSE 1.1 mph, max 3.0 mph, misses the flat top); below -21 mm extrapolate with the last segment (0.18 %/mm, derived).
+Residuals of the table vs individual series: RMSE 0.59 mph, max 1.79 mph.
+
+| dz mm | old quadratic (MGS) | new R22-07 table |
+|---|---|---|
+| -10 | -0.9% | -2.7% |
+| -15 | -1.9% | -5.0% |
+| -22 | -4.2% | -6.5% (extrap. 1 mm) |
+| -25 | -5.4% | -7.0% (extrap.) |
+At 74 mph / centre smash 1.449 the new smash is 1.409 / 1.376 / 1.355 / 1.347. So a sim smash of ~1.35 at 22-25 mm low is CONSISTENT with R22-07;
+what is unrealistic is any valid shot beyond the 26.5 mm face edge (e.g. -31 mm), which stays FAIL.
+
+Spin (Fig 2): low strikes add +600 (-6), +852 (-12), +963 (-15, peak), then FALL to +539 at -21 mm; high strikes -1060 at +12 then recover near the crown.
+This supports the levelling-off (now partly verified for one driver at 115 mph) and gives ~71 rpm/mm from 0 to -12 at 167 mph ball (~63 at 148), close to Tutelman's corrected model and below golfphys's ~105.
+`face_edge_adjust` now returns `smash` (R22-07 table), `smash_legacy_quadratic`, and `spin_rpm_r2207` (Fig 2 delta x ball/167, inside -21..+21 only) alongside capped and linear spin.
+Smash confidence: MEDIUM inside -21..+21 mm, LOW beyond. Suggest the Evaluator consider moving the "outside measured" info line from 12.7 to 21 mm for ball speed/spin (not changed here).
