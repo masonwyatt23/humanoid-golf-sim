@@ -1,0 +1,76 @@
+{
+ "cost": 0.1321958465252122,
+ "old_cost": 0.1142831199642987,
+ "hand_err_mm": [
+  0.04610971298936916,
+  0.06633962790749492
+ ],
+ "foot_z_mm": [
+  0.01996049602974448,
+  0.005625127711725297
+ ],
+ "shaft_lie_deg": 58.5,
+ "loft_deg": 10.500000000000002,
+ "face_yaw_deg": 0.0,
+ "toe_tilt_deg": 0.0,
+ "sole_tilt_deg": 0.0,
+ "shell_zmin_mm": 1.3877787807814457e-13,
+ "face_ctr": [
+  0.07852225654712303,
+  0.49999999999999994,
+  0.028999999999999915
+ ],
+ "ball": [
+  0.1,
+  0.5,
+  0.062
+ ],
+ "ball_minus_face_mm": [
+  21.47774345287698,
+  5.551115123125783e-14,
+  33.000000000000085
+ ],
+ "pelvis_delta_mm": [
+  -3.3849874824072277,
+  36.28599136065686,
+  0.04088159247772616
+ ],
+ "pelvis_pitch_delta_deg": -0.3133170068932116,
+ "pelvis_roll_delta_deg": 0.9138973568347978,
+ "club_pos_delta_mm": [
+  29.621303143392453,
+  20.313213487935965,
+  27.142980568908072
+ ],
+ "joint_delta_deg": {
+  "left_hip_pitch_joint": 1.05,
+  "left_hip_roll_joint": -1.14,
+  "left_hip_yaw_joint": 0.9,
+  "left_knee_joint": -1.15,
+  "left_ankle_pitch_joint": 0.41,
+  "left_ankle_roll_joint": 0.46,
+  "right_hip_pitch_joint": 1.0,
+  "right_hip_roll_joint": -1.05,
+  "right_hip_yaw_joint": 1.04,
+  "right_knee_joint": 0.11,
+  "right_ankle_pitch_joint": -0.87,
+  "right_ankle_roll_joint": 0.43,
+  "waist_yaw_joint": -0.11,
+  "waist_roll_joint": 0.05,
+  "waist_pitch_joint": -2.59,
+  "left_shoulder_pitch_joint": -1.8,
+  "left_shoulder_roll_joint": -3.77,
+  "left_shoulder_yaw_joint": -1.9,
+  "left_elbow_joint": 0.44,
+  "left_wrist_roll_joint": -0.0,
+  "left_wrist_pitch_joint": 0.05,
+  "left_wrist_yaw_joint": -0.1,
+  "right_shoulder_pitch_joint": -3.06,
+  "right_shoulder_roll_joint": -2.97,
+  "right_shoulder_yaw_joint": -4.21,
+  "right_elbow_joint": -3.35,
+  "right_wrist_roll_joint": 0.01,
+  "right_wrist_pitch_joint": -0.24,
+  "right_wrist_yaw_joint": -0.2
+ }
+}

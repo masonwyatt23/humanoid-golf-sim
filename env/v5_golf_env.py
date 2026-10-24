@@ -11,7 +11,7 @@ import numpy as np
 import mujoco
 import gymnasium as gym
 from gymnasium import spaces
-from .v5_body import (build_model, load_address, set_address, STOCK, joint_kind, lead_trail, CTRL_DT, realistic_head_geometry, club_geometry)
+from .v5_body import (build_model, load_address, set_address, STOCK, joint_kind, lead_trail, CTRL_DT, realistic_head_geometry, club_geometry, V4_LIE_DEG)
 from .v5_shot import shot_from_contact, verify_toe_sign
 
 ACT_SCALE = 1.0
@@ -45,7 +45,9 @@ class V5GolfEnv(gym.Env):
     metadata = {"render_modes": []}
 
     def __init__(self, handed="LH", club_len=0.87, dt=0.0005, force_scale=1.0, ball_tol_m=0.0, max_s=2.0, post_contact_s=0.10, seed=0,
-                 fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False, detail_info=False, arm_dist=0.0, head="box"):
+                 fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False, detail_info=False, arm_dist=0.0, head="box", env_v4=False):
+        self.env_v4 = bool(env_v4)   # v4 re-baseline: realistic head + lie 58.5 + swingweight comp + v4 address (env/models/v5_address_<H>_<L>_v4.json); default False = unchanged
+        if self.env_v4: head = "realistic"
         self.head = head   # K34: "box" (default, unchanged 64 mm sim box) | "realistic" (sourced 460 cc head, v5_body.realistic_head_geometry)
         self.face_h = None   # K31: optional real driver face height (m, e.g. 0.053; Data Agent DRIVER_FACE_OFFCENTRE_REFS). If set, a head-ball contact whose offset from face centre along the face 'up' axis exceeds face_h/2 is an OFF-FACE MISS (ball disabled, episode ends, info foul=True, off_face=True). Default None = unchanged (head box half-height 0.032 m)
         self.strike_gate_nx = None   # Stage G: if set, a head-ball contact only counts when face normal x >= this, head v_x > 0 and v.n > 0; otherwise it is a FOUL (ball disabled, episode terminates, info foul=True); default off
@@ -64,19 +66,31 @@ class V5GolfEnv(gym.Env):
     def _init_model(self, club_len):
         handed, force_scale = self.handed, self.force_scale
         self.club_len = club_len
-        self.addr = load_address(handed, club_len)
-        self.m, _ = build_model(handed, club_len, dt=self._dt_arg, force_scale=force_scale, addr=self.addr, **({} if getattr(self, "head", "box") == "box" else dict(head=self.head)))
+        if getattr(self, "env_v4", False):
+            self.head = "realistic"; self.addr = load_address(handed, club_len, variant="v4")
+            self.m, _ = build_model(handed, club_len, dt=self._dt_arg, force_scale=force_scale, addr=self.addr, head="v4", lie_deg=V4_LIE_DEG, sw_comp=True)
+        else:
+            self.addr = load_address(handed, club_len)
+            self.m, _ = build_model(handed, club_len, dt=self._dt_arg, force_scale=force_scale, addr=self.addr, **({} if getattr(self, "head", "box") == "box" else dict(head=self.head)))
         self._bind()
         self._ball0 = None; self._crown_cache = {}
         if getattr(self, "head", "box") != "box":   # realistic head: re-align the ball (x, y) to the new face centre with the solve_address rule; keep the default tee HEIGHT (ball z) unchanged
             d0 = self._fk_addr(); fc = d0.site_xpos[self.head_site]; n0 = d0.geom_xmat[self.head_geom].reshape(3, 3)[:, 0]
             self._ball0 = np.array([fc[0] + R_BALL_E * n0[0] + 0.0005, fc[1], float(self.addr["ball_pos"][2])])
             self._head_geo = realistic_head_geometry(club_geometry(self.handed, club_len))
+            if getattr(self, "env_v4", False):   # v4: the address was solved with the ball at the realistic face centre -> use the solved ball exactly
+                self._ball0 = np.array(self.addr["ball_pos"], float); self._head_geo = realistic_head_geometry(club_geometry(self.handed, club_len, V4_LIE_DEG), v4=True)
 
     def set_head(self, head):
         """K34: switch the club head ("box" | "realistic") and rebuild the model; takes effect immediately (reset called)."""
         if head != getattr(self, "head", "box"):
             self.head = head; self._init_model(self.club_len); self.toe_sign, _, self.toe_dot = verify_toe_sign(self.m, self._fk_addr(), self.handed); self.reset()
+
+    def set_env_v4(self, on=True):
+        """Switch to/from the v4 re-baseline env (rebuilds the model and the address; q_addr changes -> rebuild any SwingRef)."""
+        if bool(on) != getattr(self, "env_v4", False):
+            self.env_v4 = bool(on); self.head = "realistic" if on else "box"; self._init_model(self.club_len)
+            self.q_addr = np.array([self.addr["joints"][n] for n in self.names]); self.toe_sign, _, self.toe_dot = verify_toe_sign(self.m, self._fk_addr(), self.handed); self.reset()
 
     def face_limits(self):
         """Off-face limits (half height, half width) in m, or None = no gate. Box: face_h flag only (unchanged). Realistic: face_h flag or the sourced 54 x 105 mm face."""
@@ -187,7 +201,7 @@ class V5GolfEnv(gym.Env):
         if self.friction_rand:
             self.m.geom_friction[self.floor, 0] = self.rng.uniform(0.5, 1.2)       # foot/floor sliding friction randomisation
         off = (self.rng.uniform(-1, 1, 2) * self.ball_tol) if self.ball_tol > 0 else np.zeros(2)
-        self.tee = np.array(self.addr["ball_pos"] if self._ball0 is None else self._ball0, float); self.tee[:2] += off; self.tee[0] += getattr(self, "ball_dx", 0.0); self.tee[2] += self._crown_tee_dz() if getattr(self, "tee_mode", None) == "crown" else getattr(self, "tee_dz", 0.0)   # K32/K33 flags (default 0 = unchanged)
+        self.tee = np.array(self.addr["ball_pos"] if self._ball0 is None else self._ball0, float); self.tee[:2] += off; self.tee[0] += getattr(self, "ball_dx", 0.0); self.tee[2] += self._crown_tee_dz() if getattr(self, "tee_mode", None) == "crown" else (0.0381 + R_BALL_E - self.tee[2]) if getattr(self, "tee_mode", None) == "1.5in" else getattr(self, "tee_dz", 0.0)   # K32/K33 flags (default 0 = unchanged)
         d.qpos[self.ball_q:self.ball_q + 3] = self.tee
         self.armed = self.arm_dist <= 0
         m.geom_contype[self.ball_geom] = 2 if self.armed else 0; m.geom_conaffinity[self.ball_geom] = 2 if self.armed else 0

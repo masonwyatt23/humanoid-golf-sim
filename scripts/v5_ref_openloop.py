@@ -4,7 +4,7 @@ from env.v5_golf_env import V5GolfEnv
 from env.v5_ref import SwingRef, TUNED_KEYS
 
 def make_env(dt=0.002, gate=0.25, arm=0.6):
-    e = V5GolfEnv(club_len=1.15, dt=dt, arm_dist=arm, friction_rand=False); e.strike_gate_nx = gate; e.log_segments = True; return e
+    e = V5GolfEnv(club_len=1.15, dt=dt, arm_dist=arm, friction_rand=False, **({'env_v4': True} if __import__('os').environ.get('V5_ENV_V4') == '1' else {})); e.strike_gate_nx = gate; e.log_segments = True; return e
 
 def keys_from_vec(x): return {k: float(v) for k, v in zip(TUNED_KEYS, x)}
 
