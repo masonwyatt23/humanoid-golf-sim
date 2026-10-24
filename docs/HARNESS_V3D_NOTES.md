@@ -124,3 +124,9 @@ Fig 2: backspin rises as the strike moves down to a **peak near −15 mm, then f
 * Outside-data flags are now one 21 mm flag for speed, spin and launch (`mine/strike_outside_measured_info`) plus `mine/strike_beyond_r2207_info`
   (the 12.7 mm launch flag and the separate speed/spin flag are removed).
 * Check at the K30 inputs (centre launch 14.55°): −10 mm 12.39 (R22-07) vs 12.55 (Hotstix); −15 mm 10.30 vs 11.55; −21 mm 7.09 vs 10.35 — reproduced in tests.
+
+## Crown tee: interim status (Orchestrator decision, Oct 24, 2026)
+- The crown-level tee (tee_dz about 21.5 mm) compensates for the oversized sim head (64 mm box, face centre about 50 mm above ground). The default tee already puts the ball bottom at about 38.5 mm (1.52 in), which matches the GOLF.com Top-100 guidance of about 1.5 in.
+- A v3d pass counts ONLY if it also passes at the default tee (tee_dz 0). Otherwise the verdict is 'not a pass (new-tee-only)'. Crown-tee rows are labelled 'compensates for the oversized sim head'.
+- The main tables use the standard 64 mm box. The args face_h 0.053 rows are always reported as sensitivity only.
+- Planned v4: a sourced realistic driver head (face height, face-centre height when soled, crown height, depth), with the tee set equator-at-crown for that head (about 34 mm / 1.3 in by the Evaluator's derived estimate, to be sourced), then a full re-baseline.
