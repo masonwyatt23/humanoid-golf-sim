@@ -76,5 +76,5 @@ Smash confidence: MEDIUM inside -21..+21 mm, LOW beyond. Suggest the Evaluator c
 Output ranges: `smash` (R22-07) is None above +21 mm (no data) and extrapolates the last segment below -21 mm; `spin_rpm_r2207` is None beyond +/-21 mm.
 
 Fig 3 launch (derived from digitized figure, approximate; raw points held locally, not in repo): slope 0.21 deg/mm over -12..+12 mm
-(series 0.20/0.20/0.22... forward 0.216, intermediate 0.201, neutral 0.214), 0.26 deg/mm over 0..-12 mm, 0.28 deg/mm over -21..+21 (steepens near both edges;
+(series: forward 0.216, intermediate 0.201, neutral 0.214), 0.26 deg/mm over 0..-12 mm, 0.28 deg/mm over -21..+21 (steepens near both edges;
 neutral tee launches ~0.7 deg at -12/-15 mm). Consistent with Hotstix 0.20 and the Evaluator's rough 0.22-0.23 read.
