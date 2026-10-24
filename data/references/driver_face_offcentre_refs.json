@@ -1,0 +1,254 @@
+{
+ "generated": "2026-10-24 (America/New_York)",
+ "rows": [
+  {
+   "id": "face_height_919thi",
+   "quantity": "face height",
+   "value": 53,
+   "unit": "mm",
+   "label": "measured (OEM spec)",
+   "table_or_figure": "Wishon 919THI spec table 'FACE HEIGHT'",
+   "url": "https://wishongolf.com/designs/designs-drivers/919thi/"
+  },
+  {
+   "id": "face_width_919thi",
+   "quantity": "face width",
+   "value": 105,
+   "unit": "mm",
+   "label": "measured (OEM spec)",
+   "table_or_figure": "Wishon 919THI spec table",
+   "url": "https://wishongolf.com/designs/designs-drivers/919thi/"
+  },
+  {
+   "id": "face_area_919thi",
+   "quantity": "face area",
+   "value": 4800,
+   "unit": "mm2",
+   "label": "measured (OEM spec)",
+   "table_or_figure": "Wishon 919THI spec table 'FACE AREA'",
+   "url": "https://wishongolf.com/designs/designs-drivers/919thi/"
+  },
+  {
+   "id": "bulge_919thi",
+   "quantity": "bulge radius",
+   "value": 13,
+   "unit": "in",
+   "label": "measured (OEM spec)",
+   "table_or_figure": "Wishon 919THI spec; roll = GRT (graduated roll, no single radius)",
+   "url": "https://wishongolf.com/designs/designs-drivers/919thi/"
+  },
+  {
+   "id": "face_height_719mw",
+   "quantity": "face height",
+   "value": 50,
+   "unit": "mm",
+   "label": "measured (OEM spec)",
+   "table_or_figure": "Wishon 719MW spec table",
+   "url": "https://wishongolf.com/719mw-drivers/"
+  },
+  {
+   "id": "face_width_719mw",
+   "quantity": "face width",
+   "value": 106,
+   "unit": "mm",
+   "label": "measured (OEM spec)",
+   "table_or_figure": "Wishon 719MW spec table",
+   "url": "https://wishongolf.com/719mw-drivers/"
+  },
+  {
+   "id": "bulge_roll_719mw",
+   "quantity": "bulge / roll radius",
+   "value": "13 / 20",
+   "unit": "in",
+   "label": "measured (OEM spec)",
+   "table_or_figure": "Wishon 719MW spec table",
+   "url": "https://wishongolf.com/719mw-drivers/"
+  },
+  {
+   "id": "face_depth_r2207",
+   "quantity": "test driver face depth",
+   "value": 53,
+   "unit": "mm",
+   "label": "measured (lab)",
+   "table_or_figure": "USGA/R&A R22-07 Sec 3 text",
+   "url": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf"
+  },
+  {
+   "id": "r2207_ballspeed_peak",
+   "quantity": "ball-speed peak location",
+   "value": 2,
+   "unit": "mm above geometric centre",
+   "label": "measured (lab, robot 115 mph)",
+   "table_or_figure": "R22-07 Sec 3 / Fig 1 (impacts in 2-3 mm steps to the face edge, 6 shots each; lowest ball speeds at extremes; figure values NOT digitized)",
+   "url": "same"
+  },
+  {
+   "id": "r2207_spin_bottom",
+   "quantity": "spin near bottom edge",
+   "value": "decreases toward bottom of face",
+   "unit": "qualitative",
+   "label": "measured (lab)",
+   "table_or_figure": "R22-07 Sec 3 / Fig 2 (gear-effect spin does not keep rising at the bottom edge)",
+   "url": "same"
+  },
+  {
+   "id": "r19_bulge_roll",
+   "quantity": "variable-MOI test head bulge / roll",
+   "value": "11 / 10",
+   "unit": "in",
+   "label": "measured (lab head spec)",
+   "table_or_figure": "R&A/USGA R19 Sec 4.2.1 (machined head)",
+   "url": "https://assets.randa.org/c42c7bf4-dca7-00ea-4f2e-373223f80f76/f4ad65a9-cdcf-4896-a947-37f7a10c2121/R19%20-%20Effect%20of%20Equipment%20on%20Distance%20-%20Driver.pdf"
+  },
+  {
+   "id": "r19_heeltoe_loss_fn",
+   "quantity": "drive distance loss vs heel/toe offset X (in), MOI 4500",
+   "value": "D = 12 X^2 + 0.8 X yd",
+   "unit": "yd",
+   "label": "model (FE simulation, ~282 yd drive)",
+   "table_or_figure": "R19 Table 6 (7/8 in robot Tables 4-5 are images, not extracted)",
+   "url": "same"
+  },
+  {
+   "id": "maltby_460_radii",
+   "quantity": "typical 460cc bulge x roll",
+   "value": "12 x 12 or higher",
+   "unit": "in",
+   "label": "expert statement (not measured)",
+   "table_or_figure": "Maltby Q&A answer (Britt Lindsey)",
+   "url": "https://ralphmaltby.com/question/bulge-and-roll/"
+  },
+  {
+   "id": "lagolf_bulge_range",
+   "quantity": "modern high-COR driver bulge",
+   "value": "11-13.5",
+   "unit": "in",
+   "label": "expert statement (quoted in press)",
+   "table_or_figure": "Golf Digest LA Golf Face ID article quote",
+   "url": "https://www.golfdigest.com/story/la-golf-face-id-drivers--what-you-need-to-know"
+  },
+  {
+   "id": "hotstix_spin",
+   "quantity": "backspin at -0.5/-0.25/0/+0.25/+0.5 in",
+   "value": "3165/2971/2564/2098/1862",
+   "unit": "rpm",
+   "label": "measured (robot, 100 mph, 460cc 9.5 deg; secondary via Tutelman)",
+   "table_or_figure": "Tutelman Gear Effect 2, table 'Input from Hotstix article' (orig. Golf Magazine Feb 2009)",
+   "url": "https://tutelman.com/golf/ballflight/gearEffect2.php"
+  },
+  {
+   "id": "hotstix_launch",
+   "quantity": "launch at same offsets",
+   "value": "4.3/5.3/6.8/8.4/9.4",
+   "unit": "deg",
+   "label": "measured (same)",
+   "table_or_figure": "same table",
+   "url": "https://tutelman.com/golf/ballflight/gearEffect2.php"
+  },
+  {
+   "id": "hotstix_spin_slope",
+   "quantity": "vertical spin slope",
+   "value": 51.3,
+   "unit": "rpm/mm",
+   "label": "derived (end points / 25.4 mm); normalised to 148 mph = TrajectoWare MODEL ball speed (Tutelman), not measured",
+   "table_or_figure": "from hotstix_spin",
+   "url": "https://tutelman.com/golf/ballflight/gearEffect2.php"
+  },
+  {
+   "id": "hotstix_launch_slope",
+   "quantity": "launch slope",
+   "value": 0.2,
+   "unit": "deg/mm",
+   "label": "derived",
+   "table_or_figure": "from hotstix_launch",
+   "url": "https://tutelman.com/golf/ballflight/gearEffect2.php"
+  },
+  {
+   "id": "tutelman_ge_model",
+   "quantity": "vertical gear-effect spin",
+   "value": "25 * Vb(mph) * y(in)",
+   "unit": "rpm",
+   "label": "model",
+   "table_or_figure": "Tutelman Gear Effect 2/3 Eq 3a",
+   "url": "https://www.tutelman.com/golf/ballflight/gearEffect3.php"
+  },
+  {
+   "id": "wishon_vge",
+   "quantity": "spin change per 0.5 in vertical",
+   "value": 425,
+   "unit": "rpm at 105 mph club",
+   "label": "reported (secondary via Tutelman)",
+   "table_or_figure": "Tutelman launchOptimize 'Vertical gear effect'",
+   "url": "https://www.tutelman.com/golf/ballflight/launchOptimize.php"
+  },
+  {
+   "id": "upshaw_vge",
+   "quantity": "spin change high vs low face (1.5 in)",
+   "value": 3300,
+   "unit": "rpm at ~145 mph ball",
+   "label": "reported (secondary via Tutelman)",
+   "table_or_figure": "same",
+   "url": "https://www.tutelman.com/golf/ballflight/launchOptimize.php"
+  },
+  {
+   "id": "mgs_centre",
+   "quantity": "centre (+/-4.5 mm): club/ball/launch/spin",
+   "value": "102.95/145.66/13.88/2658",
+   "unit": "mph/mph/deg/rpm",
+   "label": "measured (20 testers, ~5700 shots, GC2+HMT)",
+   "table_or_figure": "MyGolfSpy Labs vertical impact study, table 'All swing speeds'",
+   "url": "https://mygolfspy.com/labs/mygolfspy-labs-the-impact-location-study/"
+  },
+  {
+   "id": "mgs_low",
+   "quantity": "low face: club/ball/launch/spin",
+   "value": "101.72/142.93/12.48/3090",
+   "unit": "mph/mph/deg/rpm",
+   "label": "measured (same)",
+   "table_or_figure": "same table",
+   "url": "same"
+  },
+  {
+   "id": "mgs_high",
+   "quantity": "high face: club/ball/launch/spin",
+   "value": "101.06/139.64/15.13/2177",
+   "unit": "mph/mph/deg/rpm",
+   "label": "measured (same)",
+   "table_or_figure": "same table",
+   "url": "same"
+  },
+  {
+   "id": "mgs_smash",
+   "quantity": "smash centre / low / high",
+   "value": "1.415 / 1.405 / 1.382",
+   "unit": "ratio",
+   "label": "derived (ball/club)",
+   "table_or_figure": "from mgs rows; band mean offset not published",
+   "url": "same"
+  },
+  {
+   "id": "golfcom_lowheel",
+   "quantity": "low-heel vs centre at 95 mph (25 drivers, 6 balls)",
+   "value": "launch 11.4->8.95; spin 2710->3310; carry 222->203",
+   "unit": "deg/rpm/yd",
+   "label": "measured (robot; offset size not stated)",
+   "table_or_figure": "GOLF.com robot article text",
+   "url": "https://golf.com/gear/drivers/driver-miss-heel-toe-robot-test/"
+  },
+  {
+   "id": "tutelman_corrected_vge",
+   "quantity": "corrected-model vertical spin slope (Hotstix fit)",
+   "value": "~63",
+   "unit": "rpm/mm (approx, Evaluator reading of GE2 table)",
+   "label": "model",
+   "table_or_figure": "Tutelman GE2 model columns",
+   "url": "https://tutelman.com/golf/ballflight/gearEffect2.php"
+  }
+ ],
+ "gaps": [
+  "No digitized ball-speed-vs-height curve to the face edge: R22-07 Fig 1 has it but values are in a chart image (text extraction gave axes only, 152-170 mph).",
+  "No measured spin/launch per mm beyond +/-12.7 mm.",
+  "Golfphys roll 12 in / bulge 10 in: sourced range is bulge 11-13.5 in, roll 10-20 in (or graduated)."
+ ],
+ "usage": "SIDE-BY-SIDE scoring model only, never a default (Evaluator review of ec675dd)"
+}

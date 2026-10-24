@@ -1,0 +1,28 @@
+id,quantity,value,unit,label,table_or_figure,url
+face_height_919thi,face height,53,mm,measured (OEM spec),Wishon 919THI spec table 'FACE HEIGHT',https://wishongolf.com/designs/designs-drivers/919thi/
+face_width_919thi,face width,105,mm,measured (OEM spec),Wishon 919THI spec table,https://wishongolf.com/designs/designs-drivers/919thi/
+face_area_919thi,face area,4800,mm2,measured (OEM spec),Wishon 919THI spec table 'FACE AREA',https://wishongolf.com/designs/designs-drivers/919thi/
+bulge_919thi,bulge radius,13,in,measured (OEM spec),"Wishon 919THI spec; roll = GRT (graduated roll, no single radius)",https://wishongolf.com/designs/designs-drivers/919thi/
+face_height_719mw,face height,50,mm,measured (OEM spec),Wishon 719MW spec table,https://wishongolf.com/719mw-drivers/
+face_width_719mw,face width,106,mm,measured (OEM spec),Wishon 719MW spec table,https://wishongolf.com/719mw-drivers/
+bulge_roll_719mw,bulge / roll radius,13 / 20,in,measured (OEM spec),Wishon 719MW spec table,https://wishongolf.com/719mw-drivers/
+face_depth_r2207,test driver face depth,53,mm,measured (lab),USGA/R&A R22-07 Sec 3 text,https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf
+r2207_ballspeed_peak,ball-speed peak location,2,mm above geometric centre,"measured (lab, robot 115 mph)","R22-07 Sec 3 / Fig 1 (impacts in 2-3 mm steps to the face edge, 6 shots each; lowest ball speeds at extremes; figure values NOT digitized)",same
+r2207_spin_bottom,spin near bottom edge,decreases toward bottom of face,qualitative,measured (lab),R22-07 Sec 3 / Fig 2 (gear-effect spin does not keep rising at the bottom edge),same
+r19_bulge_roll,variable-MOI test head bulge / roll,11 / 10,in,measured (lab head spec),R&A/USGA R19 Sec 4.2.1 (machined head),https://assets.randa.org/c42c7bf4-dca7-00ea-4f2e-373223f80f76/f4ad65a9-cdcf-4896-a947-37f7a10c2121/R19%20-%20Effect%20of%20Equipment%20on%20Distance%20-%20Driver.pdf
+r19_heeltoe_loss_fn,"drive distance loss vs heel/toe offset X (in), MOI 4500",D = 12 X^2 + 0.8 X yd,yd,"model (FE simulation, ~282 yd drive)","R19 Table 6 (7/8 in robot Tables 4-5 are images, not extracted)",same
+maltby_460_radii,typical 460cc bulge x roll,12 x 12 or higher,in,expert statement (not measured),Maltby Q&A answer (Britt Lindsey),https://ralphmaltby.com/question/bulge-and-roll/
+lagolf_bulge_range,modern high-COR driver bulge,11-13.5,in,expert statement (quoted in press),Golf Digest LA Golf Face ID article quote,https://www.golfdigest.com/story/la-golf-face-id-drivers--what-you-need-to-know
+hotstix_spin,backspin at -0.5/-0.25/0/+0.25/+0.5 in,3165/2971/2564/2098/1862,rpm,"measured (robot, 100 mph, 460cc 9.5 deg; secondary via Tutelman)","Tutelman Gear Effect 2, table 'Input from Hotstix article' (orig. Golf Magazine Feb 2009)",https://tutelman.com/golf/ballflight/gearEffect2.php
+hotstix_launch,launch at same offsets,4.3/5.3/6.8/8.4/9.4,deg,measured (same),same table,https://tutelman.com/golf/ballflight/gearEffect2.php
+hotstix_spin_slope,vertical spin slope,51.3,rpm/mm,"derived (end points / 25.4 mm); normalised to 148 mph = TrajectoWare MODEL ball speed (Tutelman), not measured",from hotstix_spin,https://tutelman.com/golf/ballflight/gearEffect2.php
+hotstix_launch_slope,launch slope,0.2,deg/mm,derived,from hotstix_launch,https://tutelman.com/golf/ballflight/gearEffect2.php
+tutelman_ge_model,vertical gear-effect spin,25 * Vb(mph) * y(in),rpm,model,Tutelman Gear Effect 2/3 Eq 3a,https://www.tutelman.com/golf/ballflight/gearEffect3.php
+wishon_vge,spin change per 0.5 in vertical,425,rpm at 105 mph club,reported (secondary via Tutelman),Tutelman launchOptimize 'Vertical gear effect',https://www.tutelman.com/golf/ballflight/launchOptimize.php
+upshaw_vge,spin change high vs low face (1.5 in),3300,rpm at ~145 mph ball,reported (secondary via Tutelman),same,https://www.tutelman.com/golf/ballflight/launchOptimize.php
+mgs_centre,centre (+/-4.5 mm): club/ball/launch/spin,102.95/145.66/13.88/2658,mph/mph/deg/rpm,"measured (20 testers, ~5700 shots, GC2+HMT)","MyGolfSpy Labs vertical impact study, table 'All swing speeds'",https://mygolfspy.com/labs/mygolfspy-labs-the-impact-location-study/
+mgs_low,low face: club/ball/launch/spin,101.72/142.93/12.48/3090,mph/mph/deg/rpm,measured (same),same table,same
+mgs_high,high face: club/ball/launch/spin,101.06/139.64/15.13/2177,mph/mph/deg/rpm,measured (same),same table,same
+mgs_smash,smash centre / low / high,1.415 / 1.405 / 1.382,ratio,derived (ball/club),from mgs rows; band mean offset not published,same
+golfcom_lowheel,"low-heel vs centre at 95 mph (25 drivers, 6 balls)",launch 11.4->8.95; spin 2710->3310; carry 222->203,deg/rpm/yd,measured (robot; offset size not stated),GOLF.com robot article text,https://golf.com/gear/drivers/driver-miss-heel-toe-robot-test/
+tutelman_corrected_vge,corrected-model vertical spin slope (Hotstix fit),~63,"rpm/mm (approx, Evaluator reading of GE2 table)",model,Tutelman GE2 model columns,https://tutelman.com/golf/ballflight/gearEffect2.php
