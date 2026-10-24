@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-24 (later)
+- **Trainer** (`f0b82be`..`185439d`): `--sep_lo`/`--sep_span` arm-to-club lag flags (defaults unchanged); K30 reference fit (`b69fac9`, did not reach targets, **unused**); slim harness JSONs for K28a/b, K29a/b, K30a/b (v2 + v3c, v3d where present) and v3d re-grades (`e9672f0`, `0d31656`). Skipped: cmd files, `k28/k29/k30_watch.sh`, `scripts/v3d_regrade.py` (machine paths), `scripts/launch_cmd.py` (launcher for the skipped cmd files), checkpoints, logs.
+- **Evaluator** `228eca4`: independent v3c + live v3d scores for K28a/b 100k-400k and K29a/b 100k-300k (56 slim result files + md5 record); all FAIL robustness; match the Trainer exactly. Confirms K28b 400k v3c 12/5/1 (not the best overall; 14/3/1 rows exist). Skipped: two batch scripts (machine paths).
+- README: v3c table adds K28-K30 rows marked Evaluator or Trainer only; v3d section updated.
+
 ## 2026-10-24
 - **Evaluator v3c scores** (`scott-e` `f817e7d`): independent v3c scores for 12 rows (7 earlier rows re-scored + K23b 300k, K25b 400k, K27a 400k, K27b 400k, K27c 300k), slim JSON + TXT in `results/v5_runs/stageJK_harness_summary/` (per-episode and robustness_episodes blocks omitted, local paths -> `<local-path>`). All FAIL robustness; best 14/3/1 (K22r5, K23b, K25b). K27a/K27c match the Trainer's v3c files exactly; K27b 13/3/2 confirmed. Skipped: `_batch_v3c_new.sh` (machine paths).
 - **README still caption** (`1e69b6c`): `results/previews/K25b_s56_400k_readme_still_caption.txt` (caption only; the PNG is not in git).
