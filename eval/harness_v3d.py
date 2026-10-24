@@ -34,9 +34,18 @@ MEASURED_DZ_MM = 12.7          # Hotstix robot data span +/-0.5 in (secondary so
 LAUNCH_BAND = (7.0, 16.0)      # same band as shot/launch_deg (derived)
 R2207_DZ_MM = 21.0             # R22-07 Fig 1-2 digitized span (-21..+21 mm): ball speed/smash and spin flag
 
-def strike_height_status(med_abs_dz_mm):
+def face_edge_for(r):
+    """FAIL threshold (mm) + label. Realistic head (tee_info.head.mode == 'realistic'): the ENV's face_limits() vertical half-height (27 mm for the
+    Data Agent's 54 mm nominal face). Otherwise STRIKE_FACE_EDGE_MM (26.5, Wishon 919THI)."""
+    H_ = ((r or {}).get("tee_info") or {}).get("head") or {}
+    if H_.get("mode") == "realistic" and H_.get("face_limits_m"):
+        return 1000.0 * float(H_["face_limits_m"][0]), "env face_limits() vertical half-height (realistic head; Data Agent JSON face height, cross-checked 0.5 mm)"
+    return STRIKE_FACE_EDGE_MM, "STRIKE_FACE_EDGE_MM = 53/2 mm, measured spec, single brand (Wishon 919THI 53x105 mm), provisional"
+
+def strike_height_status(med_abs_dz_mm, edge_mm=None):
     if med_abs_dz_mm is None: return "skip"
-    return "fail" if med_abs_dz_mm >= STRIKE_FACE_EDGE_MM else "warn" if med_abs_dz_mm > STRIKE_DZ_WARN_MM else "pass"
+    edge_mm = STRIKE_FACE_EDGE_MM if edge_mm is None else edge_mm
+    return "fail" if med_abs_dz_mm >= edge_mm else "warn" if med_abs_dz_mm > STRIKE_DZ_WARN_MM else "pass"
 
 def strike_extent_rows(info_row):
     d = ((info_row or {}).get("values") or {}).get("deterministic") or {}; m = d.get("median_abs")
@@ -140,12 +149,13 @@ def face_edge_model_verdict(r_v3d, spin_fn):
     return dict(verdict=v, n_pass=S["n_pass"], n_warn=S["n_warn"], n_fail=S["n_fail"], spin_status_det=sdet, spin_status_robust=st, launch_status_det=slaunch, launch_rule="BOTH Hotstix 0.20 deg/mm and R22-07 Fig 3 launch in 7-16 deg (deterministic median); r2207 None = no data",
                 rule="spin passes only if capped AND linear AND r2207 (where defined, |dz|<=21 mm) pass; r2207 undefined = no data")
 
-def strike_height_row(info_row):
+def strike_height_row(info_row, edge=None):
     d = ((info_row or {}).get("values") or {}).get("deterministic") or {}; m = d.get("median_abs")
-    s = strike_height_status(m)
+    edge_mm, edge_src = edge or (STRIKE_FACE_EDGE_MM, "STRIKE_FACE_EDGE_MM = 53/2 mm, measured spec, single brand (Wishon 919THI 53x105 mm), provisional")
+    s = strike_height_status(m, edge_mm)
     return dict(status=s, passed=s == "pass", tag="provisional", gating=True, values=dict(median_abs_dz_mm=m, median_dz_mm=d.get("median")),
-                expected=dict(pass_max_mm=STRIKE_DZ_WARN_MM, fail_at_mm=STRIKE_FACE_EDGE_MM),
-                why=[f"PROVISIONAL (v3d only): deterministic median |dz| {m:.1f} mm; WARN > {STRIKE_DZ_WARN_MM:g} mm (design choice, not sourced), FAIL >= {STRIKE_FACE_EDGE_MM:g} mm face edge (STRIKE_FACE_EDGE_MM = 53/2 mm, measured spec, single brand (Wishon 919THI 53x105 mm), provisional)"] if m is not None else ["no strike data"],
+                expected=dict(pass_max_mm=STRIKE_DZ_WARN_MM, fail_at_mm=edge_mm, fail_at_source=edge_src),
+                why=[f"PROVISIONAL (v3d only): deterministic median |dz| {m:.1f} mm; WARN > {STRIKE_DZ_WARN_MM:g} mm (design choice, not sourced), FAIL >= {edge_mm:g} mm face edge ({edge_src})"] if m is not None else ["no strike data"],
                 ref="docs/HARNESS_V3D_NOTES.md (strike height)")
 _W = {"skip": -1, "info": -1, "pass": 0, "warn": 1, "fail": 2}
 
@@ -206,7 +216,7 @@ def apply_v3d(r, _spin=True):
             tv = C[kt]["values"]; ok = tv["pelvis"] >= max(tv["thorax"], tv["arm"]) and min(tv.values()) > 0 and tv["arm"] - tv["thorax"] <= TA_INVERSION_MS
             C[ko].update(status="pass" if ok else "warn", passed=ok, why=["v3d: pelvis first, club last, thorax/arm tie or inversion <= 30 ms allowed (DERIVED)"])
     if "mine/robustness" in C and C["mine/robustness"].get("status") not in ("skip",): C["mine/robustness"] = _regrade_robust(C["mine/robustness"], _spin)
-    if (C.get("mine/strike_dz_info") or {}).get("status") == "info": C["mine/strike_height"] = strike_height_row(C["mine/strike_dz_info"])
+    if (C.get("mine/strike_dz_info") or {}).get("status") == "info": C["mine/strike_height"] = strike_height_row(C["mine/strike_dz_info"], face_edge_for(r))
     if (C.get("mine/strike_dz_info") or {}).get("status") == "info": C.update(strike_extent_rows(C["mine/strike_dz_info"]))
     if r.get("strike_episodes") and "mine/spin_face_edge_capped_info" not in C:   # side-by-side face-edge model (INFO rows) from the run's per-episode strike records
         C.update(face_edge_rows(r["strike_episodes"], [e for e in (r.get("robustness_episodes") or []) if e.get("contact")]))

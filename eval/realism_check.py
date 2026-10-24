@@ -74,14 +74,19 @@ def tee_info_rows(T):
     """INFO rows (never gating) from the worker's tee_info: mine/tee_dz_info, mine/face_h_info, mine/tee_height_info (ball centre / bottom above ground from env geometry).
     No rows when the worker predates tee_info, so counts are unchanged."""
     if not T: return {}
-    G = T.get("geometry") or {}; A_ = T.get("args") or {}; mm = lambda v: None if v is None else 1000.0 * float(v)
+    G = T.get("geometry") or {}; A_ = T.get("args") or {}; mm = lambda v: None if v is None else 1000.0 * float(v); HM_ = (T.get("head") or {}).get("mode")
     mk = lambda vals, why: dict(status="info", passed=False, tag="info_only", gating=False, values=vals, why=[why], ref=None)
     R = {"mine/tee_dz_info": mk(dict(tee_dz_used_mm=mm(T.get("tee_dz_used_m")), tee_dz_args_mm=mm(A_.get("tee_dz")), tee_mode_args=A_.get("tee_mode"), harness_tee=T.get("mode"),
                                      ball_dx_used_mm=mm(T.get("ball_dx_used_m")), ball_dx_args_mm=mm(A_.get("ball_dx")), crown=T.get("crown")),
-                             ("INFO only: tee offset used (V3_TEE=%s; 'crown' = derived from sim head geometry, crown-level per GOLF.com / Golf Digest / Golf Monthly advice)" % T.get("mode")) + ("; CROWN TEE COMPENSATES FOR THE OVERSIZED SIM HEAD (64 mm box; the default tee is already ~1.5 in): a v3d pass counts only if it also passes at the default tee (Orchestrator, Oct 24); interim until the v4 sourced head" if T.get("mode") == "crown" else "")),
+                             ("INFO only: tee offset used (V3_TEE=%s; 'crown' = derived from the active head geometry, crown-level per GOLF.com / Golf Digest / Golf Monthly advice)" % T.get("mode")) + (("; REALISTIC HEAD crown tee: ball equator at the sourced 62 mm crown (realistic-head result; crown tee itself not yet adopted as the scoring tee); a v3d pass counts only if it also passes at the default tee (Orchestrator, Oct 24)" if HM_ == "realistic" else "; CROWN TEE COMPENSATES FOR THE OVERSIZED SIM HEAD (64 mm box; the default tee is already ~1.5 in): a v3d pass counts only if it also passes at the default tee (Orchestrator, Oct 24); interim until the v4 sourced head") if T.get("mode") == "crown" else "")),
          "mine/face_h_info": mk(dict(face_h_used_mm=mm(T.get("face_h_used_m")), face_h_args_mm=mm(A_.get("face_h")), head_box_height_mm=mm(2 * G["head_half_height_m"]) if G.get("head_half_height_m") else None,
                                      non_default=T.get("face_h_used_m") is not None),
                                 "INFO only: env face_h used (None = 64 mm head box; non-None = off-face contacts beyond face_h/2 become misses, which changes what is scored)")}
+    if T.get("head"):   # mine/head_info (worker 2026-10-24+): head mode, source, env face_limits, cross-checked geometry
+        H_ = T["head"]; fl_ = H_.get("face_limits_m")
+        R["mine/head_info"] = mk(dict(mode=H_.get("mode"), source=H_.get("source"), face_limits_mm=None if not fl_ else [mm(v) for v in fl_], expected=H_.get("expected"), measured=H_.get("measured"),
+                                      estimates=H_.get("estimates"), compromises=H_.get("compromises")),
+                                 "INFO only: club head used" + (" = REALISTIC sourced 460 cc head (label results 'realistic head')" if H_.get("mode") == "realistic" else " = sim head box (default)"))
     if G:
         R["mine/tee_height_info"] = mk(dict(ball_centre_mm=mm(G["ball_centre_z_m"]), ball_bottom_mm=mm(G["ball_bottom_z_m"]), ball_bottom_in=G["ball_bottom_z_m"] / 0.0254,
                                             crown_mm=mm(G["crown_z_m"]), face_centre_mm=mm(G["face_centre_z_m"]), equator_minus_crown_mm=mm(G["ball_centre_z_m"] - G["crown_z_m"]),

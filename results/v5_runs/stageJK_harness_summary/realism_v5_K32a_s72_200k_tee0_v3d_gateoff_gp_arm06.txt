@@ -1,0 +1,4 @@
+K32a_s72 200k, harness v3d (6b0db8c + strike rows), DEFAULT tee (tee_dz 0); re-graded from results/overnight/realism_v5_K32a_s72_200k_tee0_v3c_gateoff_gp_arm06.json with apply_v3d_flagged (no rerun)
+verdict FAIL  pass/warn/fail 14/3/2
+fails: ['mine/robustness', 'shot/total_over_carry']
+warns: ['mine/strike_height', 'swing/kinematic_sequence_timing_ms_before_club_peak', 'swing/peak_speed_pelvis_deg_s']
