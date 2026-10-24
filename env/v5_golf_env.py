@@ -46,6 +46,7 @@ class V5GolfEnv(gym.Env):
 
     def __init__(self, handed="LH", club_len=0.87, dt=0.0005, force_scale=1.0, ball_tol_m=0.0, max_s=2.0, post_contact_s=0.10, seed=0,
                  fall_height=0.45, log_segments=True, tether=False, tether_strength=0.0, contact_tol=0.0, friction_rand=False, detail_info=False, arm_dist=0.0):
+        self.face_h = None   # K31: optional real driver face height (m, e.g. 0.053; Data Agent DRIVER_FACE_OFFCENTRE_REFS). If set, a head-ball contact whose offset from face centre along the face 'up' axis exceeds face_h/2 is an OFF-FACE MISS (ball disabled, episode ends, info foul=True, off_face=True). Default None = unchanged (head box half-height 0.032 m)
         self.strike_gate_nx = None   # Stage G: if set, a head-ball contact only counts when face normal x >= this, head v_x > 0 and v.n > 0; otherwise it is a FOUL (ball disabled, episode terminates, info foul=True); default off
         self.foul = False
         self.arm_back = 0.0   # >0 (with arm_dist>0): arming also requires the head to be >= arm_back m BEHIND the tee along -x (target is +x); default off
@@ -160,7 +161,7 @@ class V5GolfEnv(gym.Env):
         self.log = dict(t=[], pelvis=[], thorax=[], lead_arm=[], club=[], xfactor_deg=[], lead_share=[]); self.peak_club_speed = 0.0
         self.max_weld_drift = 0.0; self.pre_contact_head_speed = 0.0
         self.sub_count = 0; self.min_dist = 9.0
-        self.ball_hit_info = None; self.foul = False
+        self.ball_hit_info = None; self.foul = False; self.off_face = False
         return self._obs(), {}
 
     def _obs(self):
@@ -245,6 +246,11 @@ class V5GolfEnv(gym.Env):
                         n_ = d.geom_xmat[self.head_geom].reshape(3, 3)[:, 0]; v_ = self.prev_v
                         if not (n_[0] >= self.strike_gate_nx and v_[0] > 0 and float(np.dot(v_, n_)) > 0):
                             self.foul = True; m.geom_contype[self.ball_geom] = 0; m.geom_conaffinity[self.ball_geom] = 0; self.foul_info = dict(n=n_.tolist(), v=v_.tolist()); break
+                    if self.face_h is not None:
+                        R_ = d.geom_xmat[self.head_geom].reshape(3, 3); n2 = R_[:, 0]; up_ = np.cross(n2, R_[:, 1]); up_ = up_ if up_[2] >= 0 else -up_
+                        dz_ = float(np.dot(cp - d.site_xpos[self.head_site], up_))
+                        if abs(dz_) > 0.5 * self.face_h:
+                            self.foul = True; self.off_face = True; m.geom_contype[self.ball_geom] = 0; m.geom_conaffinity[self.ball_geom] = 0; self.foul_info = dict(off_face_dz=dz_); break
                     self._do_contact(cp)
             if self.log_segments and self.sub_count % self.seg_every == 0: self._log_seg()
         self.steps += 1
