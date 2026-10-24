@@ -315,14 +315,20 @@ HEAD_REF_JSON = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__f
 SOLE_CLEAR = 0.002   # same 2 mm sole-to-ground clearance as the box head at address (solve_address)
 
 
+# K34 estimates pinned so the realistic head stays as trained/swept after the Data Agent refs update (4f95e55) replaced these rows with
+# 'face-centre height above ground at address (soled)' 29 mm (= 27 above the sole) and CFZ 39 mm. Not applied yet: changing them moves the face centre/ball (Trainer/v4 decision).
+K34_PINNED = {"face-centre height when soled": 30.0, "shaft-axis offset to face centre (heel-toe)": 35.0}   # mm, ESTIMATES (reported in realistic_head_spec()[1])
+
+
 def realistic_head_spec():
     """Nominal 460 cc driver head from the Data Agent's sourced table (values read directly from the JSON 'nominal' column; '~' rows are ESTIMATES).
     Returns SI values + list of estimate keys."""
     import re
     rows = {r["quantity"]: r for r in json.load(open(HEAD_REF_JSON))["rows"]}
     def num(q):
+        if q not in rows: return K34_PINNED[q]
         return float(re.search(r"[-+]?\d+(\.\d+)?", rows[q]["nominal"]).group(0))
-    est = [q for q, r in rows.items() if "estimate" in r["nominal"] or "estimate" in r.get("label", "")]
+    est = [q for q, r in rows.items() if "estimate" in r["nominal"] or "estimate" in r.get("label", "")] + [q for q in K34_PINNED if q not in rows]
     s = dict(face_h=num("face height") * 1e-3, face_w=num("face width") * 1e-3, depth=num("head depth (front-back)") * 1e-3,
              heel_toe=num("heel-to-toe length (head)") * 1e-3, crown_h=num("sole-to-crown (crown height when soled)") * 1e-3,
              fc_h=num("face-centre height when soled") * 1e-3, mass=num("head mass") * 1e-3, loft=num("loft"), lie=num("lie"),
