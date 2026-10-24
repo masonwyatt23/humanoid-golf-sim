@@ -72,3 +72,43 @@ Counts are P/W/F. Gate cells: contact / start-dir pass / foot pass fractions (ne
 | K27c_s61_300k | FAIL 12/4/2 | spin_rpm, robustness | kseq_order, kseq_timing, pelvis_dps, total_over_carry | 1.00/0.92/0.96 | 3978/2073/4683 | 1.305/1.233/1.759 | 0.81 |
 
 No row passes. Every row FAILs robustness (spin and/or t/c spread). Best by FAIL count, then WARNs, then robustness: K25b_s56 400k (14/3/1, contact 1.00, start-dir 0.92, foot 0.83; t/c median 1.49).
+
+## v3d re-grade (harness 6b0db8c, opt-in, UNDER REVIEW; v3c stays default), 2026-10-24
+
+v3d re-grades the same v3c episodes (`eval/harness_v3d.py`; rules and citations in `docs/HARNESS_V3D_NOTES.md`). JSONs: `*_dtfix_newchecks_v3d_gateoff_gp_arm06.json`.
+A live `--harness v3d` run of K25b 400k reproduced the re-grade exactly (all row statuses, 14/3/1 FAIL).
+Club p10/median: the new robustness rule needs >= 0.93 (LOW CONFIDENCE). Arm->club: ms the arm peaks before the club (v3d needs >= 20).
+
+| ckpt | v3d | FAIL rows | WARN rows | gate contact/SD/foot | club p10/median | spin med/p10/p90 (v3d status) | pelvis dps | arm->club ms |
+|---|---|---|---|---|---|---|---|---|
+| K12_s18_400k | FAIL 10/5/3 | start_direction, lead_foot_plant, robustness | kseq_order, kseq_timing, grf_lead_vertical_bw, spin_rpm, total_over_carry | 0.92/0.00/0.00 | 0.74 | 3158/1557/5023 (P/W/F) | 376 | -4 |
+| K18e_s37_200k | FAIL 14/3/1 | robustness | kseq_timing, pelvis_dps, total_over_carry | 0.96/0.62/0.50 | 0.64 | 2597/995/4458 (P/F/F) | 153 | 4 |
+| K19a_s39_300k | FAIL 13/4/1 | robustness | kseq_order, kseq_timing, pelvis_dps, total_over_carry | 1.00/0.79/0.62 | 0.70 | 2783/1089/3882 (P/F/W) | 161 | -4 |
+| K19a_s39_400k | FAIL 13/4/1 | robustness | kseq_order, kseq_timing, pelvis_dps, total_over_carry | 1.00/0.79/0.54 | 0.72 | 3103/1125/3715 (P/F/W) | 152 | -4 |
+| K22r4_s49_500k | FAIL 13/4/1 | robustness | kseq_timing, pelvis_dps, x_factor_top_deg, total_over_carry | 0.96/0.92/0.92 | 0.67 | 2545/1313/3546 (P/W/P) | 229 | 8 |
+| K22r5_s51_100k | FAIL 15/2/1 | robustness | kseq_timing, pelvis_dps | 0.92/0.75/0.83 | 0.66 | 2943/1330/4476 (P/W/F) | 191 | 12 |
+| K24a_s53_200k | FAIL 13/4/1 | robustness | kseq_timing, pelvis_dps, spin_rpm, total_over_carry | 1.00/1.00/1.00 | 0.70 | 3143/984/4199 (P/F/F) | 165 | 12 |
+| K23b_s52_300k | FAIL 14/3/1 | robustness | kseq_timing, pelvis_dps, total_over_carry | 0.96/0.83/0.96 | 0.75 | 2235/941/4091 (P/F/F) | 181 | 12 |
+| K25b_s56_400k | FAIL 14/3/1 | robustness | kseq_timing, pelvis_dps, total_over_carry | 1.00/0.92/0.83 | 0.66 | 3273/999/4385 (P/F/F) | 192 | 16 |
+| K27a_s59_400k | FAIL 13/2/3 | spin_rpm, total_over_carry, robustness | kseq_timing, pelvis_dps | 0.96/0.96/0.92 | 0.99 | 4103/3572/4583 (F/P/F) | 179 | 8 |
+| K27b_s60_400k | FAIL 15/1/2 | spin_rpm, robustness | kseq_timing | 1.00/1.00/0.75 | 0.81 | 4094/1976/4585 (F/W/F) | 254 | 12 |
+| K27c_s61_300k | FAIL 14/2/2 | spin_rpm, robustness | kseq_timing, total_over_carry | 1.00/0.92/0.96 | 0.82 | 3978/2073/4683 (W/P/F) | 252 | 8 |
+
+| ckpt | v3c | v3d | changed rows (v3c -> v3d) |
+|---|---|---|---|
+| K12_s18_400k | FAIL 11/4/3 | FAIL 10/5/3 | spin_rpm pass->warn |
+| K18e_s37_200k | FAIL 12/5/1 | FAIL 14/3/1 | kseq_order warn->pass; spin_rpm warn->pass |
+| K19a_s39_300k | FAIL 13/4/1 | FAIL 13/4/1 | - |
+| K19a_s39_400k | FAIL 13/4/1 | FAIL 13/4/1 | - |
+| K22r4_s49_500k | FAIL 12/5/1 | FAIL 13/4/1 | kseq_order warn->pass |
+| K22r5_s51_100k | FAIL 14/3/1 | FAIL 15/2/1 | spin_rpm warn->pass |
+| K24a_s53_200k | FAIL 13/4/1 | FAIL 13/4/1 | - |
+| K23b_s52_300k | FAIL 14/3/1 | FAIL 14/3/1 | - |
+| K25b_s56_400k | FAIL 14/3/1 | FAIL 14/3/1 | kseq_timing pass->warn; spin_rpm warn->pass |
+| K27a_s59_400k | FAIL 12/3/3 | FAIL 13/2/3 | kseq_order warn->pass |
+| K27b_s60_400k | FAIL 13/3/2 | FAIL 15/1/2 | kseq_order warn->pass; pelvis_dps warn->pass |
+| K27c_s61_300k | FAIL 12/4/2 | FAIL 14/2/2 | kseq_order warn->pass; pelvis_dps warn->pass |
+
+No row passes under v3c or v3d, so the spin-band-only flag never fires. Every row still FAILs robustness. Under v3d, 11 of 12 also fail the new club-speed p10 rule (only K27a, 0.99, clears it).
+The arm->club >= 20 ms requirement holds the timing row at WARN for every checkpoint (max 16 ms, K25b), and it flips K25b's timing from PASS to WARN.
+Under v3d, K27b 400k ranks highest by count (15/1/2), but it still has 2 FAILs. The best row by the agreed order (fewest FAILs) is K22r5 100k at 15/2/1, which has 1 FAIL.
