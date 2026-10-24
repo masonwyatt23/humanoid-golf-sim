@@ -33,3 +33,16 @@ Interaction: K32a args face_h 0.053 overrides the JSON 54 mm face under the real
 - K33 and K34 are scored on BOTH heads (box and realistic) until harness v4.
 - Harness v4 will follow the Trainer's v4 address solve (lie 58.5 deg, swingweight compensated, realistic head), with a single re-baseline at that point.
 - K34 drops face_h 0.053 and tee_dz 0.020 (Trainer), so the realistic head's own 54 mm face (27 mm edge) applies.
+
+## Follow-up: Data Agent driver-face-centre-height @ 857e373 (Evaluator, 2026-10-24 ET)
+Sources re-opened: US 12,649,090 B2 on Google Patents (Tables 3-4 text, CFZ definition, claim 1); USGA TPX3004 Rev 2.0 (usga.org PDF, sec. 2.1b template);
+USGA Pendulum Technical Description Report sec. 2.2 (usga.org, 2.1 mm at 99%); First Call 2023-03-02 (Tour Edge "5600 g/cm2"); MyGolfSpy tee test ("measured from ground level").
+Table 3 values quoted correctly (aggregated across the patent examples, as in the refs): CGZ -10..0 mm (narrowest -4..-3); ZUP 18-30 mm (narrowest 23-27); CFZ 35-45 mm (narrowest 38-40); IZZ 480-700 kg mm2 (narrowest 560-600); claim 1 Zup 20-28, Izz 560-700.
+1. Face-centre height. Route A (Zup - CGZ, both ground-plane/CF frame, head soled) correct: 21-35 (wider band), 26-31 (narrowest band). Route B has an error: Wishon/PROCEED face height and the
+   patent's effective face height are face DIMENSIONS (lowest to highest face point), not top-of-face heights above ground. Correct: centre = low + h/2 = (2..6) + (50..58.5)/2 = 27-35.3
+   (crown cross-check: (2..6) + (53..61.5)/2 = 28.5-36.8). Overlap A (narrowest band) with corrected B = 27-31; 29 survives. Routes share the patent (Zup/CGZ and lowest-face-point 2-6): only partly independent.
+   Frame: 29 is above GROUND; env face centre is 30 above SOLE + 2 mm sole clearance = 32 above ground, so the env is 3 mm high (not 1). Same swing: dz +~3 mm; ball at address 23.5 -> ~26.4 mm up the face (edge 27).
+2. CFZ 39: definition (CF projected along y onto vertical shaft-axis plane, shortest distance to shaft axis) matches the env's perpendicular-in-shaft-plane offset. Env 35 -> 39 moves the face centre ~4.8 mm toe-ward (4/sin 56).
+3. Heel-toe ~120: estimate; env uses it only for the floor-collision shell. Immaterial.
+4. Izz 5600: single published manufacturer claim (n=1, one head; Tour Edge 2023 press release), attributed, not measured or a multi-model aggregate; verified (unit printed g/cm2). Patent axis = CG z perpendicular to ground with head soled, face angle 0; a 1.5-4 deg lie difference vs the rule's 60 deg cannot explain values above 5900+100, so the patent band's upper part is simply beyond the rule cap.
+5. Tee: 38.1 + 21.335 = 59.435 mm (env default 59.87, +0.43). Equator 2.6 mm below a 62 mm crown on a soled head; in the env (2 mm clearance) 4.13 mm below the 64 mm shell top.
