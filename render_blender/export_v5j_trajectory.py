@@ -13,6 +13,7 @@ real club-head centre, local -z along the real shaft (grip->head), local +x alon
 Scene is translated (no rotation) so the tee sits at the renderer's v1 tee (0.41, 0, z)."""
 import argparse, json, os, sys
 import numpy as np
+CFG = ('xf_hard', 'grf_lo', 'grf_w', 'xf_cap_lo', 'xf_cap_w', 'track_floor', 'ord2_w', 'launch_w', 'desc_w', 'dloft_w', 'spin_lo_w', 'smash_w', 'spin_w', 'spin_hi', 'spin_scale', 'fine_grf', 'launch_hi', 'dl_lo', 'dl_hi', 'aoa_lo', 'spd_w', 'pel_w', 'pel_t_w', 'pel_dps', 'pel_t_lo', 'pel_t_hi', 'sep_w', 'ctr_w', 'ctrl_dt')  # CFG-FIX (Evaluator 2026-10-24): same configure() as results/overnight/_j_worker_gp_v3.py; the nopath exporter omitted res_mult + newer keys
 # Repo root: V5_REPO env, else the directory that contains render_blender/ (no machine-path default).
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TR = os.environ.get("V5_REPO", _ROOT)
@@ -38,7 +39,7 @@ def main():
     A = json.load(open(os.path.join(os.path.dirname(ck), "args.json")))
     keys = {tuple(k.split("|")): v for k, v in json.load(open(os.path.join(TR, A["keys"]))).items()} if A.get("keys") and A["keys"] != "none" else None
     def mk():
-        e = JEnv(dt=0.002, seed=123, keys=keys, res_scale=A["res_scale"], t_down=A["t_down"]); e.configure(**{k: A.get(k) for k in ('xf_hard', 'grf_lo', 'grf_w', 'xf_cap_lo', 'xf_cap_w', 'track_floor', 'ord2_w')})
+        e = JEnv(dt=0.002, seed=123, keys=keys, res_scale=A["res_scale"], t_down=A["t_down"]); e.configure(res_mult=(json.loads(A['res_mult']) if A.get('res_mult') else None), **{k: A.get(k) for k in CFG})
         e.rsi = (1.0, 0.0, 0.0); e.env.arm_dist = a.arm_dist; e.env.strike_gate_nx = None; e.target_len = a.club_len; e.target_tether = 0.0; e.env.friction_rand = False; e.track_w = 0.0; return e
     vn = VecNormalize.load(ck + "_vecnorm.pkl", DummyVecEnv([mk])); vn.training = False; vn.norm_reward = False
     model = PPO.load(ck, device="cpu"); te = mk(); e = te.env; m = e.m
