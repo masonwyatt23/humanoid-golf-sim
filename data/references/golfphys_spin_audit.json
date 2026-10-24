@@ -1,0 +1,624 @@
+{
+ "generated": "2026-10-24 (America/New_York)",
+ "baseline_params": {
+  "s_t": 0.8657392003543648,
+  "s_t_slope": 0.0
+ },
+ "split": "by source: train = TM Combine male + TM Tour; held_out = TM Combine female (pre-declared before fitting)",
+ "before": {
+  "train": {
+   "n": 7,
+   "bias_rpm": 532.0,
+   "rmse_rpm": 581.0,
+   "launch_bias": 1.09,
+   "launch_rmse": 1.3,
+   "rows": [
+    {
+     "id": "tmc_m_scratch",
+     "club_mph": 110.0,
+     "spin_loft": 14.8,
+     "meas_spin": 2896.0,
+     "pred_spin": 3474,
+     "err_rpm": 578,
+     "err_pct": 20.0,
+     "meas_launch": 11.2,
+     "pred_launch": 11.42,
+     "err_launch": 0.22,
+     "meas_ball": 161.0,
+     "pred_ball": 160.5
+    },
+    {
+     "id": "tmc_m_5",
+     "club_mph": 101.0,
+     "spin_loft": 15.8,
+     "meas_spin": 2987.0,
+     "pred_spin": 3400,
+     "err_rpm": 413,
+     "err_pct": 13.8,
+     "meas_launch": 11.2,
+     "pred_launch": 12.04,
+     "err_launch": 0.84,
+     "meas_ball": 147.0,
+     "pred_ball": 146.7
+    },
+    {
+     "id": "tmc_m_10",
+     "club_mph": 95.0,
+     "spin_loft": 17.3,
+     "meas_spin": 3192.0,
+     "pred_spin": 3493,
+     "err_rpm": 301,
+     "err_pct": 9.4,
+     "meas_launch": 11.9,
+     "pred_launch": 13.17,
+     "err_launch": 1.27,
+     "meas_ball": 138.0,
+     "pred_ball": 136.9
+    },
+    {
+     "id": "tmc_m_avg",
+     "club_mph": 94.0,
+     "spin_loft": 18.3,
+     "meas_spin": 3275.0,
+     "pred_spin": 3649,
+     "err_rpm": 374,
+     "err_pct": 11.4,
+     "meas_launch": 12.6,
+     "pred_launch": 13.39,
+     "err_launch": 0.79,
+     "meas_ball": 133.0,
+     "pred_ball": 134.8
+    },
+    {
+     "id": "tmc_m_bogey",
+     "club_mph": 92.0,
+     "spin_loft": 18.2,
+     "meas_spin": 3127.0,
+     "pred_spin": 3553,
+     "err_rpm": 426,
+     "err_pct": 13.6,
+     "meas_launch": 12.1,
+     "pred_launch": 13.01,
+     "err_launch": 0.91,
+     "meas_ball": 131.0,
+     "pred_ball": 132.0
+    },
+    {
+     "id": "tm_pga",
+     "club_mph": 115.0,
+     "spin_loft": 14.7,
+     "meas_spin": 2545.0,
+     "pred_spin": 3608,
+     "err_rpm": 1063,
+     "err_pct": 41.8,
+     "meas_launch": 10.4,
+     "pred_launch": 11.34,
+     "err_launch": 0.94,
+     "meas_ball": 171.0,
+     "pred_ball": 167.9
+    },
+    {
+     "id": "tm_lpga",
+     "club_mph": 96.0,
+     "spin_loft": 15.0,
+     "meas_spin": 2506.0,
+     "pred_spin": 3072,
+     "err_rpm": 566,
+     "err_pct": 22.6,
+     "meas_launch": 12.6,
+     "pred_launch": 15.28,
+     "err_launch": 2.68,
+     "meas_ball": 143.0,
+     "pred_ball": 139.9
+    }
+   ]
+  },
+  "held_out": {
+   "n": 4,
+   "bias_rpm": 236.0,
+   "rmse_rpm": 291.0,
+   "launch_bias": 1.05,
+   "launch_rmse": 1.11,
+   "rows": [
+    {
+     "id": "tmc_f_scratch",
+     "club_mph": 90.0,
+     "spin_loft": 17.1,
+     "meas_spin": 2831.0,
+     "pred_spin": 3272,
+     "err_rpm": 441,
+     "err_pct": 15.6,
+     "meas_launch": 12.7,
+     "pred_launch": 13.31,
+     "err_launch": 0.61,
+     "meas_ball": 131.0,
+     "pred_ball": 129.9
+    },
+    {
+     "id": "tmc_f_5",
+     "club_mph": 87.0,
+     "spin_loft": 18.4,
+     "meas_spin": 3027.0,
+     "pred_spin": 3395,
+     "err_rpm": 368,
+     "err_pct": 12.2,
+     "meas_launch": 12.0,
+     "pred_launch": 13.48,
+     "err_launch": 1.48,
+     "meas_ball": 125.0,
+     "pred_ball": 124.7
+    },
+    {
+     "id": "tmc_f_10",
+     "club_mph": 83.0,
+     "spin_loft": 18.6,
+     "meas_spin": 3207.0,
+     "pred_spin": 3273,
+     "err_rpm": 66,
+     "err_pct": 2.1,
+     "meas_launch": 12.4,
+     "pred_launch": 13.74,
+     "err_launch": 1.34,
+     "meas_ball": 119.0,
+     "pred_ball": 118.8
+    },
+    {
+     "id": "tmc_f_15",
+     "club_mph": 79.0,
+     "spin_loft": 20.1,
+     "meas_spin": 3287.0,
+     "pred_spin": 3357,
+     "err_rpm": 70,
+     "err_pct": 2.1,
+     "meas_launch": 13.6,
+     "pred_launch": 14.36,
+     "err_launch": 0.76,
+     "meas_ball": 111.0,
+     "pred_ball": 112.1
+    }
+   ]
+  },
+  "held_out_dynloft_inputs": {
+   "n": 4,
+   "bias_rpm": -61.0,
+   "rmse_rpm": 172.0,
+   "launch_bias": -0.35,
+   "launch_rmse": 0.37,
+   "rows": [
+    {
+     "id": "tmc_f_scratch",
+     "club_mph": 90.0,
+     "spin_loft": 17.1,
+     "meas_spin": 2831.0,
+     "pred_spin": 3011,
+     "err_rpm": 180,
+     "err_pct": 6.4,
+     "meas_launch": 12.7,
+     "pred_launch": 12.16,
+     "err_launch": -0.54,
+     "meas_ball": 131.0,
+     "pred_ball": 130.8
+    },
+    {
+     "id": "tmc_f_5",
+     "club_mph": 87.0,
+     "spin_loft": 18.4,
+     "meas_spin": 3027.0,
+     "pred_spin": 3001,
+     "err_rpm": -26,
+     "err_pct": -0.9,
+     "meas_launch": 12.0,
+     "pred_launch": 11.67,
+     "err_launch": -0.33,
+     "meas_ball": 125.0,
+     "pred_ball": 126.1
+    },
+    {
+     "id": "tmc_f_10",
+     "club_mph": 83.0,
+     "spin_loft": 18.6,
+     "meas_spin": 3207.0,
+     "pred_spin": 2949,
+     "err_rpm": -258,
+     "err_pct": -8.0,
+     "meas_launch": 12.4,
+     "pred_launch": 12.18,
+     "err_launch": -0.22,
+     "meas_ball": 119.0,
+     "pred_ball": 120.0
+    },
+    {
+     "id": "tmc_f_15",
+     "club_mph": 79.0,
+     "spin_loft": 20.1,
+     "meas_spin": 3287.0,
+     "pred_spin": 3148,
+     "err_rpm": -139,
+     "err_pct": -4.2,
+     "meas_launch": 13.6,
+     "pred_launch": 13.3,
+     "err_launch": -0.3,
+     "meas_ball": 111.0,
+     "pred_ball": 112.9
+    }
+   ]
+  },
+  "train_dynloft_inputs": {
+   "n": 7,
+   "bias_rpm": 213.0,
+   "rmse_rpm": 351.0,
+   "launch_bias": -0.19,
+   "launch_rmse": 0.48,
+   "rows": [
+    {
+     "id": "tmc_m_scratch",
+     "club_mph": 110.0,
+     "spin_loft": 14.8,
+     "meas_spin": 2896.0,
+     "pred_spin": 3267,
+     "err_rpm": 371,
+     "err_pct": 12.8,
+     "meas_launch": 11.2,
+     "pred_launch": 10.68,
+     "err_launch": -0.52,
+     "meas_ball": 161.0,
+     "pred_ball": 161.1
+    },
+    {
+     "id": "tmc_m_5",
+     "club_mph": 101.0,
+     "spin_loft": 15.8,
+     "meas_spin": 2987.0,
+     "pred_spin": 3085,
+     "err_rpm": 98,
+     "err_pct": 3.3,
+     "meas_launch": 11.2,
+     "pred_launch": 10.81,
+     "err_launch": -0.39,
+     "meas_ball": 147.0,
+     "pred_ball": 147.7
+    },
+    {
+     "id": "tmc_m_10",
+     "club_mph": 95.0,
+     "spin_loft": 17.3,
+     "meas_spin": 3192.0,
+     "pred_spin": 3100,
+     "err_rpm": -92,
+     "err_pct": -2.9,
+     "meas_launch": 11.9,
+     "pred_launch": 11.53,
+     "err_launch": -0.37,
+     "meas_ball": 138.0,
+     "pred_ball": 138.3
+    },
+    {
+     "id": "tmc_m_avg",
+     "club_mph": 94.0,
+     "spin_loft": 18.3,
+     "meas_spin": 3275.0,
+     "pred_spin": 3379,
+     "err_rpm": 104,
+     "err_pct": 3.2,
+     "meas_launch": 12.6,
+     "pred_launch": 12.25,
+     "err_launch": -0.35,
+     "meas_ball": 133.0,
+     "pred_ball": 135.8
+    },
+    {
+     "id": "tmc_m_bogey",
+     "club_mph": 92.0,
+     "spin_loft": 18.2,
+     "meas_spin": 3127.0,
+     "pred_spin": 3212,
+     "err_rpm": 85,
+     "err_pct": 2.7,
+     "meas_launch": 12.1,
+     "pred_launch": 11.54,
+     "err_launch": -0.56,
+     "meas_ball": 131.0,
+     "pred_ball": 133.2
+    },
+    {
+     "id": "tm_pga",
+     "club_mph": 115.0,
+     "spin_loft": 14.7,
+     "meas_spin": 2545.0,
+     "pred_spin": 3368,
+     "err_rpm": 823,
+     "err_pct": 32.3,
+     "meas_launch": 10.4,
+     "pred_launch": 10.51,
+     "err_launch": 0.11,
+     "meas_ball": 171.0,
+     "pred_ball": 168.6
+    },
+    {
+     "id": "tm_lpga",
+     "club_mph": 96.0,
+     "spin_loft": 15.0,
+     "meas_spin": 2506.0,
+     "pred_spin": 2610,
+     "err_rpm": 104,
+     "err_pct": 4.1,
+     "meas_launch": 12.6,
+     "pred_launch": 13.38,
+     "err_launch": 0.78,
+     "meas_ball": 143.0,
+     "pred_ball": 141.3
+    }
+   ]
+  }
+ },
+ "after": {
+  "train": {
+   "n": 7,
+   "bias_rpm": -4.0,
+   "rmse_rpm": 158.0,
+   "launch_bias": 1.51,
+   "launch_rmse": 1.68,
+   "rows": [
+    {
+     "id": "tmc_m_scratch",
+     "club_mph": 110.0,
+     "spin_loft": 14.8,
+     "meas_spin": 2896.0,
+     "pred_spin": 2759,
+     "err_rpm": -137,
+     "err_pct": -4.7,
+     "meas_launch": 11.2,
+     "pred_launch": 11.93,
+     "err_launch": 0.73,
+     "meas_ball": 161.0,
+     "pred_ball": 160.4
+    },
+    {
+     "id": "tmc_m_5",
+     "club_mph": 101.0,
+     "spin_loft": 15.8,
+     "meas_spin": 2987.0,
+     "pred_spin": 2814,
+     "err_rpm": -173,
+     "err_pct": -5.8,
+     "meas_launch": 11.2,
+     "pred_launch": 12.5,
+     "err_launch": 1.3,
+     "meas_ball": 147.0,
+     "pred_ball": 146.6
+    },
+    {
+     "id": "tmc_m_10",
+     "club_mph": 95.0,
+     "spin_loft": 17.3,
+     "meas_spin": 3192.0,
+     "pred_spin": 3066,
+     "err_rpm": -126,
+     "err_pct": -4.0,
+     "meas_launch": 11.9,
+     "pred_launch": 13.53,
+     "err_launch": 1.63,
+     "meas_ball": 138.0,
+     "pred_ball": 136.9
+    },
+    {
+     "id": "tmc_m_avg",
+     "club_mph": 94.0,
+     "spin_loft": 18.3,
+     "meas_spin": 3275.0,
+     "pred_spin": 3325,
+     "err_rpm": 50,
+     "err_pct": 1.5,
+     "meas_launch": 12.6,
+     "pred_launch": 13.67,
+     "err_launch": 1.07,
+     "meas_ball": 133.0,
+     "pred_ball": 134.7
+    },
+    {
+     "id": "tmc_m_bogey",
+     "club_mph": 92.0,
+     "spin_loft": 18.2,
+     "meas_spin": 3127.0,
+     "pred_spin": 3225,
+     "err_rpm": 98,
+     "err_pct": 3.1,
+     "meas_launch": 12.1,
+     "pred_launch": 13.3,
+     "err_launch": 1.2,
+     "meas_ball": 131.0,
+     "pred_ball": 131.9
+    },
+    {
+     "id": "tm_pga",
+     "club_mph": 115.0,
+     "spin_loft": 14.7,
+     "meas_spin": 2545.0,
+     "pred_spin": 2853,
+     "err_rpm": 308,
+     "err_pct": 12.1,
+     "meas_launch": 10.4,
+     "pred_launch": 11.85,
+     "err_launch": 1.45,
+     "meas_ball": 171.0,
+     "pred_ball": 167.8
+    },
+    {
+     "id": "tm_lpga",
+     "club_mph": 96.0,
+     "spin_loft": 15.0,
+     "meas_spin": 2506.0,
+     "pred_spin": 2460,
+     "err_rpm": -46,
+     "err_pct": -1.8,
+     "meas_launch": 12.6,
+     "pred_launch": 15.78,
+     "err_launch": 3.18,
+     "meas_ball": 143.0,
+     "pred_ball": 139.9
+    }
+   ]
+  },
+  "held_out": {
+   "n": 4,
+   "bias_rpm": -30.0,
+   "rmse_rpm": 105.0,
+   "launch_bias": 1.29,
+   "launch_rmse": 1.35,
+   "rows": [
+    {
+     "id": "tmc_f_scratch",
+     "club_mph": 90.0,
+     "spin_loft": 17.1,
+     "meas_spin": 2831.0,
+     "pred_spin": 2850,
+     "err_rpm": 19,
+     "err_pct": 0.7,
+     "meas_launch": 12.7,
+     "pred_launch": 13.68,
+     "err_launch": 0.98,
+     "meas_ball": 131.0,
+     "pred_ball": 129.8
+    },
+    {
+     "id": "tmc_f_5",
+     "club_mph": 87.0,
+     "spin_loft": 18.4,
+     "meas_spin": 3027.0,
+     "pred_spin": 3105,
+     "err_rpm": 78,
+     "err_pct": 2.6,
+     "meas_launch": 12.0,
+     "pred_launch": 13.74,
+     "err_launch": 1.74,
+     "meas_ball": 125.0,
+     "pred_ball": 124.6
+    },
+    {
+     "id": "tmc_f_10",
+     "club_mph": 83.0,
+     "spin_loft": 18.6,
+     "meas_spin": 3207.0,
+     "pred_spin": 3015,
+     "err_rpm": -192,
+     "err_pct": -6.0,
+     "meas_launch": 12.4,
+     "pred_launch": 13.99,
+     "err_launch": 1.59,
+     "meas_ball": 119.0,
+     "pred_ball": 118.8
+    },
+    {
+     "id": "tmc_f_15",
+     "club_mph": 79.0,
+     "spin_loft": 20.1,
+     "meas_spin": 3287.0,
+     "pred_spin": 3261,
+     "err_rpm": -26,
+     "err_pct": -0.8,
+     "meas_launch": 13.6,
+     "pred_launch": 14.46,
+     "err_launch": 0.86,
+     "meas_ball": 111.0,
+     "pred_ball": 112.0
+    }
+   ]
+  }
+ },
+ "proposal": {
+  "params": {
+   "s_t": 0.6065,
+   "s_t_slope": 0.02894
+  },
+  "form": "s_t_eff = s_t + s_t_slope*(spin_loft-12) (existing golfphys form)",
+  "opt_in": true
+ },
+ "probe_before": {
+  "74mph_sl16_aoa+1": {
+   "spin": 2522,
+   "launch": 14.31,
+   "ball_mph": 107.4
+  },
+  "74mph_sl17_aoa+1": {
+   "spin": 2675,
+   "launch": 15.13,
+   "ball_mph": 106.8
+  },
+  "74mph_sl18_aoa+1": {
+   "spin": 2827,
+   "launch": 15.95,
+   "ball_mph": 106.3
+  },
+  "K30_inputs_74mph_dl17.3_aoa+1_LH": {
+   "y_high_+0mm": {
+    "spin": 2568,
+    "launch": 14.55,
+    "smash": 1.449
+   },
+   "y_high_-10mm": {
+    "spin": 3336,
+    "launch": 12.99,
+    "smash": 1.451
+   },
+   "y_high_-20mm": {
+    "spin": 4071,
+    "launch": 11.39,
+    "smash": 1.43
+   },
+   "y_high_-22mm": {
+    "spin": 4210,
+    "launch": 11.07,
+    "smash": 1.423
+   },
+   "y_high_-25mm": {
+    "spin": 4413,
+    "launch": 10.59,
+    "smash": 1.412
+   }
+  }
+ },
+ "probe_after": {
+  "74mph_sl16_aoa+1": {
+   "spin": 2104,
+   "launch": 14.75,
+   "ball_mph": 107.3
+  },
+  "74mph_sl17_aoa+1": {
+   "spin": 2321,
+   "launch": 15.51,
+   "ball_mph": 106.8
+  },
+  "74mph_sl18_aoa+1": {
+   "spin": 2548,
+   "launch": 16.25,
+   "ball_mph": 106.2
+  },
+  "K30_inputs_74mph_dl17.3_aoa+1_LH": {
+   "y_high_+0mm": {
+    "spin": 2168,
+    "launch": 14.98,
+    "smash": 1.448
+   },
+   "y_high_-10mm": {
+    "spin": 2837,
+    "launch": 13.52,
+    "smash": 1.45
+   },
+   "y_high_-20mm": {
+    "spin": 3511,
+    "launch": 12.0,
+    "smash": 1.43
+   },
+   "y_high_-22mm": {
+    "spin": 3643,
+    "launch": 11.69,
+    "smash": 1.423
+   },
+   "y_high_-25mm": {
+    "spin": 3837,
+    "launch": 11.22,
+    "smash": 1.411
+   }
+  }
+ }
+}
