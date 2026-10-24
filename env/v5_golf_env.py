@@ -149,7 +149,7 @@ class V5GolfEnv(gym.Env):
         if self.friction_rand:
             self.m.geom_friction[self.floor, 0] = self.rng.uniform(0.5, 1.2)       # foot/floor sliding friction randomisation
         off = (self.rng.uniform(-1, 1, 2) * self.ball_tol) if self.ball_tol > 0 else np.zeros(2)
-        self.tee = np.array(self.addr["ball_pos"], float); self.tee[:2] += off
+        self.tee = np.array(self.addr["ball_pos"], float); self.tee[:2] += off; self.tee[0] += getattr(self, "ball_dx", 0.0); self.tee[2] += getattr(self, "tee_dz", 0.0)   # K32 flags (default 0 = unchanged)
         d.qpos[self.ball_q:self.ball_q + 3] = self.tee
         self.armed = self.arm_dist <= 0
         m.geom_contype[self.ball_geom] = 2 if self.armed else 0; m.geom_conaffinity[self.ball_geom] = 2 if self.armed else 0

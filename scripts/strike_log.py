@@ -15,7 +15,7 @@ for ck in sys.argv[2:]:
     a = json.load(open(ck.rsplit('/', 1)[0] + '/args.json')); keys = {tuple(k.split('|')): v for k, v in json.load(open(a['keys'])).items()}
     def mk():
         e = JEnv(seed=999, keys=keys, res_scale=a['res_scale'], t_down=a['t_down']); e.configure(**{k: a.get(k) for k in EX}); e.configure(res_mult=json.loads(a['res_mult']) if a.get('res_mult') else None)
-        e.configure(face_h=float(__import__('os').environ['FACE_H']) if __import__('os').environ.get('FACE_H') else None); e.rsi = (1.0, 0.0, 0.0); e.prior_w = 0.0; e.env.arm_dist = 0.6; e.hit_tol = 0.02; e.target_len = 1.15; e.target_tether = 0.0; e.speed_T = a['T0']; return e
+        e.configure(tee_dz=a.get('tee_dz'), face_h=float(__import__('os').environ['FACE_H']) if __import__('os').environ.get('FACE_H') else None); e.rsi = (1.0, 0.0, 0.0); e.prior_w = 0.0; e.env.arm_dist = 0.6; e.hit_tol = 0.02; e.target_len = 1.15; e.target_tether = 0.0; e.speed_T = a['T0']; return e
     vn = VecNormalize.load(ck + '_vecnorm.pkl', DummyVecEnv([mk])); vn.training = False; vn.norm_reward = False; m = PPO.load(ck, device='cpu'); e = vn.venv.envs[0]
     name = ck.split('/')[-2]
     for case, seed in [('nominal', 4000)] + [('perturbed', s) for s in range(7000, 7024)]:

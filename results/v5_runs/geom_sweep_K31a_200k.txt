@@ -1,0 +1,11 @@
+base {'dz': -20.8, 'dy': 11.9, 'spin': 3889, 'launch': 10.4, 'smash': 1.41, 'mph': 73.6, 'aoa': 1.2, 'dloft': 16.2, 'carry': 114.8}
+tee_dz 0.005 {'dz': -17.9, 'dy': 12.9, 'spin': 3678, 'launch': 10.8, 'smash': 1.414, 'mph': 73.6, 'aoa': 1.2, 'dloft': 16.2, 'carry': 116.9}
+tee_dz 0.01 {'dz': -15.5, 'dy': 13.9, 'spin': 3509, 'launch': 11.2, 'smash': 1.416, 'mph': 73.6, 'aoa': 1.2, 'dloft': 16.2, 'carry': 118.2}
+tee_dz 0.016 {'dz': -12.7, 'dy': 14.9, 'spin': 3303, 'launch': 11.6, 'smash': 1.416, 'mph': 73.6, 'aoa': 1.2, 'dloft': 16.2, 'carry': 119.3}
+tee_dz 0.02 {'dz': -10.8, 'dy': 15.7, 'spin': 3164, 'launch': 11.9, 'smash': 1.414, 'mph': 73.6, 'aoa': 1.2, 'dloft': 16.2, 'carry': 119.7}
+ball_dx -0.03 {'dz': -25.7, 'dy': 11.1, 'spin': 4383, 'launch': 8.7, 'smash': 1.389, 'mph': 73.8, 'aoa': -0.5, 'dloft': 15.6, 'carry': 105.5}
+ball_dx 0.03 {'dz': -24.9, 'dy': 10.5, 'spin': 4167, 'launch': 9.7, 'smash': 1.4, 'mph': 73.6, 'aoa': 1.2, 'dloft': 16.2, 'carry': 110.8}
+knee|lead|imp -0.67 {'dz': -24.3, 'dy': 17.5, 'spin': 4132, 'launch': 9.9, 'smash': 1.366, 'mph': 73.0, 'aoa': 0.8, 'dloft': 16.5, 'carry': 103.9}
+knee|lead|imp -0.45 {'dz': -18.9, 'dy': 9.8, 'spin': 3751, 'launch': 10.3, 'smash': 1.424, 'mph': 73.8, 'aoa': 1.0, 'dloft': 15.8, 'carry': 117.6}
+il|right_elbow_joint -> 0 {'dz': -17.8, 'dy': 19.0, 'spin': 3477, 'launch': 9.6, 'smash': 1.387, 'mph': 73.4, 'aoa': 0.9, 'dloft': 14.9, 'carry': 105.3}
+il|right_wrist_yaw_joint -> 0 {'dz': -20.9, 'dy': 11.8, 'spin': 3891, 'launch': 10.4, 'smash': 1.41, 'mph': 73.6, 'aoa': 1.2, 'dloft': 16.2, 'carry': 114.8}
