@@ -12,9 +12,25 @@ Autonomous pipeline for training a simulated humanoid to swing a golf club, usin
 
 *K12 s18 400k, model-only physics, fails realism checks.* One frame near impact from a Blender render of a K12 `s18` 400k rollout (mesh, scene and camera are cosmetic; ball flight is the golfphys model). **The overlay text in this frame is out of date.** It was burned in before the dt fix, the new gating checks and harness v3b. That checkpoint now scores **FAIL 11 pass / 4 warn / 3 fail** under v3b (`mine/start_direction`, `mine/lead_foot_plant`, `mine/robustness`), and it is no longer the "best so far" row. No GIFs or videos are committed.
 
-## Status at a glance (harness v3b, PROVISIONAL)
+## Status at a glance (default harness v3c, PROVISIONAL)
 
-Every v5 row is a single training seed, uses model-only physics (golfphys impact/flight; carry has no roll), and is reference-guided residual RL with tracking assistance on stock G1 torque, **not from scratch**. **No row passes every check. Every row below FAILs the PROVISIONAL `mine/robustness` gate.** There is no 350 yd result. Counts are pass / warn / fail, read from the committed JSONs.
+Every v5 row is a single training seed, uses model-only physics (golfphys impact/flight; carry has no roll), and is reference-guided residual RL with tracking assistance on stock G1 torque, **not from scratch**. **No row passes every check. Every v3c-scored row FAILs the PROVISIONAL `mine/robustness` gate.** There is no 350 yd result. Counts are pass / warn / fail, read from the committed JSONs.
+
+Harness v3c (Evaluator `47f30f8`, the default since 2026-10-19) is scored by the **Trainer only** so far: the Evaluator has committed no v3c re-scores, and none of the v3b rows below has been re-run under v3c. Their v3b counts are therefore not v3c counts.
+
+| Row | Club mph (median) | v3c pass / warn / fail | Failing checks | Scored by | Source |
+|---|---|---|---|---|---|
+| Target (this project) | 88-109 | - | - | - | project goal, not a result |
+| K27a `s59` 200k | 70.4 | 12 / 5 / 1 FAIL | robustness | Trainer only | `results/v5_runs/stageJ_harness/K27a_s59_200000_v3.json` |
+| K27a `s59` 300k | 70.2 | 12 / 4 / 2 FAIL | total_over_carry, robustness | Trainer only | `results/v5_runs/stageJ_harness/K27a_s59_300000_v3.json` |
+| K27a `s59` 400k | 70.3 | 12 / 3 / 3 FAIL | spin_rpm, total_over_carry, robustness | Trainer only | `results/v5_runs/stageJ_harness/K27a_s59_400000_v3.json` |
+
+K27b `s60` 400k (74.0 mph) has only a non-robustness run so far (`results/v5_runs/stageJ_harness/K27b_s60_400000.json`, robustness row skipped): 13 / 3 / 1 FAIL on `shot/spin_rpm`, with kinematic order and timing at warn. It has **no v3c robustness score**, so it is not in the table above.
+
+## Previous default: harness v3b (PROVISIONAL)
+
+
+Scored under v3b (gate friction U(0.9,1.1)), kept until these rows are re-scored under v3c. Same labels: single seed, model-only physics, not from scratch, **no row passes every check, every row FAILs `mine/robustness`**.
 
 | Row | Club mph (median) | v3b pass / warn / fail | Failing checks | Scored by | Source |
 |---|---|---|---|---|---|
@@ -29,7 +45,7 @@ Every v5 row is a single training seed, uses model-only physics (golfphys impact
 | K26s `s58` 100k (fastest K24-K26 row) | 75.0 | 12 / 5 / 1 FAIL | robustness | Trainer only | `results/v5_runs/stageJ_harness/K26s_s58_100000_v3.json` |
 | K12 `s18` 400k (fastest scored row; preview above) | 80.4 | 11 / 4 / 3 FAIL | start_direction, lead_foot_plant, robustness | Evaluator | `results/v5_runs/stageJK_harness_summary/realism_v5_K12_s18_400k_dtfix_newchecks_v3b_gateoff_gp_arm06.json` |
 
-All K24-K26 harness files (`results/v5_runs/stageJ_harness/K2[4-6]*_v3.json`) FAIL robustness; several also fail `shot/total_over_carry` or `shot/spin_rpm`. The `swing/grf_lead_vertical_bw` **1.7 BW upper limit has no published source**, and **the robustness gate's friction range (U(0.9,1.1)) has no turf source**. Both are PROVISIONAL. The detailed v2-era table further down is kept for history.
+All K24-K26 harness files (`results/v5_runs/stageJ_harness/K2[4-6]*_v3.json`, scored under v3b, including K26r `s57` / K26s `s58` 300k at 12/5/1 and 11/6/1) FAIL robustness; several also fail `shot/total_over_carry` or `shot/spin_rpm`. The `swing/grf_lead_vertical_bw` **1.7 BW upper limit has no published source**, and **the v3b robustness gate's friction range (U(0.9,1.1)) has no turf source**. Both are PROVISIONAL. The v3c range is sourced but only with medium-low confidence (see the harness section). The detailed v2-era table further down is kept for history.
 
 ## Quickstart
 
@@ -51,7 +67,8 @@ PYTHONPATH=. python -m eval.realism_check <path/to/v5/ckpt> --env v5 --json out.
 
 `eval/realism_check.py` (rules in `eval/swing_realism.py`, `eval/robust_grf.py`) scores one policy against swing and shot bands.
 
-- **Default `--harness v3b` (PROVISIONAL).** Lead vertical GRF is scored on a 4th-order Butterworth 50 Hz zero-lag filter over a window from the top of the swing to impact +20 ms. There is a GATING `mine/robustness` row: 24 perturbed episodes (seeds 7000-7023; joint noise, ball offset up to 1 cm, floor friction U(0.9,1.1)). The wider U(0.5,1.2) friction is an INFO row only. The 1.7 BW limit and the robustness friction range are unsourced.
+- **Default `--harness v3c` (PROVISIONAL).** Same lead vertical GRF rule as v3b: a 4th-order Butterworth 50 Hz zero-lag filter over a window from the top of the swing to impact +20 ms. **The 1.7 BW upper limit has no published source.** The GATING `mine/robustness` row runs 24 perturbed episodes (seeds 7000-7023; joint noise, ball offset up to 1 cm), now with floor friction **U(0.7,1.05)** per episode. That range is sourced with **medium-low confidence** from golf-shoe and turf studies: Worsfold et al. 2007 (PMC3794489), with in-swing shear/vertical 0.62 +/- 0.03; Worsfold, Smith and Dyson (PMC3761538), front foot 0.61-0.63; and Worsfold 2006 slip coefficients. The pass thresholds of the robustness gate itself are harness choices, not literature values. Deterministic rows stay at mu 1.0. INFO-only rows (never gating): wide friction U(0.5,1.2), a fixed mu 1.1 stress run, and `mine/lead_foot_shear_ratio_info` (lead-foot shear/vertical, 50 Hz Butterworth, vertical >= 0.1 BW, top to impact; reference about <= 0.65-0.75 from the same studies).
+- **`--harness v3b`** keeps the previous rule, with gate friction U(0.9,1.1) (no turf source) and the wide-friction INFO row.
 - **`--harness v2`** reproduces the old rules: whole-episode raw GRF peak and no robustness rows.
 - **Inputs:** a checkpoint path (or `results/<name>.json` / model name for v1), `--env v1|v5`, and optionally `--seeds` (default 4000,8000,9000), `--eps-per-seed` (default 8), `--strike-gate-nx` (default off), `--arm-dist`, `--v5-repo`.
 - **Outputs:** a summary printed to stdout and, with `--json out.json`, a JSON with each check's `status` (pass/warn/fail/skip/info) and value, `checks_passed` / `n_warn` / `n_fail`, `verdict` (PASS / WARN / FAIL), `club_mph_median`, golfphys carry/total, and `floor_mu_summary`. Per-episode records also go in that file. The copies committed here are slimmed, with those records removed and local paths redacted.
