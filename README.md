@@ -99,6 +99,8 @@ All K24-K26 harness files (`results/v5_runs/stageJ_harness/K2[4-6]*_v3.json`, sc
 
 ## Research bands
 
+- **golfphys spin audit (DEFERRED / not applied):** `docs/GOLFPHYS_SPIN_AUDIT.md`; an opt-in `s_t` calibration via `data/golfphys_spin_audit.proposed_params()` was reviewed and deferred, golfphys defaults are unchanged.
+
 Public-source launch, dispersion, lead-foot, GRF and turf-friction references are in `data/references/research_bands/` and `docs/research_bands/`. Every row has a source URL and a measured/model/derived label. **Rows transcribed from the TrackMan Driver Fitting Chart 2010 are held back, pending review** (open counsel question from the MIT audit), and so are the two notes files that quote them.
 
 ## Quickstart

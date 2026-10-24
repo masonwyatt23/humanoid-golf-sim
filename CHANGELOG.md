@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-10-24 (later)
+- **golfphys spin audit** (Data Agent `2c6f2c5`): DEFERRED / not applied; opt-in `proposed_params()` only, defaults unchanged; 11 published TrackMan Combine/Tour rows, no TrackMan 2010 chart rows.
 - **Trainer** (`f0b82be`..`185439d`): `--sep_lo`/`--sep_span` arm-to-club lag flags (defaults unchanged); K30 reference fit (`b69fac9`, did not reach targets, **unused**); slim harness JSONs for K28a/b, K29a/b, K30a/b (v2 + v3c, v3d where present) and v3d re-grades (`e9672f0`, `0d31656`). Skipped: cmd files, `k28/k29/k30_watch.sh`, `scripts/v3d_regrade.py` (machine paths), `scripts/launch_cmd.py` (launcher for the skipped cmd files), checkpoints, logs.
 - **Evaluator** `228eca4`: independent v3c + live v3d scores for K28a/b 100k-400k and K29a/b 100k-300k (56 slim result files + md5 record); all FAIL robustness; match the Trainer exactly. Confirms K28b 400k v3c 12/5/1 (not the best overall; 14/3/1 rows exist). Skipped: two batch scripts (machine paths).
 - README: v3c table adds K28-K30 rows marked Evaluator or Trainer only; v3d section updated.
