@@ -1,0 +1,2 @@
+K30 reference fit (Trainer b69fac9): K27 family, dloft 13-15 / AoA / spin <= 3100 weights, 3 noisy starts with mu 0.7-1.05.
+**Did NOT reach its targets** (best nominal spin 4206 rpm, dloft 17.3 deg, launch 10.9 deg, arm-to-club 16 ms) and is **NOT used for training**. K30a/K30b train on the K27 reference keys (`results/v5_runs/stageK27_ref_s1/`). Kept for the record only. The fit command file is not committed (machine-specific).
