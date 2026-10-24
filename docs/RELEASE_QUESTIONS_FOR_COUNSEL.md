@@ -47,3 +47,7 @@ Not legal advice and not a legal conclusion; a list of questions and the current
 ## 8. R&A/USGA report "The effect of impact position on driving distance" (R22-07)
 - Raw points digitized from Figs 1-3 (ball speed, spin and launch vs impact height). Date is uncertain: the report is about 2022 by its R22-07 number and publication, but its header says 2006. **The raw digitized points are held locally; not in the public repo.** Only derived constants are published, labelled "derived from digitized figure, approximate" (commit 4c1b9d92, `data/driver_face_offcentre.py`).
   - Q: Can the raw digitized values be published under MIT, with attribution? Are the published derived constants (a small interpolation table and slopes) acceptable as-is?
+
+## 9. rule36.net driver-head table
+- 21 per-model rows (volume, mass, MOI, face progression, CG distance/depth/height) transcribed from rule36.net "Driver head Specifications", a third-party compiled table. **Held locally; not in the public repo.** Only aggregates (range, median, n=21) with attribution are published in `data/references/driver_head_460cc_refs.*`.
+  - Q: Can the per-model rows be published under MIT with attribution, or should the repo keep aggregates and a citation only?

@@ -1,0 +1,329 @@
+{
+ "generated": "2026-10-24 (America/New_York)",
+ "rows": [
+  {
+   "quantity": "volume",
+   "nominal": "460",
+   "range": "<=460 (+10 tol)",
+   "unit": "cc",
+   "label": "rule limit",
+   "confidence": "high",
+   "source_url": "https://www.usga.org/equipment-standards/equipment-rules-2019/equipment-rules/part-2-rule-5.html",
+   "table_or_page": "Equipment Rules Part 2, 4b(i) Volume limit",
+   "note": ""
+  },
+  {
+   "quantity": "heel-to-toe length (head)",
+   "nominal": "~120 (estimate)",
+   "range": "> face-to-back, <=127",
+   "unit": "mm",
+   "label": "rule limit; nominal = estimate (not published by the OEMs opened)",
+   "confidence": "low",
+   "source_url": "https://www.usga.org/equipment-standards/equipment-rules-2019/equipment-rules/part-2-rule-5.html",
+   "table_or_page": "Part 2, 4b(i) Dimensional specifications",
+   "note": "no named-head heel-toe length found in opened specs"
+  },
+  {
+   "quantity": "sole-to-crown (crown height when soled)",
+   "nominal": "62",
+   "range": "60.0-63.5 (PROCEED 455R/460R head thickness); <=71.12 rule",
+   "unit": "mm",
+   "label": "spec (PROCEED 'head thickness'); rule limit",
+   "confidence": "medium",
+   "source_url": "https://www.tourspecgolf.com/blog/proceed-drivers-fairway-woods/ ; https://www.usga.org/equipment-standards/equipment-rules-2019/equipment-rules/part-2-rule-5.html",
+   "table_or_page": "PROCEED spec tables 'Head thickness'; Part 2 4b(i)",
+   "note": "440R: 61.5"
+  },
+  {
+   "quantity": "face height",
+   "nominal": "54",
+   "range": "50 (Wishon 719MW), 53 (Wishon 919THI; R22-07 test driver), 53.5 (PROCEED 455R), 58.5 (PROCEED 460R X)",
+   "unit": "mm",
+   "label": "spec",
+   "confidence": "medium",
+   "source_url": "https://wishongolf.com/designs/designs-drivers/919thi/ ; https://wishongolf.com/719mw-drivers/ ; https://www.tourspecgolf.com/blog/proceed-drivers-fairway-woods/",
+   "table_or_page": "spec tables 'FACE HEIGHT'",
+   "note": ""
+  },
+  {
+   "quantity": "face width",
+   "nominal": "105",
+   "range": "105-106 (Wishon)",
+   "unit": "mm",
+   "label": "spec",
+   "confidence": "medium",
+   "source_url": "https://wishongolf.com/designs/designs-drivers/919thi/ ; https://wishongolf.com/719mw-drivers/",
+   "table_or_page": "spec tables 'FACE WIDTH'",
+   "note": ""
+  },
+  {
+   "quantity": "face area",
+   "nominal": "4800",
+   "range": "4800 (919THI only)",
+   "unit": "mm2",
+   "label": "spec",
+   "confidence": "low",
+   "source_url": "https://wishongolf.com/designs/designs-drivers/919thi/",
+   "table_or_page": "spec table 'FACE AREA'",
+   "note": ""
+  },
+  {
+   "quantity": "head depth (front-back)",
+   "nominal": "112",
+   "range": "111-113 (Wishon)",
+   "unit": "mm",
+   "label": "spec",
+   "confidence": "medium",
+   "source_url": "https://wishongolf.com/designs/designs-drivers/919thi/ ; https://wishongolf.com/719mw-drivers/",
+   "table_or_page": "spec tables 'FRONT-BACK'",
+   "note": ""
+  },
+  {
+   "quantity": "face-centre height when soled",
+   "nominal": "~30 (estimate)",
+   "range": "~27-33 (derived: face height/2 + ~2-4 mm leading-edge clearance)",
+   "unit": "mm",
+   "label": "derived / estimate (not published)",
+   "confidence": "low",
+   "source_url": "derived from face height rows",
+   "table_or_page": "-",
+   "note": ""
+  },
+  {
+   "quantity": "head mass",
+   "nominal": "200",
+   "range": "192.7-203.4 (rule36 n=21); 202 (919THI); 203 (PING G440 MAX)",
+   "unit": "g",
+   "label": "measured (rule36) / spec",
+   "confidence": "high",
+   "source_url": "http://www.rule36.net/spec/driver_head.htm ; https://wishongolf.com/designs/designs-drivers/919thi/ ; https://eu.ping.com/en-gb/golf-clubs/drivers/g440-max-driver",
+   "table_or_page": "rule36 '重量 (g)'; Wishon 'WEIGHT'; PING 'HEAD WEIGHT'",
+   "note": ""
+  },
+  {
+   "quantity": "loft",
+   "nominal": "10.5",
+   "range": "9-12 typical; stock lofts 9/10.5/12 (PING), 9/11 (Wishon 719MW), 8.5-10.5 (PROCEED)",
+   "unit": "deg",
+   "label": "spec",
+   "confidence": "high",
+   "source_url": "https://eu.ping.com/en-gb/golf-clubs/drivers/g440-max-driver ; https://wishongolf.com/719mw-drivers/ ; https://www.tourspecgolf.com/blog/proceed-drivers-fairway-woods/",
+   "table_or_page": "spec tables",
+   "note": ""
+  },
+  {
+   "quantity": "lie",
+   "nominal": "58.5",
+   "range": "58 (Wishon), 58.5 (PING G440 MAX avg), 59 (PROCEED)",
+   "unit": "deg",
+   "label": "spec",
+   "confidence": "high",
+   "source_url": "https://wishongolf.com/designs/designs-drivers/919thi/ ; https://eu.ping.com/en-gb/golf-clubs/drivers/g440-max-driver ; https://www.tourspecgolf.com/blog/proceed-drivers-fairway-woods/",
+   "table_or_page": "spec tables",
+   "note": ""
+  },
+  {
+   "quantity": "MOI vertical axis (heel-toe twist, Izz)",
+   "nominal": "4500",
+   "range": "3895-5104 (median 4389, n=21) g cm2 (rule36, 2005-10 era Callaway); 5004-5025 (919THI); 4000-5900 (Tutelman); <=5900+100 rule",
+   "unit": "g cm2",
+   "label": "measured / spec / rule limit",
+   "confidence": "medium",
+   "source_url": "http://www.rule36.net/spec/driver_head.htm ; https://wishongolf.com/designs/designs-drivers/919thi/ ; https://www.tutelman.com/golf/ballflight/gearEffect3.php ; https://www.usga.org/equipment-standards/equipment-rules-2019/equipment-rules/part-2-rule-5.html",
+   "table_or_page": "rule36 '慣性 モーメント (g・cm3)'; Wishon 'MOI IZZ'; Tutelman GE3 text; Part 2 4b(i) MOI",
+   "note": "modern 2020s heads likely nearer 5000-5900 (not measured here)"
+  },
+  {
+   "quantity": "MOI horizontal (heel-toe) axis (Iv, face up/down rotation)",
+   "nominal": "3000",
+   "range": "2000-3900 (Tutelman: 1/2-2/3 of Izz)",
+   "unit": "g cm2",
+   "label": "model (Tutelman estimate); no measured value opened",
+   "confidence": "low",
+   "source_url": "https://www.tutelman.com/golf/ballflight/gearEffect3.php",
+   "table_or_page": "Gear Effect 3, first section",
+   "note": ""
+  },
+  {
+   "quantity": "CG depth behind face",
+   "nominal": "40",
+   "range": "36.3-45.2 (median 40.0, n=21) (rule36); 35-38 (PROCEED)",
+   "unit": "mm",
+   "label": "measured (rule36) / spec",
+   "confidence": "medium",
+   "source_url": "http://www.rule36.net/spec/driver_head.htm ; https://www.tourspecgolf.com/blog/proceed-drivers-fairway-woods/",
+   "table_or_page": "rule36 '重心深度 (mm)'; PROCEED 'Center of gravity depth'",
+   "note": ""
+  },
+  {
+   "quantity": "CG height",
+   "nominal": "31",
+   "range": "29.8-33.4 (median 31.3, n=21) (rule36 '重心高'; reference plane not stated on page: unknown)",
+   "unit": "mm",
+   "label": "measured (reference plane unstated)",
+   "confidence": "medium",
+   "source_url": "http://www.rule36.net/spec/driver_head.htm",
+   "table_or_page": "rule36 '重心高 (mm)'",
+   "note": "rule36 page does not state the reference plane for 重心高 (CG height); plane UNKNOWN (ground-when-soled is plausible but unverified). PROCEED 'effective hitting distance' is a different quantity"
+  },
+  {
+   "quantity": "CG distance from shaft axis",
+   "nominal": "35",
+   "range": "29.5-41.5 (median 34.6, n=21) (rule36); 38-41.5 (PROCEED)",
+   "unit": "mm",
+   "label": "measured / spec",
+   "confidence": "medium",
+   "source_url": "http://www.rule36.net/spec/driver_head.htm ; https://www.tourspecgolf.com/blog/proceed-drivers-fairway-woods/",
+   "table_or_page": "rule36 '重心距離 (mm)'; PROCEED 'Center of gravity distance'",
+   "note": ""
+  },
+  {
+   "quantity": "face progression (FP: leading edge ahead of shaft axis)",
+   "nominal": "20",
+   "range": "18.2-22.3 (median 20.9, n=21) (rule36); 17.5-18.5 (PROCEED); 18-21 (Wishon 'FACE PROG.')",
+   "unit": "mm",
+   "label": "measured / spec",
+   "confidence": "high",
+   "source_url": "http://www.rule36.net/spec/driver_head.htm ; https://www.tourspecgolf.com/blog/proceed-drivers-fairway-woods/ ; https://wishongolf.com/designs/designs-drivers/919thi/ ; https://wishongolf.com/719mw-drivers/",
+   "table_or_page": "FP columns (rule36 header verbatim: 'FP (mm)'; Wishon 'FACE PROG.'; PROCEED FP)",
+   "note": ""
+  },
+  {
+   "quantity": "shaft-axis offset to face centre (heel-toe)",
+   "nominal": "~35 (estimate = CG distance)",
+   "range": "29.5-41.5",
+   "unit": "mm",
+   "label": "derived (assumes CG projects near face centre; not published directly)",
+   "confidence": "low",
+   "source_url": "http://www.rule36.net/spec/driver_head.htm",
+   "table_or_page": "rule36 '重心距離 (mm)'",
+   "note": ""
+  },
+  {
+   "quantity": "ball diameter",
+   "nominal": "42.67",
+   "range": ">=42.67",
+   "unit": "mm",
+   "label": "rule limit",
+   "confidence": "high",
+   "source_url": "https://www.usga.org/equipment-standards/equipment-rules-2019/equipment-rules/part-3.html",
+   "table_or_page": "Part 3 Ball size (standard value)",
+   "note": ""
+  },
+  {
+   "quantity": "tee length",
+   "nominal": "<=101.6",
+   "range": "<=101.6",
+   "unit": "mm",
+   "label": "rule limit",
+   "confidence": "high",
+   "source_url": "https://www.usga.org/equipment-standards/equipment-rules-2019/equipment-rules/part-6-rule-2.html",
+   "table_or_page": "Part 6, 1. Tees",
+   "note": ""
+  },
+  {
+   "quantity": "tee guidance",
+   "nominal": "equator at/just above crown",
+   "range": "'at least half the ball is above the crown of the club' (verbatim)",
+   "unit": "-",
+   "label": "expert guidance",
+   "confidence": "medium",
+   "source_url": "https://www.golfdigest.com/story/an-important-reminder-to-give-yourself-ideal-launch-and-distance-this-spring",
+   "table_or_page": "Golf Digest, E. Michael Johnson, 'An important reminder to give yourself ideal launch and distance this spring', March 10 2016 (verified opened 2026-10-24)",
+   "note": ""
+  },
+  {
+   "quantity": "tee height test",
+   "nominal": "38.1 (1.5 in) vs 12.7 (0.5 in)",
+   "range": "1.5 in tee: +14.2 yd carry, impact >4 mm higher, launch +3.5 deg, spin -326 rpm vs 0.5 in",
+   "unit": "mm (ground to tee top)",
+   "label": "measured (MGS, PING G410 LST, GCQuad, 120 drives/tee)",
+   "confidence": "medium",
+   "source_url": "https://mygolfspy.com/labs/tee-height-test/",
+   "table_or_page": "Tee Height Test results 1-3",
+   "note": ""
+  },
+  {
+   "quantity": "recommended tee height (ground to ball BOTTOM), real head",
+   "nominal": "40.7",
+   "range": "38.7-42.2 for crown 60-63.5 mm",
+   "unit": "mm",
+   "label": "derived: crown height - ball radius 21.335",
+   "confidence": "medium",
+   "source_url": "derived",
+   "table_or_page": "-",
+   "note": "ball centre (equator) = crown = 62 mm; consistent with MGS 1.5 in tee"
+  }
+ ],
+ "sim_head": {
+  "source": "env/v5_body.py (origin/main 57504a7, read-only)",
+  "box_mm": [
+   90,
+   110,
+   64
+  ],
+  "mass_g": 200,
+  "loft_deg": 10.5,
+  "lie_deg": 56.0,
+  "face_centre_z_mm": 49.9,
+  "crown_z_mm": 81.3,
+  "ball_centre_z_mm": 59.9,
+  "ball_bottom_z_mm": 38.6,
+  "tee_above_face_mm": 10,
+  "izz_gcm2": 3367,
+  "i_heeltoe_axis_gcm2": 2033,
+  "cg_depth_mm": 45,
+  "cg_height_mm": 41.7,
+  "cg_toe_offset_from_hosel_mm": 50,
+  "face_ahead_of_shaft_axis_mm": 45,
+  "note": "MuJoCo uniform box inertia from geom mass; z values computed from build/address code at loft 10.5"
+ },
+ "strikes": {
+  "K28b_K30": {
+   "n": 200,
+   "median_y_high_mm": -24.9
+  },
+  "K31": {
+   "n": 100,
+   "median_y_high_mm": -23.4
+  },
+  "K31cd": {
+   "n": 200,
+   "median_y_high_mm": -24.0
+  }
+ },
+ "rule36_headers_verbatim": {
+  "url": "http://www.rule36.net/spec/driver_head.htm",
+  "page_title": "Driver head Specifications",
+  "headers": [
+   "モデル名",
+   "体積 (CC)",
+   "重量 (g)",
+   "慣性 モーメント (g・cm3)",
+   "ロフト",
+   "リアルロフト",
+   "フェース角",
+   "FP (mm)",
+   "重心距離 (mm)",
+   "重心深度 (mm)",
+   "重心高 (mm)",
+   "重心角"
+  ],
+  "english_translation_by_agent": [
+   "model name",
+   "volume (cc)",
+   "mass (g)",
+   "moment of inertia (page prints g・cm3; treated as g cm2)",
+   "loft",
+   "real loft",
+   "face angle",
+   "face progression (mm)",
+   "CG distance (mm)",
+   "CG depth (mm)",
+   "CG height (mm)",
+   "CG angle"
+  ],
+  "note": "Headers copied verbatim on 2026-10-24; English is the agent's translation. Page gives no brand label, MOI axis, measurement method or CG-height reference plane; 'rule36_heads' = rows with volume >=440 cc."
+ },
+ "rule36_heads_held": "The 21 per-model rule36.net rows (third-party compiled table) are held locally pending counsel review; only aggregates (range/median, n=21) with attribution are published in rows."
+}
