@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-10-24 (later)
+- **Evaluator** `scott-e` `4bb0801`..`6a74779`: v3d strike dy/dz rows, `mine/strike_height`, `STRIKE_FACE_EDGE_MM` 26.5 (Wishon 919THI, provisional), face-edge side-by-side rows using the existing `data/driver_face_offcentre.py` (smash_r2207 primary; spin capped+linear+r2207; launch Hotstix+Fig 3), all PROVISIONAL and v3d only; v3c verdicts unchanged. Results: K29a/b 400k, K30a/b, K31a 200k (v3c matches Trainer 10/10; no full pass). Skipped as identical: data/ face-edge copies (`bf85b8b`, `5f5542a`, `81f80f9`, `9453c74`); kept our path-free `extract_r2207_fig3.py`; raw `r2207_fig1_fig2_digitized.csv` held; worker change and batch script held (paths/untracked).
 - **Trainer K31** (`38692cf`..`357687a`): `--face_h` (real 53 mm face, off-face = miss; default off), `--edge_w/--edge_dz`, `--loc_w/--loc_dy/--loc_dz` (default off); gear sweep + strike-location logs; `scripts/v3d_regrade.py` now path-free (`--eval-repo` / `V3D_EVAL_REPO`); slim K31a-d 100k-300k harness JSONs (Trainer only; best v3c 13/4/1, all FAIL robustness). Skipped: k31a-d cmd files, `k31_watch.sh`, checkpoints, logs.
 - face_edge_adjust: opt-in side-by-side model, not the default (Data Agent `d8a3985` + derived R22-07 constants from `e413c36`); R22-07 digitized points held pending review (with the TrackMan 2010 rows).
 - **golfphys spin audit** (Data Agent `2c6f2c5`): DEFERRED / not applied; opt-in `proposed_params()` only, defaults unchanged; 11 published TrackMan Combine/Tour rows, no TrackMan 2010 chart rows.
