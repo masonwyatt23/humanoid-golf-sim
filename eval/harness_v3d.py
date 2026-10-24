@@ -10,6 +10,10 @@ v3d = v3c run (same episodes, friction gate U(0.7,1.05), info rows) + the re-gra
      Failing the requirement = WARN (same severity class as v3c timing; a WARN blocks a PASS verdict).
  (4) lead-foot slip/rotation unchanged (PROVISIONAL, no sourced numbers).
  (5) mine/robustness: additionally FAIL if club speed p10 < 0.93 x median (LOW CONFIDENCE: Shaw 2023 JSCR abstract CV<=5.8%; elite SD 0.5-2.1 mph from a snippet).
+ (6) mine/strike_height (PROVISIONAL, Orchestrator-approved 2026-10-24): deterministic median |dz| (strike height from the face centre, mm).
+     PASS <= 15 mm (DESIGN CHOICE, not sourced); WARN > 15 mm; FAIL >= face edge 32 mm (SIM GEOMETRY, not a real-driver source:
+     env/models/humanoid_golf_v5_g1_{lh,rh}.xml geom "head" box size 0.045 0.055 0.032 -> half-height 0.032 m; site "clubhead" = face centre).
+     Skipped (no row) when the run did not log strike offsets.
  Info flag: if the v3d verdict is PASS only because of (1), verdict becomes 'not a pass (spin-band-only)'.
 """
 import copy
@@ -17,6 +21,19 @@ SPIN_PASS_V3D = (2000.0, 3700.0); SPIN_WARN = (1200.0, 4000.0); SPIN_SPEED_RANGE
 PELVIS_FLOOR_DPS = 250.0; PELVIS_INFO_TARGET_DPS = 340.0
 TA_INVERSION_MS = 30.0; ARM_CLUB_MIN_MS = 20.0; PELVIS_CLUB_MIN_MS = 15.0; SEQ_MAX_MS = 150.0
 CLUB_P10_MIN_FRAC = 0.93
+STRIKE_DZ_WARN_MM = 15.0; FACE_HALF_HEIGHT_MM = 32.0   # 15 = design choice (not sourced); 32 = sim geometry (head box half-height), not a real-driver source
+
+def strike_height_status(med_abs_dz_mm):
+    if med_abs_dz_mm is None: return "skip"
+    return "fail" if med_abs_dz_mm >= FACE_HALF_HEIGHT_MM else "warn" if med_abs_dz_mm > STRIKE_DZ_WARN_MM else "pass"
+
+def strike_height_row(info_row):
+    d = ((info_row or {}).get("values") or {}).get("deterministic") or {}; m = d.get("median_abs")
+    s = strike_height_status(m)
+    return dict(status=s, passed=s == "pass", tag="provisional", gating=True, values=dict(median_abs_dz_mm=m, median_dz_mm=d.get("median")),
+                expected=dict(pass_max_mm=STRIKE_DZ_WARN_MM, fail_at_mm=FACE_HALF_HEIGHT_MM),
+                why=[f"PROVISIONAL (v3d only): deterministic median |dz| {m:.1f} mm; WARN > {STRIKE_DZ_WARN_MM:g} mm (design choice, not sourced), FAIL >= {FACE_HALF_HEIGHT_MM:g} mm face edge (sim geometry: head box half-height 0.032 m in humanoid_golf_v5_g1_lh/rh.xml, not a real-driver source)"] if m is not None else ["no strike data"],
+                ref="docs/HARNESS_V3D_NOTES.md (strike height)")
 _W = {"skip": -1, "info": -1, "pass": 0, "warn": 1, "fail": 2}
 
 def spin_status(rpm, club_mph, v3d=True):
@@ -76,6 +93,7 @@ def apply_v3d(r, _spin=True):
             tv = C[kt]["values"]; ok = tv["pelvis"] >= max(tv["thorax"], tv["arm"]) and min(tv.values()) > 0 and tv["arm"] - tv["thorax"] <= TA_INVERSION_MS
             C[ko].update(status="pass" if ok else "warn", passed=ok, why=["v3d: pelvis first, club last, thorax/arm tie or inversion <= 30 ms allowed (DERIVED)"])
     if "mine/robustness" in C and C["mine/robustness"].get("status") not in ("skip",): C["mine/robustness"] = _regrade_robust(C["mine/robustness"], _spin)
+    if (C.get("mine/strike_dz_info") or {}).get("status") == "info": C["mine/strike_height"] = strike_height_row(C["mine/strike_dz_info"])
     S = summarize(C)
     r.update(checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"])
     r["harness_v3"] = dict(r.get("harness_v3") or {}, harness="v3d", base_run="v3c")

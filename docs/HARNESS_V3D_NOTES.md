@@ -53,3 +53,23 @@ Searched again this pass; still no published measurement of lead-foot linear sli
 - Elite golfers, repeated driver trials: individual CHS SD 0.24–0.96 m/s = 0.5–2.1 mph ("Driving Performance Variability Among Elite Golfers", Science & Golf proceedings, https://doi.org/10.1007/978-2-287-99054-0_46 — read via search snippet of chapter text only; DOI fetch 404'd; treat as snippet-level).
 - Shaw et al. 2023 JSCR (abstract): within-session driver CHS CV ≤ 5.8% (upper bound across variables incl. CI), talented golfers, 3 shots. https://doi.org/10.1519/jsc.0000000000004554
 - Implication (DERIVED, assumes policy mean ≈ 74 mph): p10 59.6 implies SD ≈ 11 mph (CV ≈ 15%), 5–20× human within-golfer SD. A sourced robustness target: p10 ≥ mean − 1.28×(0.03×mean) ≈ 0.96×mean (≈71 mph at 74). Amateur data are scarcer; 5.8% CV gives ≈ 0.93×mean as a lenient floor.
+
+## Strike offset rows (added 2026-10-24, Orchestrator-approved)
+
+Approval: the Humanoid Golf Orchestrator approved option (a) of the spin-audit review on Oct 24, 2026: strike dy/dz info rows plus a
+provisional strike-height row (WARN beyond 15 mm, FAIL at the face edge).
+
+* The v3 worker (`results/overnight/_j_worker_gp_v3.py`) records `strike = {dy_m, dz_m}` per episode (deterministic and robustness) from the
+  env's impact record (`v5_golf_env._do_contact`: offset of the contact point from the `clubhead` site, i.e. the face centre; dy toward the toe,
+  dz up the face). Same values the env returns as `info['dy']` / `info['dz']`.
+* **INFO rows, all v3 harnesses (v3b/v3c/v3d):** `mine/strike_dy_info`, `mine/strike_dz_info` — median / p10 / p90 in mm, deterministic and
+  robustness episodes, plus deterministic median |dz|. Not gating; P/W/F counts and v3c verdicts are unchanged. Absent when the run predates the field.
+* **v3d only, GATING, PROVISIONAL:** `mine/strike_height` on the deterministic median |dz|:
+  PASS ≤ 15 mm, WARN > 15 mm, FAIL ≥ 32 mm.
+  * **15 mm is a design choice, not sourced.**
+  * **32 mm face edge = sim geometry, not a real-driver source:** `env/models/humanoid_golf_v5_g1_lh.xml` and `..._rh.xml`, line 271,
+    `<geom name="head" size="0.045 0.055 0.032" type="box">` → half-height 0.032 m (half-width toward toe 0.055 m). The `clubhead` site
+    (line 274) sits at the head-box face centre (verified: in the head-geom frame it is at (+0.0450, 0.0000, 0.0000) m).
+* Evidence: the golfphys spin-audit review (Oct 24) — at seed 4000, K30a 300k struck 25 mm low (4455 rpm vs ~2631 centred) and K30b 400k
+  31 mm low (4660 rpm vs ~2449 centred); K25b 400k 8 mm low. Strikes this far down sit at the edge of the sim face, where the vendored
+  golfphys model barely loses ball speed (so the spin penalty's size is itself uncertain).

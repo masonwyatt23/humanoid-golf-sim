@@ -47,6 +47,29 @@ def worker_args(a, repo, ck, arm, sd):
 
 def _fine_grf(a): return getattr(a, "grf_method", "legacy") not in (None, "legacy")
 
+def _strike_mm(r):
+    """Strike offset at impact (mm) from the v3 worker's per-episode 'strike' record (env info dy/dz); {} if not logged."""
+    s = r.get("strike") or {}
+    return {} if s.get("dz_m") is None else dict(strike_dy_mm=1000.0 * float(s["dy_m"]), strike_dz_mm=1000.0 * float(s["dz_m"]))
+
+def _pct(xs):
+    xs = [float(x) for x in xs if x is not None]
+    if not xs: return None
+    q = np.percentile(xs, [50, 10, 90]); return dict(median=float(q[0]), p10=float(q[1]), p90=float(q[2]), n=len(xs))
+
+def strike_info_rows(det_eps, rob_eps=None):
+    """INFO rows mine/strike_dy_info / mine/strike_dz_info (mm; never gating). dy toward the toe, dz up the face, from the clubhead site (face centre).
+    det_eps / rob_eps: per-episode dicts carrying strike_dy_mm / strike_dz_mm (contact episodes only)."""
+    R = {}
+    for ax in ("dy", "dz"):
+        k = f"strike_{ax}_mm"; d = _pct([e.get(k) for e in det_eps]); rb = _pct([e.get(k) for e in (rob_eps or [])]) if rob_eps else None
+        if d is not None: d["median_abs"] = float(np.median([abs(float(e[k])) for e in det_eps if e.get(k) is not None]))
+        if d is None: continue   # not logged (pre-strike worker): no row, so counts are unchanged
+        R[f"mine/strike_{ax}_info"] = dict(status="info", passed=False, tag="info_only", gating=False,
+            values=dict(deterministic=d, robustness=rb, units="mm", axis="toe (+)" if ax == "dy" else "up the face (+)"),
+            why=[f"INFO only (not gating): strike {ax} at impact, mm from the face centre (env info['{ax}'])"], ref=None)
+    return R
+
 def _robust_ep(r, bw):
     """Per-episode numbers for mine/robustness (same definitions as the deterministic rows: golfphys t/c and lateral, ball azimuth, address-referenced plant)."""
     from eval import swing_realism as SR
@@ -66,7 +89,7 @@ def _robust_ep(r, bw):
         fm = SR.lead_foot_plant_metrics(q["t"], q["lead_foot"], g[:len(q["t"])], imp, i_top, q.get("foot_length_m"))
     out["foot_status"] = SR.check_lead_foot_plant(fm, 1, "logged")[1]["status"]
     out.update(club_speed_mph=sh.get("club_speed_mph"), smash=sh.get("smash"), launch_deg=sh.get("launch_deg"), spin_rpm=sh.get("spin_rpm"),
-               total_over_carry=(gp or {}).get("total_over_carry"), az_abs=abs(az) if az is not None else None, lat_per100=lat)
+               total_over_carry=(gp or {}).get("total_over_carry"), az_abs=abs(az) if az is not None else None, lat_per100=lat, **_strike_mm(r))
     return out
 
 def resolve_harness(a):
@@ -176,6 +199,7 @@ def run_v5(a):
             flen = r.get("foot_length_m")
             foot_m = SR.lead_foot_plant_metrics(r["t"], r["lead_foot"], grf[:len(r["t"]), lead_i], imp, i_top, flen)
         out[-1].update(az_abs=(abs(az) if az is not None else None), lat_per100=lat, foot_metrics=foot_m, top_method=top_m)
+        out[-1].update(_strike_mm(r_raw))
         if _fine_grf(a):   # v3 GRF rule on the raw per-substep trace: window top -> impact, de-spiked
             from eval import robust_grf as RG
             gr = np.array(r_raw["grf"], float).reshape(-1, 2)[:, lead_i] / bw; tr = r_raw["t"]; ir = int(r_raw["impact_idx"])
@@ -229,6 +253,8 @@ def run_v5(a):
             if getattr(a, "harness", None) == "v3c":   # INFO only: fixed mu 1.1 stress value (above any golf-shoe value in the notes)
                 w, _ = run_robustness(a, repo, ck, arm, env, RG.stress_perturb())
                 C["mine/robustness_stress_friction_info"] = dict(w, status="info", passed=False, tag="info_only", gating=False, verdict_if_gating=w.get("status"), why=["INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md)"] + list(w.get("why") or []))
+    if getattr(a, "harness", None) != "v2":   # INFO rows, all v3 harnesses (v3b/v3c/v3d); counts unchanged
+        C.update(strike_info_rows([e for e in ok if e["true_contact"]], [e for e in (ROB or []) if e.get("contact")]))
     S = SR.summarize(C); TR = None
     if tres:
         F = SR.agg_da(ok, "da_tres", "swing"); alt = dict(C); alt.update(F); S2 = SR.summarize(alt)
