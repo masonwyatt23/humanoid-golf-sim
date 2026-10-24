@@ -43,3 +43,32 @@ Robustness cells give contact / start-dir pass / foot pass, then spin and t/c as
 | K12_s18 400k | FAIL 11/4/3 | FAIL 11/4/3 | 0.707 W | FAIL 1.00/0.00/0.00; spin 3010/1399/4486; t/c 1.267/1.159/1.918 | (fail) 0.96/0.00/0.00; spin 3179/1254/4663; t/c 1.279/1.133/1.844 |
 
 Contact is 24/24 under the gate friction for every checkpoint. All six still FAIL robustness on foot plant, start direction, t/c and/or spin spread.
+
+## v3c re-score (harness 47f30f8, PROVISIONAL, Orchestrator-approved; default), 2026-10-24
+
+Gate friction U(0.7, 1.05) per episode (applied 0.717-1.006 on seeds 7000..7023, all rows); deterministic rows at mu 1.0; wide U(0.5,1.2) and stress 1.1 friction and the lead-foot shear ratio are INFO only.
+Worker `_run_j_gateoff_gp_v3.py`, taskset 0-1, 2 workers, OMP/MKL 2, V3_FRICTION_RANGE unset.
+- First 7 rows: Oct 19 job files (written to disk before the job died), verified complete: harness v3c, 24 gate eps, all robustness/info rows present, mu in range. Not re-run.
+- New rows (Trainer read-only exports, md5-snapshotted into `_evalsnap/`, obs 116 / action 29 match env+ckpt+vecnorm):
+  K23b 300k @ a1d67c8 (keys stageK22e_ref_s1, md5 68b00781); K25b 400k @ 5cb4d43 (stageK25_ref_s1, fa0b5a95); K27a 400k @ 9225b4a (stageK22e_ref_s1, 68b00781);
+  K27b 400k and K27c 300k @ 493dae5 (env/train/golfphys/scripts identical to 142daf3) + the Trainer's UNCOMMITTED stageK27_ref_s1/tuned_keys_flat.json (md5 94471d78, 121 keys, 12 pc|) copied into `_ro_trainer_493dae5_k27ref`.
+- Trainer comparison: K27a/K27b/K27c Trainer v3c JSONs match exactly (counts, rows, gate fractions, spin/t-c percentiles). K23b (Trainer pre-v3b v3 run) and K25b (Trainer v3b, friction 0.9-1.1) have the same 14/3/1 counts under their older harness.
+
+Counts are P/W/F. Gate cells: contact / start-dir pass / foot pass fractions (need 0.95/0.90/0.90).
+
+| ckpt | v3c | FAIL rows | WARN rows | gate contact/SD/foot | spin med/p10/p90 | t/c med/p10/p90 | shear peak (info) |
+|---|---|---|---|---|---|---|---|
+| K12_s18_400k | FAIL 11/4/3 | start_direction, lead_foot_plant, robustness | kseq_order, kseq_timing, grf_lead_vertical_bw, total_over_carry | 0.92/0.00/0.00 | 3158/1557/5023 | 1.276/1.146/1.927 | 1.02 |
+| K18e_s37_200k | FAIL 12/5/1 | robustness | kseq_order, kseq_timing, pelvis_dps, spin_rpm, total_over_carry | 0.96/0.62/0.50 | 2597/995/4458 | 1.531/1.272/3.357 | 0.49 |
+| K19a_s39_300k | FAIL 13/4/1 | robustness | kseq_order, kseq_timing, pelvis_dps, total_over_carry | 1.00/0.79/0.62 | 2783/1089/3882 | 1.427/1.315/3.021 | 0.65 |
+| K19a_s39_400k | FAIL 13/4/1 | robustness | kseq_order, kseq_timing, pelvis_dps, total_over_carry | 1.00/0.79/0.54 | 3103/1125/3715 | 1.406/1.294/3.257 | 0.84 |
+| K22r4_s49_500k | FAIL 12/5/1 | robustness | kseq_order, kseq_timing, pelvis_dps, x_factor_top_deg, total_over_carry | 0.96/0.92/0.92 | 2545/1313/3546 | 1.425/1.314/3.675 | 0.78 |
+| K22r5_s51_100k | FAIL 14/3/1 | robustness | kseq_timing, pelvis_dps, spin_rpm | 0.92/0.75/0.83 | 2943/1330/4476 | 1.386/1.264/2.996 | 0.76 |
+| K24a_s53_200k | FAIL 13/4/1 | robustness | kseq_timing, pelvis_dps, spin_rpm, total_over_carry | 1.00/1.00/1.00 | 3143/984/4199 | 1.528/1.327/3.185 | 0.73 |
+| K23b_s52_300k | FAIL 14/3/1 | robustness | kseq_timing, pelvis_dps, total_over_carry | 0.96/0.83/0.96 | 2235/941/4091 | 1.782/1.301/3.453 | 0.69 |
+| K25b_s56_400k | FAIL 14/3/1 | robustness | pelvis_dps, spin_rpm, total_over_carry | 1.00/0.92/0.83 | 3273/999/4385 | 1.487/1.326/3.388 | 0.97 |
+| K27a_s59_400k | FAIL 12/3/3 | spin_rpm, total_over_carry, robustness | kseq_order, kseq_timing, pelvis_dps | 0.96/0.96/0.92 | 4103/3572/4583 | 1.517/1.357/1.743 | 0.57 |
+| K27b_s60_400k | FAIL 13/3/2 | spin_rpm, robustness | kseq_order, kseq_timing, pelvis_dps | 1.00/1.00/0.75 | 4094/1976/4585 | 1.281/1.204/1.866 | 0.86 |
+| K27c_s61_300k | FAIL 12/4/2 | spin_rpm, robustness | kseq_order, kseq_timing, pelvis_dps, total_over_carry | 1.00/0.92/0.96 | 3978/2073/4683 | 1.305/1.233/1.759 | 0.81 |
+
+No row passes. Every row FAILs robustness (spin and/or t/c spread). Best by FAIL count, then WARNs, then robustness: K25b_s56 400k (14/3/1, contact 1.00, start-dir 0.92, foot 0.83; t/c median 1.49).

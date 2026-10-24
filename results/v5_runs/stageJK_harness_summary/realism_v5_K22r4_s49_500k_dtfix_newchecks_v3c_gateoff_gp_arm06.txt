@@ -1,0 +1,34 @@
+
+REALISM FAIL  K22r4_s49_500k/ckpt_500000  [v5 (G1, club_len 1.15, tether 0, strike gate OFF, arm_dist 0.6 [BEnv, as B2-B4/C train])]  episodes 24 (true contact 24)  pass 12 warn 5 fail 1 skip 8 info 5 (not gating)
+  WARN  swing/kinematic_sequence_order  - peak order pelvis->thorax->arm->club; not resolvable at dt=20 ms (same sample or reversed by one sample): [('arm', 'club')]
+  WARN  swing/kinematic_sequence_timing_ms_before_club_peak  - outside band: {'arm': 8} (pro means 87/68/65 ms, amateur 78/59/64)
+  WARN  swing/peak_speed_pelvis_deg_s  - 0.57 x target at 71 mph (target EXTRAPOLATED beyond measured 88-109 mph)
+  PASS  swing/peak_speed_thorax_deg_s
+  PASS  swing/peak_speed_arm_deg_s
+  PASS  swing/peak_speed_club_deg_s
+  WARN  swing/x_factor_top_deg  - max |thorax - pelvis| before impact (published 24-59 deg, method dependent); stretch not checked
+  SKIP  swing/actuator_torque_speed_limits
+  SKIP  swing/pelvis_yaw_avg_torque_Nm
+  PASS  swing/grf_lead_vertical_bw
+  PASS  shot/smash
+  PASS  shot/club_speed_mph
+  PASS  shot/spin_rpm
+  PASS  shot/launch_deg
+  SKIP  shot/descent_deg
+  WARN  shot/total_over_carry  - total/carry (normal turf 1.07-1.13, firm to ~1.2; env without roll gives 1.0)
+  PASS  shot/carry_vs_golfphys_yd
+  PASS  mine/segments_rotate
+  SKIP  mine/ground_contact_weight_shift
+  SKIP  mine/joint_limits
+  SKIP  mine/torque_saturation_smoothness
+  SKIP  mine/tempo
+  SKIP  mine/carry_vs_trackman_band
+  PASS  mine/start_direction
+  PASS  mine/lead_foot_plant
+  INFO  mine/total_over_carry_speed_matched (golfphys model, info only, not gating)  - actual total/carry 1.289 vs golfphys speed-matched minimum 1.226 at 103.7 mph ball speed (launch 16 deg, backspin 3000 rpm); golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict
+  INFO  mine/grf_lead_vertical_raw_info  - OLD rule, INFO only: whole-episode raw lead-GRF peak (includes follow-through and single-sample contact spikes); not gating; sensitivity (INFO, not gating): same window + guard with 4th-order zero-lag Butterworth at 12Hz -> 1.476 BW, 14Hz -> 1.484 BW (lower cutoffs lower the peak)
+  INFO  mine/lead_foot_shear_ratio_info  - lead-foot shear/vertical top->impact: peak median 0.781 (max 0.781), p95 median 0.708; reference <= 0.65-0.75
+  FAIL  mine/robustness  - total_over_carry median/p90 outside WARN band (median 1.42, p10 1.31, p90 3.68); club_speed_mph leaves PASS band (p10; median 70.9, p10 47.4, p90 71.4); smash leaves PASS band (p10; median 1.41, p10 0
+  INFO  mine/robustness_wide_friction_info  - INFO only (not gating): robustness under the env's wide friction U(0.5, 1.2); contact 79% < 95%; start_direction PASS 79% < 90%; lead_foot_plant PASS 67% < 90%; total_over_carry median/p90 outside WARN band (median 1.37, p10 1.31, p90 1.44); spin_rpm leaves PASS band (median, p90; median 3.19e+03, p10 2.2e+03, p90 3.74e+03); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/robustness_stress_friction_info  - INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md); spin_rpm p10 outside WARN band (median 3.22e+03, p10 1.1e+03, p90 3.67e+03); total_over_carry median/p90 outside WARN band (median 1.37, p10 1.32, p90 3.65); club_speed_mph leaves PASS band (p10; median 71.2, p10 44.9, p90 71.4); smash leaves PASS band (p10; median 1.43, p10 1.28, p90 1.45); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  -- sample interval: 4.0 ms measured from the logged sim time (worker declared 4.0 ms; 0 episodes disagree); tie tolerance 20 ms and thresholds unchanged

@@ -1,0 +1,34 @@
+
+REALISM FAIL  K12_s18_400k/ckpt_400000  [v5 (G1, club_len 1.15, tether 0, strike gate OFF, arm_dist 0.6 [BEnv, as B2-B4/C train])]  episodes 24 (true contact 24)  pass 11 warn 4 fail 3 skip 8 info 5 (not gating)
+  WARN  swing/kinematic_sequence_order  - peak order pelvis->thorax->arm->club; not resolvable at dt=20 ms (same sample or reversed by one sample): [('arm', 'club')]
+  WARN  swing/kinematic_sequence_timing_ms_before_club_peak  - outside band: {'arm': -4} (pro means 87/68/65 ms, amateur 78/59/64)
+  PASS  swing/peak_speed_pelvis_deg_s
+  PASS  swing/peak_speed_thorax_deg_s
+  PASS  swing/peak_speed_arm_deg_s
+  PASS  swing/peak_speed_club_deg_s
+  PASS  swing/x_factor_top_deg
+  SKIP  swing/actuator_torque_speed_limits
+  SKIP  swing/pelvis_yaw_avg_torque_Nm
+  WARN  swing/grf_lead_vertical_bw  - peak lead-foot vertical force in body weights, WINDOWED top of backswing -> impact (+20 ms jitter allowance when method=butter), de-spiked (butter); bands unchanged (pass [0.8, 1.7], warn [0.5, 2.4], 
+  PASS  shot/smash
+  PASS  shot/club_speed_mph
+  PASS  shot/spin_rpm
+  PASS  shot/launch_deg
+  SKIP  shot/descent_deg
+  WARN  shot/total_over_carry  - total/carry (normal turf 1.07-1.13, firm to ~1.2; env without roll gives 1.0)
+  PASS  shot/carry_vs_golfphys_yd
+  PASS  mine/segments_rotate
+  SKIP  mine/ground_contact_weight_shift
+  SKIP  mine/joint_limits
+  SKIP  mine/torque_saturation_smoothness
+  SKIP  mine/tempo
+  SKIP  mine/carry_vs_trackman_band
+  FAIL  mine/start_direction  - |azimuth| 15.58 deg (fail; pass <=7, warn <=9); lateral 31.92 yd/100 yd carry (fail; pass <=13.5, warn <=17); worst of the two; PROVISIONAL; medium confidence
+  FAIL  mine/lead_foot_plant  - lead foot top->impact vs address: airborne max 16.60 ctrl steps / 332 ms (fail; fail >=3, warn >=1.8); slip 57.0 cm = 285.1% of foot (fail; fail >25%, warn >15%); turn 60.4 deg (fail; fail >20, warn >
+  INFO  mine/total_over_carry_speed_matched (golfphys model, info only, not gating)  - actual total/carry 1.284 vs golfphys speed-matched minimum 1.179 at 115.0 mph ball speed (launch 16 deg, backspin 3000 rpm); golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict
+  INFO  mine/grf_lead_vertical_raw_info  - OLD rule, INFO only: whole-episode raw lead-GRF peak (includes follow-through and single-sample contact spikes); not gating; sensitivity (INFO, not gating): same window + guard with 4th-order zero-lag Butterworth at 12Hz -> 0.649 BW, 14Hz -> 0.67 BW (lower cutoffs lower the peak)
+  INFO  mine/lead_foot_shear_ratio_info  - lead-foot shear/vertical top->impact: peak median 1.022 (max 1.022), p95 median 0.972; reference <= 0.65-0.75
+  FAIL  mine/robustness  - contact 92% < 95%; start_direction PASS 0% < 90%; lead_foot_plant PASS 0% < 90%; spin_rpm p90 outside WARN band (median 3.16e+03, p10 1.56e+03, p90 5.02e+03); total_over_carry p90 outside WARN band (m
+  INFO  mine/robustness_wide_friction_info  - INFO only (not gating): robustness under the env's wide friction U(0.5, 1.2); start_direction PASS 0% < 90%; lead_foot_plant PASS 0% < 90%; spin_rpm p90 outside WARN band (median 3.18e+03, p10 1.25e+03, p90 4.66e+03); total_over_carry p90 outside WARN band (median 1.28, p10 1.13, p90 1.84); smash leaves PASS band (p10; median 1.38, p10 1.23, p90 1.45); launch_deg leaves PASS band (p90; median 14.5, p10 10.2, p90 16.9); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/robustness_stress_friction_info  - INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md); start_direction PASS 0% < 90%; lead_foot_plant PASS 0% < 90%; spin_rpm p90 outside WARN band (median 3.02e+03, p10 1.24e+03, p90 4.34e+03); total_over_carry p90 outside WARN band (median 1.3, p10 1.18, p90 2.73); club_speed_mph leaves PASS band (p10; median 79, p10 57.7, p90 80.9); smash leaves PASS band (p10; median 1.39, p10 1.19, p90 1.46); launch_deg leaves PASS band (p90; median 13.1, p10 8.28, p90 16.5); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  -- sample interval: 4.0 ms measured from the logged sim time (worker declared 4.0 ms; 0 episodes disagree); tie tolerance 20 ms and thresholds unchanged
