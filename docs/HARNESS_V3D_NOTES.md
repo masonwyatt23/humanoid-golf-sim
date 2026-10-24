@@ -100,7 +100,7 @@ provisional strike-height row (WARN beyond 15 mm, FAIL at the face edge).
   `smash_legacy_quadratic` (LOW confidence). New INFO rows `mine/spin_face_edge_r2207_info` and `mine/smash_r2207_info`:
   **digitized R22-07 Fig 1-2, under Evaluator review** — not in any verdict. The 12.7 mm outside-measured flag is kept for now (may move to 21 mm after review).
 
-## Face-edge side-by-side model — final spec (Orchestrator-approved direction; Evaluator R22-07 review done, /workspace/spinrev), v3d only
+## Face-edge side-by-side model — final spec (Orchestrator-approved direction; Evaluator R22-07 review done; review notes held locally), v3d only
 
 Source: **R22-07** = R&A/USGA equipment research report *"The effect of impact position on driving distance"*, c. 2022 (the PDF header says
 Nov 2006, but it cites the 2019 ODS; PDF metadata author Andrew Johnson). Digitized Figs 1-2: `data/references/r2207_fig1_fig2_digitized.csv`.

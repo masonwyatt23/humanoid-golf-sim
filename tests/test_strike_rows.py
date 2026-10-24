@@ -55,7 +55,11 @@ def test_face_edge_matches_sim_geometry():
         m = re.search(r'<geom name="head" size="([\d.]+) ([\d.]+) ([\d.]+)"', x.read_text()); assert m and abs(float(m.group(3)) * 1000 - H.SIM_BOX_HALF_HEIGHT_MM) < 1e-9
 
 def test_worker_records_strike():
-    src = (Path(__file__).resolve().parents[1] / "results" / "overnight" / "_j_worker_gp_v3.py").read_text()
+    import pytest
+    w = Path(__file__).resolve().parents[1] / "results" / "overnight" / "_j_worker_gp_v3.py"
+    if not w.exists():
+        pytest.skip("v3 worker (results/overnight/_j_worker_gp_v3.py) is held locally, not tracked")
+    src = w.read_text()
     assert 'strike=(dict(dy_m=' in src and 'ball_hit_info["dz"]' in src
 
 
