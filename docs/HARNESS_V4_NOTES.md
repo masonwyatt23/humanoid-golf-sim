@@ -1,7 +1,7 @@
 # Harness v4 (Evaluator, 2026-10-24 ET): v3d bands on the sourced v4 head/address
 
 > **Status: PROVISIONAL, opt-in (`--harness v4`).** The default harness stays v3c and is unchanged. Single seed, model-only physics. No row passes every check. v4 rows are now scored (Evaluator V4 re-baseline, V4a/V4b + K34a ref): every gating 1.5 in row FAILs, best 14/3/2 (`results/v5_runs/stageJK_harness_summary/realism_v5_V4b_s81_300k_15in_v4_gateoff_gp_arm06.json`); crown 1.6 in rows are info only, not passes. See `docs/V4_REBASELINE.md`. Never compare pass/warn/fail counts across harness versions (v3c, v3d, v4 use different bands and envs).
-Status: READY, cross-check PENDING the Trainer's v4 flag being committed (seen only in the Trainer's dirty tree as `--env_v4` / `env.set_env_v4()` /
+Earlier (superseded; the flag is now committed and v4 rows are scored): READY, cross-check pending the Trainer's v4 flag being committed (seen only in the Trainer's dirty tree as `--env_v4` / `env.set_env_v4()` /
 `--tee_mode 1.5in`; not scored, not probed: harness scores read-only exports of commits only).
 
 ## What v4 is
