@@ -8,6 +8,12 @@ Autonomous pipeline for training a simulated humanoid to swing a golf club, usin
 
 ## Preview (still image)
 
+![K25b s56 400k, model-only physics, not a full realism pass](https://github.com/masonwyatt23/humanoid-golf-sim/releases/download/v0.1.0/K25b_s56_400k_readme_still.png)
+
+*K25b s56 400k, model-only physics, not a full realism pass.* About 50 ms before impact, seed 4000, no overlay text (image hosted as a release asset, not in git; caption details in `results/previews/K25b_s56_400k_readme_still_caption.txt`). Harness v3c: FAIL 14 / 3 / 1 (robustness). Seed-4000 episode: club 72.2 mph, below the 88-109 mph target.
+
+Older still (kept for history):
+
 ![K12 s18 400k, model-only physics, fails realism checks](docs/img/K12_s18_400k_still.png)
 
 *K12 s18 400k, model-only physics, fails realism checks.* One frame near impact from a Blender render of a K12 `s18` 400k rollout (mesh, scene and camera are cosmetic; ball flight is the golfphys model). **The overlay text in this frame is out of date.** It was burned in before the dt fix, the new gating checks and harness v3b. That checkpoint now scores **FAIL 11 pass / 4 warn / 3 fail** under v3b (`mine/start_direction`, `mine/lead_foot_plant`, `mine/robustness`), and it is no longer the "best so far" row. No GIFs or videos are committed.
