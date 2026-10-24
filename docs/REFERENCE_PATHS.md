@@ -112,7 +112,7 @@ downswing shape/timing (13-38 unique frames in the downswing). Pattern `mason_v3
 `data/references/mason_target_features.json` gained a `mason_slowmo_v3` block (existing keys unchanged).
 
 ## Non-npz open data (2026-10-16)
-`data/references/caddieset_driver_event_features.json`: CaddieSet (MIT repo licence) driver event-level 2D joint-feature summary
+`caddieset_driver_event_features.json` (held locally, not in the public repo (third-party terms pending); untracked 2026-10-18): CaddieSet (MIT repo licence) driver event-level 2D joint-feature summary
 (median/IQR, all vs fastest-quartile ball speed, face-on and down-the-line). Not a trajectory, not loadable as a reference; diagnostic only.
 Details and caveats in `docs/research_open_data_v3.md`.
 

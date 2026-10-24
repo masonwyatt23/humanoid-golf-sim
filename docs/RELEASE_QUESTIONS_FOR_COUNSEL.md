@@ -39,3 +39,11 @@ Not legal advice and not a legal conclusion; a list of questions and the current
 - Q: Does a model trained on mixed licenses (Mason, CMU, MultiSense) inherit restrictions?
 - Q: Mason's launch-monitor/self-reported numbers (120+ mph, 300+ yd) are personal data/claims: publishing them needs his consent and a "self-reported" label.
 - Current stance: nothing released; `commercial_cleared(entry) = commercial_ok and not counsel_required`.
+
+## 7. TrackMan Driver Fitting Chart 2010 rows (TM2010)
+- 48 rows transcribed from the TrackMan Driver Fitting Chart 2010 (18 in the 70-85 mph launch set, 30 in the slow-speed total/carry set) plus the two notes files that quote chart values. They are optimizer/model output from a vendor chart, not measurements. **Held locally; not in the public repo.**
+  - Q: Can the raw transcribed values (and notes quoting them) be published in this repo under MIT, with attribution? If not, is a citation-only reference acceptable?
+
+## 8. R&A/USGA report "The effect of impact position on driving distance" (R22-07)
+- Raw points digitized from Figs 1-2 (ball speed and spin vs impact height). Date is uncertain: the report is about 2022 by its R22-07 number and publication, but its header says 2006. **The raw digitized points are held locally; not in the public repo.** Only derived constants are published, labelled "derived from digitized figure, approximate" (commit 4c1b9d92, `data/driver_face_offcentre.py`).
+  - Q: Can the raw digitized values be published under MIT, with attribution? Are the published derived constants (a small interpolation table and slopes) acceptable as-is?
