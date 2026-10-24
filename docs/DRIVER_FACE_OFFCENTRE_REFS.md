@@ -15,7 +15,7 @@ No edits to golfphys/, env/, eval/, train/.
 | Launch vs height | 4.3/5.3/6.8/8.4/9.4 deg -> 0.20 deg/mm | measured / derived | same |
 | Other VGE reports | 425 rpm per 0.5 in (Wishon, 105 mph) = 33 rpm/mm; 3300 rpm per 1.5 in (Upshaw) = 87 rpm/mm | reported, secondary | Tutelman launchOptimize |
 | Smash centre / low / high (outside +/-4.5 mm) | 1.415 / 1.405 / 1.382 | measured means, derived ratio | MyGolfSpy vertical impact study |
-| Ball speed to face edge | peak 2 mm above centre, lowest at both edges; spin DEcreases near bottom edge | measured, qualitative (figure not digitized) | R22-07 Fig 1-2 |
+| Ball speed to face edge | peak 2 mm above centre, lowest at both edges; spin DEcreases near bottom edge | derived from digitized figure, approximate (see R22-07 section) | R22-07 Fig 1-2 |
 | Heel/toe distance loss | D = 12X^2 + 0.8X yd (MOI 4500, X in inches) | model (FE) | R19 Table 6 |
 
 ## golfphys vs data
@@ -30,8 +30,8 @@ off the face; it has no face edge. Low strikes in the sim therefore gain spin th
 ## Proposed face-edge spec (opt-in `face_edge_adjust`; SIDE-BY-SIDE scoring model only, never default; revised after Evaluator review of ec675dd)
 - Input guard: only a golfphys CENTRE-strike result (`centre_dz_mm=0` or `y_high_m=0`) is accepted; otherwise ValueError (prevents double-counting gear effect).
 - Gate: |dz| > 12.7 mm -> info (outside measured data); > 15 mm -> WARN; > 26.5 mm (or |dx| > 52.5) -> FAIL. Edge = measured spec, single brand (Wishon 919THI), provisional. `within_sim_box` reports |dz| <= 32 mm (sim's 64 mm box) as info.
-- Vertical spin: 51.3 rpm/mm x (ball mph/148), where 148 mph is the TrajectoWare MODEL ball speed in Tutelman's table (not measured). Both `spin_rpm_capped` (dz clamped to +/-12.7) and `spin_rpm_linear` (derived extrapolation) are returned; a spin check passes only if BOTH pass. The levelling-off is UNVERIFIED until R22-07 Fig 1/2 is read.
-- Launch: centre + 0.20 deg/mm x dz. Smash: centre x (1 - 8.6e-5 dz^2), LOW confidence; a pass that comes only from this model does not count.
+- Vertical spin: 51.3 rpm/mm x (ball mph/148), where 148 mph is the TrajectoWare MODEL ball speed in Tutelman's table (not measured). Both `spin_rpm_capped` (dz clamped to +/-12.7) and `spin_rpm_linear` (derived extrapolation) are returned; a spin check passes only if BOTH pass. Levelling-off is supported by R22-07 Fig 2 (spin peaks near -15 mm, falls to -21) for one driver only.
+- Launch: centre + 0.20 deg/mm x dz. Smash: R22-07 table (MEDIUM within -21..+21 mm, LOW beyond); the legacy MGS quadratic 1 - 8.6e-5 dz^2 is returned only for comparison (LOW). A pass that comes only from this model does not count.
 
 | dz mm | status | smash | spin capped | spin linear (derived) | launch |
 |---|---|---|---|---|---|
@@ -49,15 +49,15 @@ Wishon is a single brand; Tutelman's corrected model gives ~63 rpm/mm, which sup
 ## Limits
 Hotstix data is secondary (Golf Magazine 2009 via Tutelman), one driver, no ball speed. MGS bands are coarse. R22-07 constants are derived from a digitized figure (approximate, one driver); raw points held pending review. Bulge/roll vary by brand and are rarely published.
 
-## USGA/R&A R22-07 Figs 1-2: derived constants (derived from digitized figure, approximate; 2026-10-24 ET)
-PDF obtained from the web.archive.org `id_` snapshot of the USGA URL (USGA itself returns Akamai 403). Figures are vector, so marker centres
+## R22-07 Figs 1-3: derived constants (derived from digitized figure, approximate; 2026-10-24 ET)
+Source: R&A/USGA research report R22-07 'The effect of impact position on driving distance' (about 2022; header says 2006; cites the 2019 ODS; PDF dated Apr 2022). PDF obtained from the web.archive.org `id_` snapshot of the USGA URL (USGA itself returns Akamai 403). Figures are vector, so marker centres
 were read from the PDF drawing commands (PyMuPDF) and axes calibrated linearly from tick-label positions. **The raw digitized point table is held locally pending counsel review (like the TrackMan 2010 chart rows) and is not in this repo;** only the derived constants below are published
 (label 'derived from digitized figure, approximate'; est. +/-0.2 mph, +/-25 rpm, +/-0.3 mm). Face centre = 26.5 mm above the bottom of a 53 mm face; impacts at dz -21..+21 mm
 (neutral tee -15..+21), one driver, robot ~115 mph, 6 shots per point. The ball-speed peak at dz +3 mm is real in all three series (report text: ~2 mm).
 
 Ball speed vs centre (mean of series normalised to own max, then to dz 0): -21 0.936, -18 0.941, -15 0.948, -12 0.962, -9 0.976, -6 0.987, -3 0.994, 0 1, +3 1.001, +6 1.000, +9 0.991, +12 0.976, +15 0.963, +18 0.948, +21 0.925.
 Model: piecewise-linear interpolation of that table (quadratic fit was rejected: RMSE 1.1 mph, max 3.0 mph, misses the flat top); below -21 mm extrapolate with the last segment (0.18 %/mm, derived).
-Residuals of the table vs individual series: RMSE 0.59 mph, max 1.79 mph.
+0.59 mph (max 1.79) is the scatter of the individual tee series around the averaged table, not a fit error of a parametric curve; the 1-k*dz^2 fit gives 1.10 mph, so linear interpolation is kept.
 
 | dz mm | old quadratic (MGS) | new R22-07 table |
 |---|---|---|
@@ -72,3 +72,9 @@ Spin (Fig 2): low strikes add +600 (-6), +852 (-12), +963 (-15, peak), then FALL
 This supports the levelling-off (now partly verified for one driver at 115 mph) and gives ~71 rpm/mm from 0 to -12 at 167 mph ball (~63 at 148), close to Tutelman's corrected model and below golfphys's ~105.
 `face_edge_adjust` now returns `smash` (R22-07 table), `smash_legacy_quadratic`, and `spin_rpm_r2207` (Fig 2 delta x ball/167, inside -21..+21 only) alongside capped and linear spin.
 Smash confidence: MEDIUM inside -21..+21 mm, LOW beyond. Suggest the Evaluator consider moving the "outside measured" info line from 12.7 to 21 mm for ball speed/spin (not changed here).
+
+Output ranges: `smash` (R22-07) is None above +21 mm (no data) and extrapolates the last segment below -21 mm; `spin_rpm_r2207` is None beyond +/-21 mm.
+
+Fig 3 launch (derived from digitized figure, approximate; raw points held locally, not in repo): slope 0.21 deg/mm over -12..+12 mm
+(series 0.20/0.20/0.22... forward 0.216, intermediate 0.201, neutral 0.214), 0.26 deg/mm over 0..-12 mm, 0.28 deg/mm over -21..+21 (steepens near both edges;
+neutral tee launches ~0.7 deg at -12/-15 mm). Consistent with Hotstix 0.20 and the Evaluator's rough 0.22-0.23 read.

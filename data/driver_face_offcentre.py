@@ -2,7 +2,7 @@
 
 Nothing in golfphys/, env/, eval/ or train/ is changed. `face_edge_adjust()` takes a golfphys CENTRE-strike result and a strike
 offset and returns provisional smash / spin / launch plus a status flag. Every constant is tagged in
-data/references/driver_face_offcentre_refs.json (measured / model / derived). Provisional: low confidence beyond +/-12.7 mm.
+data/references/driver_face_offcentre_refs.json (measured / model / derived). Provisional. Hotstix-based slopes cover +/-12.7 mm; R22-07-derived tables (one driver) cover -21..+21 mm.
 """
 import json
 from pathlib import Path
@@ -28,6 +28,10 @@ SIM_BOX_HALF_MM = 32.0       # sim head is a 64 mm-tall box (info only)
 R2207_DZ = [-21, -18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18, 21]
 R2207_RATIO = [0.9368, 0.9422, 0.9495, 0.9631, 0.9773, 0.9882, 0.9953, 1.0, 1.0012, 0.9999, 0.9914, 0.9775, 0.9634, 0.9478, 0.9254]
 R2207_LOW_SLOPE_PER_MM = 0.00178   # extrapolation below -21 mm (last measured segment), derived
+# R22-07 Fig 3 launch slope (derived from digitized figure, approximate): 0.21 deg/mm over -12..+12 mm (series 0.20-0.22),
+# 0.28 deg/mm over -21..+21 (curve steepens near both edges). Hotstix 0.20 kept as LAUNCH_DEG_PER_MM.
+R2207_LAUNCH_DEG_PER_MM_C12 = 0.21
+R2207_LAUNCH_DEG_PER_MM_FULL = 0.28
 # R22-07 Fig 2 spin minus centre spin (rpm, at ~167 mph ball): peak +963 at -15 mm then falls (+539 at -21)
 R2207_SPIN_DZ = [-21, -18, -15, -12, -9, -6, -3, 0, 3, 6, 9, 12, 15, 18, 21]
 R2207_SPIN_DELTA = [539, 864, 963, 852, 679, 600, 299, 0, -280, -564, -817, -1060, -1074, -858, -330]
@@ -63,7 +67,9 @@ def face_edge_adjust(centre, dz_mm, dx_mm=0.0):
     """SIDE-BY-SIDE scoring model only, never a default. centre: golfphys CENTRE-strike result (must carry centre_dz_mm == 0
     or y_high_m == 0, else ValueError: prevents double-counting golfphys's own gear effect) with smash, spin_rpm, launch_deg,
     ball_speed_mph. dz_mm + = above face centre. Returns capped AND linear spin; a spin check passes only if BOTH pass.
-    Levelling-off (cap at +/-12.7 mm) is UNVERIFIED until R22-07 Fig 1/2 is read."""
+    Levelling-off: R22-07 Fig 2 (derived from digitized figure, approximate; one driver, ~115 mph robot) shows low-face spin peaking
+    near -15 mm and falling toward -21 mm, so the +/-12.7 mm cap is supported for that driver only (not verified across heads/speeds).
+    Returns None for: smash (R22-07) above +21 mm (no data; below -21 mm it extrapolates the last segment); spin_rpm_r2207 beyond +/-21 mm."""
     cdz = centre.get("centre_dz_mm", None)
     if cdz is None and "y_high_m" in centre:
         cdz = centre["y_high_m"] * 1000.0

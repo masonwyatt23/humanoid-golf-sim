@@ -39,4 +39,13 @@ def test_r2207_table():
     assert abs(r2207_ratio(0) - 1.0) < 1e-9 and r2207_ratio(-15) < 0.96 and r2207_ratio(-25) < r2207_ratio(-21)
     d = json.load(open(Path(__file__).resolve().parent.parent / "data/references/driver_face_offcentre_refs.json"))
     r = [x for x in d["rows"] if x["id"].startswith("r2207_fig")]
-    assert len(r) == 2 and all(x["label"] == "derived from digitized figure, approximate" for x in r)  # raw digitized CSV is held locally, not needed
+    assert len(r) == 3 and all(x["label"] == "derived from digitized figure, approximate" for x in r)  # raw digitized CSV is held locally, not needed
+
+
+def test_r2207_output_ranges_and_launch():
+    from data import driver_face_offcentre as m
+    C = dict(smash=1.449, spin_rpm=2568, launch_deg=14.55, ball_speed_mph=107.2, centre_dz_mm=0.0)
+    assert m.r2207_ratio(22) is None and m.r2207_ratio(-22) is not None
+    assert m.r2207_spin_delta(-22, 107) is None and m.r2207_spin_delta(22, 107) is None
+    assert face_edge_adjust(C, 22)["smash"] is None
+    assert 0.20 <= m.R2207_LAUNCH_DEG_PER_MM_C12 <= 0.23

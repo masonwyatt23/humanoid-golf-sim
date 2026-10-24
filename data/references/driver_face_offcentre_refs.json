@@ -70,7 +70,7 @@
    "value": 53,
    "unit": "mm",
    "label": "measured (lab)",
-   "table_or_figure": "USGA/R&A R22-07 Sec 3 text",
+   "table_or_figure": "USGA/R&A R22-07 Sec 3 text | R&A/USGA research report R22-07 'The effect of impact position on driving distance' (about 2022; header says 2006; cites the 2019 ODS; PDF dated Apr 2022)",
    "url": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf"
   },
   {
@@ -79,7 +79,7 @@
    "value": 2,
    "unit": "mm above geometric centre",
    "label": "measured (lab, robot 115 mph)",
-   "table_or_figure": "R22-07 Sec 3 / Fig 1 (impacts in 2-3 mm steps to the face edge, 6 shots each; lowest ball speeds at extremes; figure values NOT digitized)",
+   "table_or_figure": "R22-07 Sec 3 / Fig 1 (impacts in 2-3 mm steps to the face edge, 6 shots each; lowest ball speeds at extremes; values derived from digitized figure, approximate (raw points held, not in repo)) | R&A/USGA research report R22-07 'The effect of impact position on driving distance' (about 2022; header says 2006; cites the 2019 ODS; PDF dated Apr 2022)",
    "url": "same"
   },
   {
@@ -88,7 +88,7 @@
    "value": "decreases toward bottom of face",
    "unit": "qualitative",
    "label": "measured (lab)",
-   "table_or_figure": "R22-07 Sec 3 / Fig 2 (gear-effect spin does not keep rising at the bottom edge)",
+   "table_or_figure": "R22-07 Sec 3 / Fig 2 (gear-effect spin does not keep rising at the bottom edge) | R&A/USGA research report R22-07 'The effect of impact position on driving distance' (about 2022; header says 2006; cites the 2019 ODS; PDF dated Apr 2022)",
    "url": "same"
   },
   {
@@ -250,7 +250,7 @@
    "value": "-10: 0.973, -15: 0.948, -21: 0.936, +12: 0.976, +21: 0.924 (peak 1.001 at +3)",
    "unit": "ratio",
    "label": "derived from digitized figure, approximate",
-   "table_or_figure": "USGA/R&A R22-07 Fig 1",
+   "table_or_figure": "USGA/R&A R22-07 Fig 1 | R&A/USGA research report R22-07 'The effect of impact position on driving distance' (about 2022; header says 2006; cites the 2019 ODS; PDF dated Apr 2022)",
    "url": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf"
   },
   {
@@ -259,14 +259,23 @@
    "value": "-12: +852, -15: +963 (peak), -21: +539; +12: -1060, +21: -330",
    "unit": "rpm",
    "label": "derived from digitized figure, approximate",
-   "table_or_figure": "USGA/R&A R22-07 Fig 2",
+   "table_or_figure": "USGA/R&A R22-07 Fig 2 | R&A/USGA research report R22-07 'The effect of impact position on driving distance' (about 2022; header says 2006; cites the 2019 ODS; PDF dated Apr 2022)",
+   "url": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf"
+  },
+  {
+   "id": "r2207_fig3_launch_slope",
+   "quantity": "launch vs impact height slope",
+   "value": "0.21 (-12..+12 mm; series 0.20-0.22); 0.28 (-21..+21 mm)",
+   "unit": "deg/mm",
+   "label": "derived from digitized figure, approximate",
+   "table_or_figure": "R22-07 Fig 3 | R&A/USGA research report R22-07 'The effect of impact position on driving distance' (about 2022; header says 2006; cites the 2019 ODS; PDF dated Apr 2022)",
    "url": "https://www.usga.org/content/dam/usga/pdf/Equipment/R22-07%20The%20effect%20of%20impact%20position%20on%20driving%20distance.pdf"
   }
  ],
  "gaps": [
-  "No measured spin/launch per mm beyond +/-12.7 mm.",
   "Golfphys roll 12 in / bulge 10 in: sourced range is bulge 11-13.5 in, roll 10-20 in (or graduated).",
-  "R22-07 is one driver (Aeson, 53 mm face) at ~115 mph on a robot; data reach dz -21..+21 mm (neutral tee only -15..+21)."
+  "R22-07 is one driver (Aeson, 53 mm face) at ~115 mph on a robot; data reach dz -21..+21 mm (neutral tee only -15..+21).",
+  "Spin/launch beyond +/-12.7 mm: only R22-07 (one driver, ~115 mph robot, derived from digitized figure) to +/-21 mm; nothing measured beyond +/-21 mm."
  ],
  "usage": "SIDE-BY-SIDE scoring model only, never a default (Evaluator review of ec675dd)"
 }
