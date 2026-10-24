@@ -146,7 +146,7 @@ def test_v3c_default_and_v3b_v2_flags():
     assert RG.gate_friction_range("v3b") == (0.9, 1.1) and RG.gate_friction_range("v3c") == (0.7, 1.05)
     import subprocess, sys
     h = subprocess.run([sys.executable, "-m", "eval.realism_check", "--help"], capture_output=True, text=True, cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))).stdout
-    h = " ".join(h.split()); assert "{v3c,v3d,v3b,v2}" in h and "v3c (default)" in h
+    h = " ".join(h.split()); assert "{v3c,v3d,v4,v3b,v2}" in h and "v3c (default)" in h
 
 def test_shear_ratio_filters_and_masks_low_vertical():
     t = np.arange(0, 1.0, 0.002); v = np.full_like(t, 1.0); h = np.full_like(t, 0.5)
