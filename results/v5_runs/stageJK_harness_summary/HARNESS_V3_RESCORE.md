@@ -142,3 +142,26 @@ Procedure (same as K27c 300k): wrapper `_run_j_gateoff_gp_v3.py` (fixed v3 worke
 No checkpoint passes under v3c or v3d. All 14 FAIL robustness, and 12 of 14 also fail the v3d club p10 >= 0.93x median rule (only K28a 300k and K28b 100k reach 0.99, and both fail on spin). The spin-band-only flag never fires (no v3d PASS).
 Best by FAIL count, then WARNs: v3d K28a_s62 100k 14/3/1 is the first row where v3d kseq_timing passes (arm 20 ms before club). It still WARNs pelvis 240 < 250 dps, spin 3726 > 3700 and t/c, and it FAILs robustness (start-dir 0.88, foot 0.88, spin p90 4702, t/c p90 2.59, club p10 0.73x). Under v3c the best rows are K28b 400k / 300k and K28a 100k, at 12/5/1.
 K29a/b (sep_lo 20 ms, spin_hi 2800) did not move arm->club timing to >= 20 ms (12-16 ms), and spin got worse: deterministic spin 4020-4887 rpm, a FAIL on all six rows.
+
+## K29a/b 400k, K30a/b, K31a 200k — v3c (default) + live v3d with strike rows and face-edge side-by-side model (2026-10-24, Evaluator)
+
+Label: reference-guided residual with tracking assistance; reference re-tuned open-loop by CMA-ES, stock G1 torque, warm-started. Harness: scott-e 4bb0801..eaf3f9e (v3c verdict rules unchanged; v3d derived bands, club p10 LOW confidence, strike-height PROVISIONAL at 26.5 mm = measured spec single brand). RO Trainer exports per row; snapshots md5'd in _evalsnap_md5_K29_K30.txt; 116/29 layout and K27 ref keys (md5 94471d78…) verified. arm 0.6, club 1.15, 24 det eps, gate off, golfphys, robustness seeds 7000-7023 (friction 0.7-1.05).
+
+| ckpt (export) | v3c P/W/F | v3d P/W/F | v3d fails | gate contact/start/foot | club p10/med | det spin | rob spin med/p10/p90 | rob t/c med/p10/p90 | det dz / dy mm | face-edge model (det spin cap/lin/r2207; launch) | Trainer v3c / v3d |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| K31a_s68_200k (c79bac2) | 12/5/1 | 13/5/1 | robustness | 1.00/1.00/1.00 | 0.81 | 3945 | 3629/1950/4225 | 1.34/1.26/1.84 | -20.8 / 11.9 | 2931/3228/2819; spin pass, launch fail → FAIL | 12/5/1 / 13/4/1 |
+| K29a_s64_400k (6c18fd0) | 12/4/2 | 13/4/2 | spin_rpm, robustness | 1.00/0.96/0.96 | 0.99 | 4246 | 3934/3001/4574 | 1.42/1.29/1.92 | -24.3 / 19.6 | 3069/3481/no data; spin no_data, launch no_data → FAIL | 12/4/2 / 13/3/2 |
+| K29b_s65_400k (6c18fd0) | 12/3/3 | 13/2/4 | spin_rpm, total_over_carry, robustness, strike_height | 1.00/1.00/1.00 | 0.99 | 4356 | 4001/2769/4688 | 1.36/1.27/1.61 | -26.8 / 10.4 | off face (|dz| > 26.5) → n/a (off face) | 12/3/3 / 13/2/3 |
+| K30a_s66_100k (4a955d8) | 13/4/1 | 14/4/1 | robustness | 1.00/0.92/0.83 | 0.69 | 3781 | 3771/1767/4639 | 1.32/1.22/3.35 | -15.2 / 12.7 | 3140/3229/3279; spin pass, launch pass → FAIL | 13/4/1 / 14/3/1 |
+| K30a_s66_200k (4a955d8) | 12/4/2 | 13/4/2 | spin_rpm, robustness | 1.00/0.92/0.96 | 0.82 | 4310 | 3816/2154/4685 | 1.31/1.23/1.79 | -22.7 / 10.8 | 3142/3505/no data; spin no_data, launch no_data → FAIL | 12/4/2 / 13/3/2 |
+| K30a_s66_300k (4a955d8) | 12/4/2 | 13/4/2 | spin_rpm, robustness | 1.00/0.92/0.96 | 0.88 | 4455 | 4082/2598/4514 | 1.35/1.26/1.87 | -25.4 / 14.4 | 3145/3600/no data; spin no_data, launch no_data → FAIL | 12/4/2 / 13/3/2 |
+| K30b_s67_100k (4a955d8) | 12/3/3 | 13/2/4 | spin_rpm, total_over_carry, robustness, strike_height | 0.92/0.92/0.92 | 0.98 | 4535 | 3918/3142/4339 | 1.39/1.31/1.83 | -29.6 / 12.7 | off face (|dz| > 26.5) → n/a (off face) | 12/3/3 / 13/2/3 |
+| K30b_s67_200k (4a955d8) | 12/3/3 | 13/2/4 | spin_rpm, total_over_carry, robustness, strike_height | 1.00/1.00/0.96 | 0.98 | 4470 | 4048/2140/4635 | 1.44/1.30/1.90 | -29.3 / 13.5 | off face (|dz| > 26.5) → n/a (off face) | 12/3/3 / 13/2/3 |
+| K30b_s67_300k (4a955d8) | 12/3/3 | 13/3/3 | spin_rpm, total_over_carry, robustness | 1.00/0.96/1.00 | 0.76 | 4124 | 3595/1533/4352 | 1.46/1.29/3.33 | -24.1 / 17.2 | 2958/3368/no data; spin no_data, launch no_data → FAIL | 12/3/3 / 13/2/3 |
+| K30b_s67_400k (4a955d8) | 12/3/3 | 13/2/4 | spin_rpm, total_over_carry, robustness, strike_height | 1.00/0.88/1.00 | 0.74 | 4660 | 3843/1389/4640 | 1.50/1.29/3.11 | -31.4 / 15.3 | off face (|dz| > 26.5) → n/a (off face) | 12/3/3 / 13/2/3 |
+
+* v3c: all 10 rows match the Trainer's JSONs exactly. v3d: differences vs the Trainer are only the new PROVISIONAL `mine/strike_height` row (Trainer v3d predates it): +1 WARN (15 < |dz| < 26.5) or +1 FAIL (|dz| ≥ 26.5: K29b 400k, K30b 100k/200k/400k).
+* K31a 200k matches the Trainer's quoted numbers (12/5/1 v3c, 13/4/1 v3d before strike row, 1.00/1.00/1.00, spin 3629/4225, t/c p90 1.84, club p10 0.81x); deterministic dz −20.8 mm (Trainer −24 median is over its own strike log).
+* Best row: K30a 100k — v3c 13/4/1, v3d 14/4/1 (only FAIL = robustness: foot 0.83, club p10 0.69x, t/c p90 3.35); dz −15.2 mm (warn edge). K31a 200k is the first with all three robustness rates 1.00 but fails on club p10 0.81x and t/c p90 1.84.
+* Full pass: NONE under v3c or v3d, and none under the face-edge side-by-side model (no face-edge-model-only flags, no spin-band-only flags). No cinematic render.
+
