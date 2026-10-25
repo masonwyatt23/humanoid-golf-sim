@@ -982,3 +982,5 @@ The first DR run (stageDRa) does NOT use --goal_obs so its checkpoints stay scor
 Default-baseline check (Repo Agent recipe, origin/main scripts/default_baseline_check.py run read-only against the Trainer tree, 2026-10-25 02:21 EDT, load 5.6):
 head c92f4d05...ec29eb3a OK; reward fe76b45d3ef9bcaa82a2650097f87218 111 steps total 47.29053746950751 OK; guard OK; K32a strike log byte-identical OK.
 Same reward recipe on DREnv defaults and on DREnv(dr=False, goal_obs=False, goal_w=0, dr_stage=3): fe76b45d..., 111, 47.29053746950751 (identical).
+
+stageDRb (2026-10-25 02:25 EDT): stageDRa stopped at ~150k (stuck at address: fell 0.08-0.12 > 0.05). New curriculum options --fell_addr (default 0.05 = unchanged) and --stage_time (default 0 = off; >0 promotes after N steps in a stage, logged promoted_by=time; gate promotions are logged promoted_by=gate). stageDRb_s202 = stageDRa flags + --fell_addr 0.10 --stage_time 400000, seed 202 (env seeds 20391-20392), warm V10l 100k (command file not committed). Baseline check re-run after the change: head/reward fe76b45d/guard/strike OK. stageDRa snapshots + topk_table kept (local, not committed).
