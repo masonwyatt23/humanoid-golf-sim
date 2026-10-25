@@ -28,7 +28,7 @@ def score(x):
                 nom_aoa=n0.get("aoa"), nom_smash=n0.get("smash"), nom_tc=n0.get("tc"), contact_rate=len(on) / len(R), dz_med=float(np.median([r["dz"] for r in on]) / MM) if on else None,
                 dy_med=float(np.median([r["dy"] for r in on]) / MM) if on else None, spread=float(sp), az_std=azs, az_med=float(np.median([r.get("az", 0) for r in on])) if on else None,
                 spin_med=float(np.median([r["spin"] for r in on])) if on else None, launch_med=lam, tc_med=float(np.median([r.get("tc", 9) for r in on])) if on else None,
-                arm_club_ms=n0.get("arm_club_ms"), pel_dps=n0.get("pel_dps"), slip=n0.get("foot_slip"), az=n0.get("az"))
+                h_slip_nom=n0.get("h_slip"), h_slip_med=float(np.median([r.get("h_slip", np.nan) for r in R])) if R[0].get("h_slip") is not None else None, h_slip_pass=float(np.mean([r.get("h_slip", 1) <= 0.03 and r.get("h_turn", 99) <= 12 for r in R])) if R[0].get("h_slip") is not None else None, mph_p10=float(np.percentile([r["mph"] for r in R if r.get("mph")] or [0],10)), mph_med_all=float(np.median([r["mph"] for r in R if r.get("mph")] or [0])), pel_med=float(np.median([r.get("pel_dps",0) for r in R])), arm_club_ms=n0.get("arm_club_ms"), pel_dps=n0.get("pel_dps"), slip=n0.get("foot_slip"), az=n0.get("az"))
     return s, summ
 V.term = term; V.score = score
 if __name__ == "__main__":
