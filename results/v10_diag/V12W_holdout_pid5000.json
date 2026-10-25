@@ -44,5 +44,6 @@
   "nom_dy_abs": 4.0855184661358495,
   "dplane": 0.5,
   "dplane_med": 1.993158768688097
- }
+ },
+ "label": "LOCAL refit proxy on held-out pid 5000-5047, NOT harness. dplane/dplane_med fields are INVALID (wrong sign/frame, noisy starts): see results/v10_diag/dplane_calibration.md"
 }
