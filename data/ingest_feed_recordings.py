@@ -2,7 +2,7 @@
 
     LD_LIBRARY_PATH=<dir with libEGL.so.1 if the system lacks it> \
     python -m data.ingest_feed_recordings --model /path/pose_landmarker_heavy.task \
-        [--videos data/mason_swings] [--out data/references] [--debug-dir /workspace/...]
+        [--videos data/mason_swings] [--out data/references] [--debug-dir <local-path>]
 
 Why a separate tool: a feed recording is ~15-25 *different* short clips (different scenes,
 people-sizes, camera angles) separated by scrolling, wrapped in app UI.  `ingest_mason_swings`
@@ -64,7 +64,7 @@ def scan_layout(video: Path, max_frames: Optional[int] = None) -> Dict:
     cap = cv2.VideoCapture(str(video))
     if not cap.isOpened():
         raise IOError(f"cannot open {video}: HEVC needs an OpenCV/ffmpeg build with HEVC support; "
-                      "else transcode: ffmpeg -i in.mov -c:v libx264 -crf 14 /workspace/scratch/out.mp4 "
+                      "else transcode: ffmpeg -i in.mov -c:v libx264 -crf 14 out.mp4 "
                       "(timestamps are preserved with -vsync passthrough)")
     ts: List[float] = []
     rows: List[Optional[Tuple[int, int]]] = []

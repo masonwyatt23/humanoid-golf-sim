@@ -1,5 +1,5 @@
 """Export a TRAINED-POLICY rollout (not the scripted swing) for build_and_render.py (same npz format as export_trajectory.py).
-    /workspace/golfvenv/bin/python -m render_blender.export_policy_trajectory --model imit20_fs1_q23_dart_s51 --out /workspace/golf_render/policy_stock.npz [--seeds 4000 8]
+    python -m render_blender.export_policy_trajectory --model imit20_fs1_q23_dart_s51 --out <local-path>/policy_stock.npz [--seeds 4000 8]
     ... --model imit18_power_dart_s51 --override '{"impact_gain": 1.2}' --gate-json results/imit_private/gain120/gate_imit18_power_dart_s51.json --out ...
 Env kwargs = the gate's: env_kwargs_full from results/<model>.json (+ _env residual, track_weight 0, track_set None) + optional --override (same as GATE_OVERRIDE).
 Rollout: DETERMINISTIC policy, N consecutive seeds starting at --seed0; the clip shows the MEDIAN-carry swing among true-contact episodes (not best-of-N). The seed and every candidate's carry are written to the json.

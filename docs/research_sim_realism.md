@@ -1,7 +1,7 @@
 # Making the golf humanoid simulation realistic and visually great
 
 Scratch research and prototype, written 2026-10-16. **Nothing here is committed or pushed, and no repo env files were edited.**
-All prototype code, outputs and videos are in `/workspace/sim_proto/` (outside the repo). The repo's `env/` files were not touched.
+All prototype code, outputs and videos are in `<local-path>/sim_proto/` (outside the repo). The repo's `env/` files were not touched.
 
 Everything below was run on this box with MuJoCo 3.16. Where a number comes from my own prototype it is labelled **[proto]**. Where it comes from a source I opened it is labelled **[src]**. Things I recall from background knowledge and did not verify are labelled **[unverified]**.
 
@@ -10,7 +10,7 @@ Everything below was run on this box with MuJoCo 3.16. Where a number comes from
 ## 0. TL;DR
 
 1. **Offscreen rendering works on this box, but only through `xvfb-run` plus GLFW with Mesa software rendering (llvmpipe).** `MUJOCO_GL=egl` and `MUJOCO_GL=osmesa` both fail, because libEGL and libOSMesa are not installed. Cost: about 0.2 s per frame at 1280x720 with 8x MSAA, so a 30 s video renders in 2–3 minutes. No GPU is needed.
-2. **A ~30 s showcase clip exists.** It has a textured golf hole (fairway stripes, bunkers, pond, 300 trees, flag), three camera moves, slow motion, a clubhead trail, a ball tracer, and a launch-monitor overlay. It is `/workspace/sim_proto/out/golf_showcase_demo.mp4`. There is also a 132 mph power-swing variant.
+2. **A ~30 s showcase clip exists.** It has a textured golf hole (fairway stripes, bunkers, pond, 300 trees, flag), three camera moves, slow motion, a clubhead trail, a ball tracer, and a launch-monitor overlay. It is `<local-path>/sim_proto/out/golf_showcase_demo.mp4`. There is also a 132 mph power-swing variant.
 3. **The current repo physics model is the real bottleneck, not RL.** My prototype athlete has real anthropometrics (1.85 m, 85 kg, segment lengths and masses from published tables). It has a two-handed grip, a proper 0.325 kg club, and a realistic shaft. The same physics reaches 107–132 mph club speed when it is choreographed, versus about 0.2 m/s in the RL checkpoints.
 4. **The scripted swing is kinematic.** The prototype does not yet *learn* to swing. Its joint torques exceed human limits in the arms (see §4), so the next step is trajectory optimization or RL under real torque limits.
 5. **Use an analytic impact and ball-flight model for training and eval metrics.** I calibrated it to TrackMan PGA Tour driver averages. MuJoCo soft-contact ball launch was fine on speed (about +8% versus analytic), off on launch angle (+3–4°), and **wrong on spin** (it gave topspin). Use MuJoCo contact for visuals only until it is tuned.
@@ -125,11 +125,11 @@ The 62 m/s swing reached 59 m/s, about 132 mph, not the 139 mph target. Both swi
 | `MUJOCO_GL=osmesa` | **fails**: no libOSMesa |
 | `MUJOCO_GL=glfw` **inside `xvfb-run`** | **works** (Mesa llvmpipe software GL; GLFW from `pip install glfw`) |
 
-Run command (from `/workspace/sim_proto`):
+Run command (from `<local-path>/sim_proto`):
 ```
 MUJOCO_GL=glfw xvfb-run -a -s "-screen 0 1920x1080x24" venv/bin/python render_demo.py --out out/demo.mp4
 ```
-Notes: set `<visual><global offwidth offheight>` at least as large as the render size. ffmpeg is installed (video is written by `imageio` + libx264, yuv420p). A venv at `/workspace/sim_proto/venv` has mujoco, numpy, scipy, matplotlib, pillow, imageio, glfw (the existing `/workspace/golfvenv` also has mujoco 3.16 but not glfw).
+Notes: set `<visual><global offwidth offheight>` at least as large as the render size. ffmpeg is installed (video is written by `imageio` + libx264, yuv420p). A venv at `<local-path>/sim_proto/venv` has mujoco, numpy, scipy, matplotlib, pillow, imageio, glfw (the existing `<local-path>/golfvenv` also has mujoco 3.16 but not glfw).
 
 ### 3.2 What the renderer does (`render_demo.py`, `scenery.py`)
 
@@ -137,7 +137,7 @@ Notes: set `<visual><global offwidth offheight>` at least as large as the render
 - **Cameras:** a free camera with per-shot paths: front orbit, a down-the-line replay, an impact close-up, a ball chase cam, and a landing/roll view. Each shot has its own speed curve.
 - **Slow motion:** because the swing is stored at 1 kHz and interpolated, I can warp time freely. Speed is 0.40× through the backswing, ramping down to 0.06× at impact, 0.02× in the impact close-up, and 1× for flight.
 - **Overlays:** the clubhead trail (cyan) is drawn as capsule geoms added to the scene. The ball tracer is orange capsules, plus a halo around the ball when it is far from the camera and a ring at the landing point. A launch-monitor panel shows live club speed, then locked ball speed, smash, launch, direction, backspin, sidespin, apex, carry (counting up live), total and offline. A top-view shot trace inset is drawn with Pillow.
-- **Output:** `/workspace/sim_proto/out/golf_showcase_demo.mp4` (29.9 s, 1280x720, 30 fps, 33 MB) and `golf_power_swing_132mph.mp4` (about 20 s, 21 MB).
+- **Output:** `<local-path>/sim_proto/out/golf_showcase_demo.mp4` (29.9 s, 1280x720, 30 fps, 33 MB) and `golf_power_swing_132mph.mp4` (about 20 s, 21 MB).
 - **Visible limitations:**
   - No real-time shadows showed up (a light/shadow setting I did not get to the bottom of).
   - The golfer is capsules and ellipsoids.
@@ -230,7 +230,7 @@ The impact model needs per-club COR, loft and groove friction (more backspin for
 
 ---
 
-## 7. File index (all under `/workspace/sim_proto/`)
+## 7. File index (all under `<local-path>/sim_proto/`)
 
 | File | What it is |
 |---|---|

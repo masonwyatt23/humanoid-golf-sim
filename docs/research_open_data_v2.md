@@ -35,7 +35,7 @@ Namco, LAFAN1 (none are golf; licenses not read).
   `/api/access/datafile/<id>` (no login needed; `fileAccessRequest: true` but files were not restricted and downloaded directly).
 - **What I downloaded:** `Documentation.zip`; `P19_1/_2`, `P20_1/_2`, `P22_1/_2`, `P23_1/_2` zips (~12 GB), of which **only the
   `*_stream_data.hdf5` files were extracted (about 390 MB)**; the zips were deleted. No participant video or depth frames were kept,
-  so no faces are stored. P23 produced no swing >= 88 mph so none of its swings were converted. Scratch: `/workspace/golf_scratch/multisense/`.
+  so no faces are stored. P23 produced no swing >= 88 mph so none of its swings were converted. Scratch: `<local-path>/golf_scratch/multisense/`.
 - **Format:** `pns-joint-root-relative-position/cm-values/data` (n, 63) = 21 joints x xyz in cm, root-relative, Y-up, +X = subject's left, +Z =
   facing; ~94 Hz irregular timestamps. Joint order inferred from the geometry (Hips, R/L UpLeg, Leg, Foot, Spine, Spine1, Spine2, Neck, Neck1,
   Head, R/L Shoulder, Arm, ForeArm, Hand); the dataset's documentation ZIP has only CSVs, so this order is my inference. Checked

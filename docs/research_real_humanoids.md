@@ -38,7 +38,7 @@ Not found at all / no joint-level specs: Optimus peak torques, Figure, Atlas joi
 
 ## 2. MuJoCo Menagerie status (cloned and checked on this box)
 
-Cloned `https://github.com/google-deepmind/mujoco_menagerie` (no credentials) to **/workspace/menagerie** (commit `62ab00f`). MuJoCo 3.16.0 installed in venv **/workspace/mjenv** (system python is PEP-668 locked). Loaded and stepped OK: `unitree_g1/scene.xml`, `unitree_h1/scene.xml`, `apptronik_apollo/scene.xml`.
+Cloned `https://github.com/google-deepmind/mujoco_menagerie` (no credentials) to **<local-path>/menagerie** (commit `62ab00f`). MuJoCo 3.16.0 installed in venv **<local-path>/mjenv** (system python is PEP-668 locked). Loaded and stepped OK: `unitree_g1/scene.xml`, `unitree_h1/scene.xml`, `apptronik_apollo/scene.xml`.
 
 | Menagerie dir | Robot | Actuators | License |
 |---|---|---|---|
@@ -99,10 +99,10 @@ Make these configurable `actuator_scale` knobs on the G1 baseline so the story i
 ## 6. Exact steps: load G1 in MuJoCo and attach a club + two-hand grip
 
 ```bash
-git clone --depth 1 https://github.com/google-deepmind/mujoco_menagerie /workspace/menagerie   # already done
-python3 -m venv /workspace/mjenv && /workspace/mjenv/bin/pip install mujoco numpy               # already done (MuJoCo 3.16.0)
-cd /workspace/artifacts/humanoid-golf-scott
-/workspace/mjenv/bin/python scripts/g1_with_club.py        # prints: OK nq 36 nu 29 mass 33.61 ...  (verified)
+git clone --depth 1 https://github.com/google-deepmind/mujoco_menagerie <local-path>/menagerie   # already done
+python3 -m venv <local-path>/mjenv && <local-path>/mjenv/bin/pip install mujoco numpy               # already done (MuJoCo 3.16.0)
+cd <local-path>/artifacts/humanoid-golf-scott
+python scripts/g1_with_club.py        # prints: OK nq 36 nu 29 mass 33.61 ...  (verified)
 ```
 
 `scripts/g1_with_club.py` (verified to compile and step) does:

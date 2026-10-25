@@ -17,4 +17,4 @@ A=np.c_[np.ones(ok.sum()),R[ok,0],R[ok,1]]; c,*_=np.linalg.lstsq(A,R[ok,3],rcond
 print("n contact",ok.sum(),"dz mean %.4f std %.4f"%(R[ok,3].mean(),R[ok,3].std()),"fit dz = %.4f + %.4f*el + %.4f*sh"%tuple(c),"resid std %.4f"%np.std(R[ok,3]-A@c))
 for j,n in ((7,"head-ball dx"),(8,"dy"),(9,"dz"),(10,"ball x"),(11,"ball y"),(0,"el"),(1,"sh")): print(n,"corr with strike dz %.2f"%np.corrcoef(R[ok,j],R[ok,3])[0,1],"std %.4f"%R[ok,j].std())
 print("launch mean %.1f std %.1f; frac launch<8: %.2f; |y|>8: %d; dist<200: %d"%(R[:,4].mean(),R[:,4].std(),(R[:,4]<8).mean(),(abs(R[:,5])>8).sum(),(R[:,6]<200).sum()))
-import os; np.save(os.environ.get("OUT","/tmp/strike_%s.npy"%sys.argv[1].split("/")[-1][:-5]),R)
+import os; np.save(os.environ.get("OUT",os.path.join(__import__("tempfile").gettempdir(),"strike_%s.npy"%sys.argv[1].split("/")[-1][:-5])),R)

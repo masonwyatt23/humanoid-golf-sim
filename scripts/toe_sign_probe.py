@@ -1,5 +1,5 @@
 """Read-only probe (does not edit env/): runs random-action contacts in HumanoidGolfEnv and prints the club-head geom local axes in world coordinates at first contact.
-Run from the project root with env importable: cd /workspace/artifacts/humanoid-golf-scott && /workspace/golfvenv/bin/python /workspace/artifacts/hgs-realism/scripts/toe_sign_probe.py"""
+Run from the project root with env importable: cd "$HGS_TRAINER_REPO" && python <this-repo>/scripts/toe_sign_probe.py"""
 import sys, numpy as np, mujoco
 sys.path.insert(0,'.')
 from env.humanoid_golf_env import HumanoidGolfEnv

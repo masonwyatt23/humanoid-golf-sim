@@ -1,6 +1,6 @@
 """Build data/references/recommended_350yd_params.json. PUBLIC/SCRIPTED data only; no Instagram-derived or Mason-clip data, no imit_private files.
 Reads (copied numbers, not imported): results/power_loft_scan1_s25.json (scripted zero-residual power tier, gain 1.20, n=40; measured in env).
-Model rows: data.targets_130mph_350yd.run (repo analytic model, read-only). Run: /workspace/golfvenv/bin/python -m data.rec_350yd_params"""
+Model rows: data.targets_130mph_350yd.run (repo analytic model, read-only). Run: python -m data.rec_350yd_params"""
 import json, sys
 from pathlib import Path
 import numpy as np

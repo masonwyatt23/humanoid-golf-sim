@@ -75,8 +75,8 @@ from Photos, which is better (see section 0).
 ## 3. Run the pipeline
 
 ```bash
-cd /workspace/artifacts/humanoid-golf-scott
-source /workspace/golfvenv/bin/activate
+cd <local-path>/artifacts/humanoid-golf-scott
+source <local-path>/golfvenv/bin/activate
 cp data/mason_swings/metadata.example.csv data/mason_swings/metadata.csv   # edit (optional)
 python -m data.ingest_mason_swings --dry-run             # validate only, no pose
 python -m data.ingest_mason_swings --capture-fps 240     # if files are slow-mo exports

@@ -23,8 +23,8 @@ per frame from the container (variable-fps safe; max gap 18 ms, 33 ms once in pa
 - `data/process_video.py` fixes: `key=` validity set (upper body is enough; legs flagged separately) and shoulder
   angle unwrap (smoothing across the +-180 wrap produced +-200 deg artefacts; 0 now = arm hanging).
 - Environment: system lacked `libEGL.so.1` (MediaPipe tasks needs it, no root). I extracted `libegl1/libglvnd0/
-  libgles2` debs into `/workspace/golf_scratch/libroot` and set `LD_LIBRARY_PATH`. Model:
-  `pose_landmarker_heavy.task` (official storage.googleapis.com/mediapipe-models), in `/workspace/golf_scratch/`.
+  libgles2` debs into `<local-path>/golf_scratch/libroot` and set `LD_LIBRARY_PATH`. Model:
+  `pose_landmarker_heavy.task` (official storage.googleapis.com/mediapipe-models), in `<local-path>/golf_scratch/`.
   HEVC decoded natively by OpenCV (no transcode needed).
 
 ## Swing counts (first pass, `data/references/mason_swing_partN_sNN.npz`, untracked)
@@ -117,17 +117,17 @@ of the stored `joints` is 100 Hz after resampling from ~30 fps unique source fra
 - Refined (tracked): `data/references/mason_swing_part{1,2,3}_sNN_refined.npz` (10 files; see docs/REFERENCE_PATHS.md)
 - First pass, all 15 swings (untracked): `data/references/mason_swing_partN_sNN.npz`
 - Report JSON: `data/references/mason_feed_report.json`
-- Scratch (not in git): `/workspace/golf_scratch/{cache,out2,refined,refined_debug,debug,dbg}` (pose tracks, skeleton sheets)
+- Scratch (not in git): `<local-path>/golf_scratch/{cache,out2,refined,refined_debug,debug,dbg}` (pose tracks, skeleton sheets)
 
 ## Reproduce
 ```
-export LD_LIBRARY_PATH=/workspace/golf_scratch/libroot/usr/lib/x86_64-linux-gnu   # if libEGL.so.1 is missing
-source /workspace/golfvenv/bin/activate
-python -m data.ingest_feed_recordings --model /workspace/golf_scratch/pose_landmarker_heavy.task \
-    --cache-dir /workspace/golf_scratch/cache --debug-dir /workspace/golf_scratch/debug      # ~7 min
+export LD_LIBRARY_PATH=<local-path>/golf_scratch/libroot/usr/lib/x86_64-linux-gnu   # if libEGL.so.1 is missing
+source <local-path>/golfvenv/bin/activate
+python -m data.ingest_feed_recordings --model <local-path>/golf_scratch/pose_landmarker_heavy.task \
+    --cache-dir <local-path>/golf_scratch/cache --debug-dir <local-path>/golf_scratch/debug      # ~7 min
 python -m data.refine_swings --report data/references/mason_feed_report.json \
-    --video data/mason_swings/mason_swing_part1.mov --model /workspace/golf_scratch/pose_landmarker_heavy.task \
-    --cache-dir /workspace/golf_scratch/cache --top 5
+    --video data/mason_swings/mason_swing_part1.mov --model <local-path>/golf_scratch/pose_landmarker_heavy.task \
+    --cache-dir <local-path>/golf_scratch/cache --top 5
 ```
 ## Next
 Film 20-50 two-view 240 fps swings (docs/MASON_SWINGS.md) or export original files from the phone (not feed
@@ -139,7 +139,7 @@ recordings): that fixes fps, view, tempo accuracy, and lets WHAM/GVHMR run prope
 
 Code: `data/remine_feed_v2.py` (+ `tests/test_remine_feed_v2.py`). Outputs `data/references/mason_v2_*.npz`,
 report `data/references/mason_v2_report.json` (per chunk, per swing, every drop reason). Tracks cached in
-`/workspace/golf_scratch/cache_v2/` (scratch, not git).
+`<local-path>/golf_scratch/cache_v2/` (scratch, not git).
 
 ## What changed vs the first pass
 - **Layout-agnostic chunking.** The v1 tile finder is brightness-based and found a tile in only 46% of part3 frames.
@@ -216,8 +216,8 @@ interchangeably for overlapping swings; do not train on both (double counting).
 
 ## Reproduce
 ```
-export LD_LIBRARY_PATH=/workspace/golf_scratch/libroot/usr/lib/x86_64-linux-gnu; source /workspace/golfvenv/bin/activate
-python -m data.remine_feed_v2 --stage track  --model /workspace/golf_scratch/pose_landmarker_heavy.task   # ~6 min per all 3 videos
+export LD_LIBRARY_PATH=<local-path>/golf_scratch/libroot/usr/lib/x86_64-linux-gnu; source <local-path>/golfvenv/bin/activate
+python -m data.remine_feed_v2 --stage track  --model <local-path>/golf_scratch/pose_landmarker_heavy.task   # ~6 min per all 3 videos
 python -m data.remine_feed_v2 --stage track --only part3 --chunks 16,17 --enhance                         # night re-track
 python -m data.remine_feed_v2 --stage swings                                                               # seconds, from cache
 ```

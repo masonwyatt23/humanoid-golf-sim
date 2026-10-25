@@ -167,6 +167,8 @@ OMP_NUM_THREADS=2 PYTHONPATH=. pytest tests
 PYTHONPATH=. python -m eval.realism_check <path/to/v5/ckpt> --env v5 --json out.json
 ```
 
+The v5 G1 models (`env/models/humanoid_golf_v5_g1_{lh,rh}.xml`) use a relative `meshdir`, so MuJoCo Menagerie must be cloned as `menagerie/` next to this repo (sibling directory). Otherwise, edit `meshdir` or set `MENAGERIE_DIR` for the env builders.
+
 ## Running the realism harness
 
 `eval/realism_check.py` (rules in `eval/swing_realism.py`, `eval/robust_grf.py`) scores one policy against swing and shot bands.

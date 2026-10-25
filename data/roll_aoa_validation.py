@@ -2,7 +2,7 @@
 Datapoints live in data/references/roll_aoa_validation.json (rebuilt by build_datapoints()). Every datapoint carries url + tag:
   fetched = page/PDF opened in full this session (text read);  snippet = search-result excerpt/synthesis only (not opened).
 Residual = model - published. Nothing here changes the add-on defaults. No Instagram-derived or Mason-clip data.
-Run: /workspace/golfvenv/bin/python -m data.roll_aoa_validation   (rebuilds the JSON and prints stats)"""
+Run: python -m data.roll_aoa_validation   (rebuilds the JSON and prints stats)"""
 import json
 from pathlib import Path
 import numpy as np

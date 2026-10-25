@@ -4,7 +4,7 @@ the project's reference .npz format, reusing the CMU converter's joint / event l
 Only the `pns-joint-root-relative-position` stream of each `P??_Swing??_stream_data.hdf5` is used (21-joint
 Perception Neuron Studio skeleton, cm, Y-up, +X = subject's left, +Z = facing). No video is read.
 
-    python -m data.convert_multisense_golf --raw-dir /workspace/golf_scratch/multisense \
+    python -m data.convert_multisense_golf --raw-dir <local-path>/multisense \
         --participants P19 P20 P22 --top-n 10 --min-club-mph 85
 
 Output: data/references/multisense_<Pxx>_s<NN>.npz  (license-tagged `multisensegolf_needs_counsel`: published CC0, needs_counsel, commercial_ok=False).
@@ -14,6 +14,7 @@ metadata (not club-head trajectories). All 24 participants swing right-handed (P
 """
 from __future__ import annotations
 
+import os
 import argparse
 import csv
 import json
@@ -127,13 +128,15 @@ def fnum(x):
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--raw-dir", type=Path, default=Path("/workspace/golf_scratch/multisense"))
+    ap.add_argument("--raw-dir", type=Path, default=None, help="raw MultiSense dir (default: $GOLF_SCRATCH_DIR/multisense)")
     ap.add_argument("--out", type=Path, default=Path(__file__).parent / "references")
     ap.add_argument("--participants", nargs="+", default=["P19", "P20", "P22"])
     ap.add_argument("--top-n", type=int, default=10, help="keep this many highest club-speed swings per participant")
     ap.add_argument("--min-club-mph", type=float, default=85.0)
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args(argv)
+    if a.raw_dir is None:
+        a.raw_dir = Path((os.environ.get("GOLF_SCRATCH_DIR") or sys.exit("set GOLF_SCRATCH_DIR (local scratch dir with the raw/cached data) or pass the path explicitly"))) / "multisense"
     ann, part = read_meta(a.raw_dir)
     rep: List[Dict] = []
     for p in a.participants:

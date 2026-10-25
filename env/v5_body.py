@@ -9,12 +9,13 @@ Frames: world +x = target line, +y = LEFT of the line, +z up. G1 faces +x in its
  RH golfer (for the mirror test only): yaw -90 deg, faces -y, physical LEFT side points to the target: lead arm = physical left.
 Club frame (LH): origin = lead grip top, local -z toward the head along the shaft, local +x = face direction, local +y = toe side.
 """
+from pathlib import Path
 import os, json, math
 import numpy as np
 import mujoco
 from scipy.optimize import least_squares
 
-MENAG = os.environ.get("MENAGERIE_DIR", "/workspace/menagerie")
+MENAG = os.environ.get("MENAGERIE_DIR") or str(Path(__file__).resolve().parents[2] / "menagerie")   # default: MuJoCo Menagerie checked out next to this repo
 DT = 0.0005
 CTRL_DT = 0.02
 
@@ -312,9 +313,9 @@ if __name__ == "__main__":
 
 
 def write_xml(path, handed="LH", club_len=0.87, addr=None):
-    """Write the compiled-equivalent XML (absolute meshdir into MENAGERIE_DIR; Menagerie is BSD-3 and not vendored)."""
+    """Write the compiled-equivalent XML (meshdir relative to the XML file, into MENAGERIE_DIR; Menagerie is BSD-3 and not vendored)."""
     model, spec = build_model(handed, club_len, addr=addr)
-    spec.meshdir = f"{MENAG}/unitree_g1/assets"
+    spec.meshdir = os.path.relpath(f"{MENAG}/unitree_g1/assets", os.path.dirname(os.path.abspath(path)))
     xml = spec.to_xml()
     open(path, "w").write(xml)
     return path

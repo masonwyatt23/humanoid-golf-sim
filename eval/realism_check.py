@@ -8,7 +8,7 @@ import argparse, json, os, subprocess, sys, tempfile
 from pathlib import Path
 import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_V5 = os.environ.get("V5_REPO", "/workspace/artifacts/humanoid-golf-scott")
+DEFAULT_V5 = os.environ.get("V5_REPO") or os.environ.get("HGS_TRAINER_REPO") or None   # Trainer checkout with env/v5_golf_env.py
 
 def _v1_spec(target):
     from eval import swing_realism as SR
@@ -182,6 +182,7 @@ def timing_res_rows(r, res_ms, chs_mph):
 
 def run_v5(a):
     from eval import swing_realism as SR
+    if not a.v5_repo: sys.exit("v5 needs the Trainer repo: pass --v5-repo or set V5_REPO / HGS_TRAINER_REPO")
     repo = Path(a.v5_repo); ck = str(Path(a.target).with_suffix("")) if a.target.endswith(".zip") else a.target
     if not (repo / "env" / "v5_golf_env.py").exists(): sys.exit(f"v5 env not found in {repo} (it is a Trainer-local commit, not on origin/main)")
     if not Path(ck + "_vecnorm.pkl").exists(): sys.exit(f"missing {ck}_vecnorm.pkl (PPO checkpoints need VecNormalize stats)")

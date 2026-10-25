@@ -11,7 +11,7 @@ import argparse, fcntl, json, os, subprocess, sys, time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
-PY = "/workspace/golfvenv/bin/python"; ENV = dict(os.environ, OMP_NUM_THREADS="1", MKL_NUM_THREADS="1", PYTHONPATH=str(ROOT))
+PY = os.environ.get("HGS_PY", sys.executable); ENV = dict(os.environ, OMP_NUM_THREADS="1", MKL_NUM_THREADS="1", PYTHONPATH=str(ROOT))
 LOCK = ROOT / "logs" / ".auto_loop.lock"
 
 

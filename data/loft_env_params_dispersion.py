@@ -1,6 +1,6 @@
 """Build data/references/loft_env_params_dispersion.json (model rows part). PUBLIC SOURCES ONLY; no Instagram/Mason-clip data.
 Reuses run() from data.targets_130mph_350yd (read-only import of env/ball_flight_analytic.py). ~3 min.
-Run: /workspace/golfvenv/bin/python -m data.loft_env_params_dispersion"""
+Run: python -m data.loft_env_params_dispersion"""
 import json, sys
 from pathlib import Path
 import numpy as np

@@ -3,7 +3,7 @@
 > Consent note: the clips come from Mason's own screen-recorded social-media feed video; consent for release has not been given; this repo is public.
 
 
-Method: read `env/residual_golf_env.py`, `env/models/humanoid_golf_v3.xml`, `humanoid_golf_v4_power.xml`, `eval/wrist_replay.py` (read-only), then ran `python -m data.wrist_pd_lag_probe` in `/workspace/golfvenv` (MuJoCo 3.16; other joints held by the env's own PD; left-hander; `grip=False`, the env default, so the passive left arm is NOT coupled). Output: `data/references/wrist_pd_lag_probe.json`. Sim only, UNVERIFIED against hardware, and I did not reproduce the exact -0.33/-0.09 pair (I did not have the Trainer's run/seed/clip).
+Method: read `env/residual_golf_env.py`, `env/models/humanoid_golf_v3.xml`, `humanoid_golf_v4_power.xml`, `eval/wrist_replay.py` (read-only), then ran `python -m data.wrist_pd_lag_probe` in `<local-path>/golfvenv` (MuJoCo 3.16; other joints held by the env's own PD; left-hander; `grip=False`, the env default, so the passive left arm is NOT coupled). Output: `data/references/wrist_pd_lag_probe.json`. Sim only, UNVERIFIED against hardware, and I did not reproduce the exact -0.33/-0.09 pair (I did not have the Trainer's run/seed/clip).
 
 ## 1. Actuator model facts (as read)
 - Action is a **target position** for a PD loop evaluated every physics substep (0.5 ms; control dt 20 ms, ZOH on the target only). `ctrl = (kp*(tgt-q) - kd*qd)/gear`, MuJoCo `motor` (gain 1), `force = clip(ctrl, forcerange)`, `torque = gear*force`.

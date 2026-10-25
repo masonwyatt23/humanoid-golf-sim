@@ -31,3 +31,16 @@ def test_tracked_shell_scripts_have_no_machine_paths():
 def test_v5_files_have_no_machine_paths():
     bad = {f: offenders((ROOT / f).read_text()) for f in V5_FILES if (ROOT / f).exists()}
     assert not {f: v for f, v in bad.items() if v}, bad
+
+# Deliberate examples inside this test file only.
+ALLOW = {"tests/test_no_local_paths.py"}
+TEXT_EXT = {".py", ".sh", ".md", ".json", ".yaml", ".yml", ".txt", ".xml", ".toml", ".cfg", ".ini", ".csv"}
+
+def test_all_tracked_text_files_have_no_machine_paths():
+    files = [f for f in tracked("*") if Path(f).suffix.lower() in TEXT_EXT and f not in ALLOW and (ROOT / f).is_file()]
+    assert files, "expected tracked text files"
+    bad = {}
+    for f in files:
+        hits = offenders((ROOT / f).read_text(errors="ignore"))
+        if hits: bad[f] = hits[:3]
+    assert not bad, f"machine paths / fixed interpreter (use env vars or <local-path>): {bad}"

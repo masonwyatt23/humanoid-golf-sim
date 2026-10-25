@@ -16,7 +16,7 @@ from gymnasium import spaces
 import gymnasium as gym
 
 import os
-MENAG = os.environ.get("MENAGERIE_DIR", "/workspace/menagerie")
+MENAG = os.environ.get("MENAGERIE_DIR") or str(Path(__file__).resolve().parents[2] / "menagerie")   # default: MuJoCo Menagerie checked out next to this repo
 CLUB_LEN, GRIP_SEP, SHAFT_M, HEAD_M = 1.15, 0.12, 0.07, 0.20
 DT = 0.0005
 CTRL_DT = 0.02

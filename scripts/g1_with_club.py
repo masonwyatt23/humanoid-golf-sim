@@ -1,7 +1,7 @@
 """Load MuJoCo Menagerie Unitree G1, attach a driver-like club on the right wrist and
 a soft two-hand grip constraint to the left wrist. Verified to compile + step in MuJoCo 3.x.
 Usage: python g1_with_club.py [--menagerie /path/to/menagerie | /path/to/menagerie]   (needs: pip install mujoco numpy)
-Menagerie path precedence: --menagerie arg (or first positional arg) > $MENAGERIE_PATH > $MENAGERIE_DIR (legacy) > /workspace/menagerie if it exists."""
+Menagerie path precedence: --menagerie arg (or first positional arg) > $MENAGERIE_PATH > $MENAGERIE_DIR (legacy) > a menagerie/ checkout next to this repo if it exists."""
 import os, sys, numpy as np, mujoco
 
 
@@ -18,8 +18,9 @@ def resolve_menagerie(argv=None):
     for k in ("MENAGERIE_PATH", "MENAGERIE_DIR"):
         if os.environ.get(k):
             return os.environ[k]
-    if os.path.isdir("/workspace/menagerie"):
-        return "/workspace/menagerie"
+    _sib = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "menagerie")
+    if os.path.isdir(_sib):
+        return _sib
     raise SystemExit("MuJoCo Menagerie not found: pass --menagerie PATH or set MENAGERIE_PATH")
 
 

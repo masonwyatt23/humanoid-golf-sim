@@ -21,10 +21,11 @@ What it does (all from the stage-1 pose tracks cached by data/remine_feed_v2.py,
  4. Writes `data/references/mason_v3_*.npz` for slow-motion swings that have enough downswing frames, and
     `data/references/mason_v3_report.json` (deterministic).
 
-    python -m data.remine_slowmo_v3            # needs /workspace/golf_scratch/cache_v2 from remine_feed_v2 --stage track
+    python -m data.remine_slowmo_v3            # needs <local-path>/cache_v2 ($GOLF_SCRATCH_DIR/cache_v2) from remine_feed_v2 --stage track
 """
 from __future__ import annotations
 
+import os
 import argparse
 import json
 import sys
@@ -289,5 +290,8 @@ def run(args):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--cache-dir", default="/workspace/golf_scratch/cache_v2")
-    run(ap.parse_args())
+    ap.add_argument("--cache-dir", default=None, help="default: $GOLF_SCRATCH_DIR/cache_v2")
+    a = ap.parse_args()
+    if a.cache_dir is None:
+        a.cache_dir = str(Path((os.environ.get("GOLF_SCRATCH_DIR") or sys.exit("set GOLF_SCRATCH_DIR (local scratch dir with the raw/cached data) or pass the path explicitly"))) / "cache_v2")
+    run(a)

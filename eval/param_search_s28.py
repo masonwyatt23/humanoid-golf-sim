@@ -4,7 +4,7 @@ Objective (maximise): mean_carry(m, single no-roll metres) + 0.1*peak_club_mph, 
  contact>=0.99, lateral_std<=2.7 m; power also spin 1800-3000 rpm and smash<=1.50. 40 eps/candidate at fixed eval seed 6000 (gate seeds are 4000/8000/9000).
 Finalists re-evaluated 100 eps at seed 7000. Output results/param_search_s28_<phase>.json"""
 import sys, json, math, os, time
-sys.path.insert(0, "/workspace/cma_pkg")
+if os.environ.get("CMA_PKG_DIR"): sys.path.insert(0, os.environ["CMA_PKG_DIR"])   # optional local cma install
 import numpy as np
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing as mp

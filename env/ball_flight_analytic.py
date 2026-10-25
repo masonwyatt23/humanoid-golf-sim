@@ -1,4 +1,4 @@
-# Copied unmodified from /workspace/sim_proto/ball_flight.py (teammate prototype, see docs/research_sim_realism.md); calibrated to TrackMan PGA driver averages [per that doc].
+# Copied unmodified from <local-path>/sim_proto/ball_flight.py (teammate prototype, see docs/research_sim_realism.md); calibrated to TrackMan PGA driver averages [per that doc].
 """Driver impact model + ball flight (drag, Magnus lift, spin decay, wind) + bounce/roll. Pure numpy.
 World: +x target line, +y LEFT of target line (looking down line), +z up. SI units.
 """

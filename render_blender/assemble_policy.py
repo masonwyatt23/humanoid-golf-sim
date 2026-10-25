@@ -1,5 +1,5 @@
 """Frames (build_and_render.py --clip policy) -> mp4 with HUD + title/end cards, for exported POLICY rollouts (export_policy_trajectory.py).
-    python render_blender/assemble_policy.py FRAMES_DIR OUT.mp4 --traj /workspace/golf_render/policy/stock_imit20.json --kind stock|power [--fps 12] [--res 1280x720]
+    python render_blender/assemble_policy.py FRAMES_DIR OUT.mp4 --traj <local-path>/policy/stock_imit20.json --kind stock|power [--fps 12] [--res 1280x720]
 All on-screen numbers (club mph, launch, carry yd/m) are from the ONE rolled-out episode in the json; the 100-episode gate means are shown separately in a caption.
 Labels: 'SCRIPT-DISTILLED POLICY' = behaviour-cloned imitation of the scripted v3 swing (not a swing learned independently; not learned from any person). No 'learned' claims."""
 import json, subprocess, argparse, os, tempfile

@@ -8,7 +8,7 @@ Labels: **[measured]** this box; **[read]** from a file; **[guess]** my assumpti
 |---|---|
 | `golfphys/` (+`VENDORED.md`, coefficients/validation JSON, doc, tests) | Data Agent's ball model, copied unmodified from branch `golfphys` 0c2bca2 (commit ac77329). |
 | `env/v5_body.py` | MjSpec builder from Menagerie `unitree_g1` (BSD-3): 29 actuated DoF (6+6 legs, 3 waist, 7+7 arms = 3-DoF shoulder, elbow, wrist roll/pitch/yaw), free base, foot box soles with friction 1.0 (condim 6) and touch + ankle force/torque sensors, club welded into both hands, IK address solver. |
-| `env/models/humanoid_golf_v5_g1_{lh,rh}.xml` | Exported models (absolute `meshdir` into `/workspace/menagerie`, not vendored). `v5_address_*.json`: solved address poses (LH/RH, club 0.87 and 1.15 m). |
+| `env/models/humanoid_golf_v5_g1_{lh,rh}.xml` | Exported models (`meshdir` relative to the XML, into a MuJoCo Menagerie checkout next to the repo or `$MENAGERIE_DIR`; not vendored). `v5_address_*.json`: solved address poses (LH/RH, club 0.87 and 1.15 m). |
 | `env/v5_shot.py` | `env_contact_to_shot` adapter + `verify_toe_sign`. |
 | `env/v5_golf_env.py` | Gymnasium env `V5GolfEnv` (112-dim obs, 29-dim action = PD target offsets from address, torque cap + linear speed derate every 5 ms, ball held until first club-head contact, golfphys flight, 5 ms segment logging). Has a `tether` flag (pelvis pinned) for pipeline tests only. |
 | `env/v5_reward.py` | Soft-reward scaffolding (ball flight, kinematic sequence, X-factor, weight shift, annealed prior cap). Not tuned, not used for training. |

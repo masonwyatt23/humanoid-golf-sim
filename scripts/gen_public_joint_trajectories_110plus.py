@@ -15,7 +15,7 @@ unless a channel is reported as infeasible (then P is reduced and flagged).
 Inputs are numbers printed in published open papers (see SOURCES). No Instagram/personal swing data and no
 CMU / MultiSense / AMASS / GolfDB values are used. Re-running reproduces the JSON byte-for-byte.
 
-    /workspace/golfvenv/bin/python scripts/gen_public_joint_trajectories_110plus.py
+    python scripts/gen_public_joint_trajectories_110plus.py
 """
 import json
 import math

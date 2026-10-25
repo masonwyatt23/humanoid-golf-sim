@@ -53,7 +53,7 @@ What actually works for a hard hit [V/?]:
 - Cheap speedups [?]: try dt=0.001 with a stiffer analytic impact model (companion doc 1.4) and only run small dt around impact (variable substeps: coarse until club is within ~0.3 m of ball, fine after). Disable unused contacts (only foot-floor, club-ball, plus hands-to-club via weld). The MJWarp benchmark humanoid is optimized exactly like this (only foot-floor collisions, 8 contacts) [V][M3]. Set `mjData` reuse, avoid Python per-step overhead (batch reward math in numpy). Possible 2-4x [?].
 
 ### 2.3 Hardware check commands (run)
-`nproc` = 8; `free -g`: 15 GB total (~6 GB available at the time); `nvidia-smi`: not found [C]. Python 3.13.5; system python has no mujoco/SB3 installed (the project's training env lives elsewhere; I benchmarked in a throwaway venv at /workspace/bench_venv).
+`nproc` = 8; `free -g`: 15 GB total (~6 GB available at the time); `nvidia-smi`: not found [C]. Python 3.13.5; system python has no mujoco/SB3 installed (the project's training env lives elsewhere; I benchmarked in a throwaway venv at <local-path>/bench_venv).
 
 ### 2.4 If we can get a GPU
 Cheapest meaningful upgrade: one rented RTX 4090 or A100. Port the env to MuJoCo Playground/MJX (or MJWarp), 4,096+ envs, Brax/RSL-style PPO; humanoid-class PPO is ~90k steps/s on an A100 [V][M2], i.e. ~25-45x this box. That moves "2B samples" from 8 months to roughly 6-24 h [?]. Do not start the port before the CPU env physics are validated.
@@ -153,4 +153,4 @@ If E3 gates pass (so physics is validated) but throughput is the limiter, port t
 - [M4] MuJoCo Warp: https://github.com/google-deepmind/mujoco_warp/
 - [I1] Isaac Lab installation / physics backends: https://isaac-sim.github.io/IsaacLab/develop/source/setup/installation/index.html ; https://isaac-sim.github.io/IsaacLab/develop/source/concepts/physics_backends.html
 - [I2] Newton RT-core discussion: https://github.com/newton-physics/newton/discussions/150
-- Local measurements [C]: `nproc`, `free -g`, `lscpu`, `nvidia-smi`, and a 20k-step mj_step timing in /workspace/bench_venv on `env/models/humanoid_golf.xml` and `humanoid_golf_v3.xml`.
+- Local measurements [C]: `nproc`, `free -g`, `lscpu`, `nvidia-smi`, and a 20k-step mj_step timing in <local-path>/bench_venv on `env/models/humanoid_golf.xml` and `humanoid_golf_v3.xml`.

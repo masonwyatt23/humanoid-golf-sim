@@ -3,7 +3,7 @@ Purpose: let the Trainer report an *estimated* total (carry + roll) for the env,
 Nothing here is a published model. Structure follows published qualitative facts; the coefficients are chosen by the Data Agent and checked
 against published carry/total pairs (see data/references/roll_aoa_addon.json 'validation'). No Instagram-derived or Mason-clip data.
 Units: carry/roll/total in YARDS unless a function says metres; angles degrees; spin rpm.
-Run: /workspace/golfvenv/bin/python -m data.roll_aoa_addon  (rebuilds the JSON)"""
+Run: python -m data.roll_aoa_addon  (rebuilds the JSON)"""
 import json
 from pathlib import Path
 import numpy as np

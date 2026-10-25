@@ -2,7 +2,7 @@
 
 **Mason has no launch-monitor numbers yet.** His 120+ mph is self-reported and unverified. Everything below is published or model data, not a measurement of Mason.
 
-Files: `data/references/launch_monitor_98_120_tables.json`, generator `data/launch_monitor_98_120.py` (imports `env/ball_flight_analytic.py` read-only, run in `/workspace/golfvenv`), test `tests/test_launch_monitor_98_120.py`. Compared with `data/references/impact_physics_calibration.json` (R1/R2).
+Files: `data/references/launch_monitor_98_120_tables.json`, generator `data/launch_monitor_98_120.py` (imports `env/ball_flight_analytic.py` read-only, run in `<local-path>/golfvenv`), test `tests/test_launch_monitor_98_120.py`. Compared with `data/references/impact_physics_calibration.json` (R1/R2).
 
 ## Sources (fetched vs snippet)
 | id | type | verification |

@@ -7,12 +7,13 @@ posts where the brightness-based tile finder of ingest_feed_recordings fails), s
 Stage 2 (`--stage swings`): from cached tracks, segment swings with relaxed params, classify camera view
 and handedness from the pose, outlier-reject, write `data/references/mason_v2_*.npz` (+ report JSON).
 
-    export LD_LIBRARY_PATH=/workspace/golf_scratch/libroot/usr/lib/x86_64-linux-gnu
-    python -m data.remine_feed_v2 --stage track  --model /workspace/golf_scratch/pose_landmarker_heavy.task
+    export LD_LIBRARY_PATH=<local-path>/libroot/usr/lib/x86_64-linux-gnu
+    python -m data.remine_feed_v2 --stage track  --model <local-path>/pose_landmarker_heavy.task
     python -m data.remine_feed_v2 --stage swings
 """
 from __future__ import annotations
 
+import os
 import argparse
 import json
 import sys
@@ -386,13 +387,16 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", choices=["track", "swings"], required=True)
     ap.add_argument("--videos", default=str(Path(__file__).parent / "mason_swings"))
-    ap.add_argument("--model", default="/workspace/golf_scratch/pose_landmarker_heavy.task")
-    ap.add_argument("--cache-dir", default="/workspace/golf_scratch/cache_v2")
+    ap.add_argument("--model", default=None, help="default: $GOLF_SCRATCH_DIR/pose_landmarker_heavy.task")
+    ap.add_argument("--cache-dir", default=None, help="default: $GOLF_SCRATCH_DIR/cache_v2")
     ap.add_argument("--only")
     ap.add_argument("--chunks", help="comma list of chunk indices to (re)track")
     ap.add_argument("--enhance", action="store_true", help="gamma+CLAHE dark-footage enhancement before pose")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
+    if a.model is None or a.cache_dir is None:
+        _s = (os.environ.get("GOLF_SCRATCH_DIR") or sys.exit("set GOLF_SCRATCH_DIR (local scratch dir with the raw/cached data) or pass the path explicitly"))
+        a.model = a.model or str(Path(_s) / "pose_landmarker_heavy.task"); a.cache_dir = a.cache_dir or str(Path(_s) / "cache_v2")
     if a.stage == "track":
         stage_track(a)
     else:
