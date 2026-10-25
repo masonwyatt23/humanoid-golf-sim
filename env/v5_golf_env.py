@@ -141,8 +141,35 @@ class V5GolfEnv(gym.Env):
     def _vel_site(self, sid):
         v = np.zeros(6); mujoco.mj_objectVelocity(self.m, self.d, mujoco.mjtObj.mjOBJ_SITE, sid, v, 0); return v
 
+    _ffc = None
+    fast_env = False   # STEP2(1) opt-in: per-substep cache of the sole/floor contact forces (identical values; computed once per substep instead of 2-3x). Default off = original path
+
+    def _sole_contacts(self):
+        """fast_env: one pass over the contacts for the current substep -> ((fl, fr), lead-sole [(frame 3x3, fv6)]) cached until the next mj_step/reset.
+        Same contacts, same order, same mj_contactForce values and the same summation order as foot_forces() and JEnv's shear loop."""
+        key = self.sub_count   # invalidated after every mj_step, at reset and at the start of _obs (covers direct state edits such as RSI/noise before the first obs)
+        c_ = self._ffc
+        if c_ is not None and c_[2] != key: c_ = None
+        if c_ is None:
+            d, m = self.d, self.m; fl = 0.0; fr = 0.0; lead_l = []; lg, rg, fg = self.sole_geoms["left"], self.sole_geoms["right"], self.floor; lead_g = self.sole_geoms[self.lead]
+            n = d.ncon
+            if n:
+                g1 = d.contact.geom1; g2 = d.contact.geom2
+                for i in range(n):
+                    a, b = int(g1[i]), int(g2[i])
+                    if a == fg: a, b = b, a
+                    elif b != fg: continue
+                    if a == lg or a == rg:
+                        fv = np.zeros(6); mujoco.mj_contactForce(m, d, i, fv)
+                        if a == lg: fl += fv[0]
+                        else: fr += fv[0]
+                        if a == lead_g: lead_l.append((d.contact.frame[i].reshape(3, 3), fv))
+            c_ = self._ffc = ((fl, fr), lead_l, key)
+        return c_
+
     def foot_forces(self):
         """Vertical normal force on each sole from contacts with the floor (N). Returns (left, right)."""
+        if self.fast_env: return self._sole_contacts()[0]
         d, m = self.d, self.m
         f = {"left": 0.0, "right": 0.0}; fv = np.zeros(6)
         for i in range(d.ncon):
@@ -213,10 +240,11 @@ class V5GolfEnv(gym.Env):
         self.log = dict(t=[], pelvis=[], thorax=[], lead_arm=[], club=[], xfactor_deg=[], lead_share=[]); self.peak_club_speed = 0.0
         self.max_weld_drift = 0.0; self.pre_contact_head_speed = 0.0
         self.sub_count = 0; self.min_dist = 9.0
-        self.ball_hit_info = None; self.foul = False; self.off_face = False
+        self.ball_hit_info = None; self.foul = False; self.off_face = False; self._ffc = None
         return self._obs(), {}
 
     def _obs(self):
+        if self.fast_env: self._ffc = None
         d = self.d; Rp = d.xmat[self.pel].reshape(3, 3)
         q = d.qpos[self.qa]; qd = d.qvel[self.da]
         head = d.site_xpos[self.head_site]; hv = self._vel_site(self.head_site)[3:]
@@ -228,6 +256,7 @@ class V5GolfEnv(gym.Env):
         return o.astype(np.float32)[: self.observation_space.shape[0]] if len(o) >= self.observation_space.shape[0] else np.pad(o, (0, self.observation_space.shape[0] - len(o))).astype(np.float32)
 
     def _log_seg(self):
+        if self.fast_env: return self._log_seg_fast()
         d = self.d; m = self.m
         ang = lambda b: d.cvel[b][:3] if False else None
         pw = np.zeros(6); mujoco.mj_objectVelocity(m, d, mujoco.mjtObj.mjOBJ_BODY, self.pel, pw, 0)
@@ -239,6 +268,23 @@ class V5GolfEnv(gym.Env):
         L["lead_arm"].append(math.degrees(float(np.linalg.norm(d.qvel[self.lead_sh]))))
         L["club"].append(math.degrees(float(np.linalg.norm(cw[:3]))))
         xf = math.degrees((self._heading(self.torso) - self._heading(self.pel) + math.pi) % (2 * math.pi) - math.pi)
+        L["xfactor_deg"].append(xf)
+        fl, fr = self.foot_forces(); tot = max(fl + fr, 1e-6)
+        L["lead_share"].append((fl if self.lead == "left" else fr) / tot)
+
+    def _log_seg_fast(self):
+        """fast_env: same values as _log_seg (same calls/order), with preallocated velocity buffers and bound locals."""
+        d = self.d; m = self.m; B = getattr(self, "_lsb", None)
+        if B is None: B = self._lsb = (np.zeros(6), np.zeros(6), np.zeros(6), mujoco.mjtObj.mjOBJ_BODY)
+        pw, tw, cw, ob = B
+        mujoco.mj_objectVelocity(m, d, ob, self.pel, pw, 0); mujoco.mj_objectVelocity(m, d, ob, self.torso, tw, 0); mujoco.mj_objectVelocity(m, d, ob, self.club_body, cw, 0)
+        L = self.log
+        L["t"].append(d.time)
+        L["pelvis"].append(abs(math.degrees(pw[2]))); L["thorax"].append(abs(math.degrees(tw[2])))
+        L["lead_arm"].append(math.degrees(float(np.linalg.norm(d.qvel[self.lead_sh]))))
+        L["club"].append(math.degrees(float(np.linalg.norm(cw[:3]))))
+        xm = d.xmat; xt = xm[self.torso]; xp = xm[self.pel]
+        xf = math.degrees((math.atan2(xt[3], xt[0]) - math.atan2(xp[3], xp[0]) + math.pi) % (2 * math.pi) - math.pi)
         L["xfactor_deg"].append(xf)
         fl, fr = self.foot_forces(); tot = max(fl + fr, 1e-6)
         L["lead_share"].append((fl if self.lead == "left" else fr) / tot)
@@ -286,7 +332,7 @@ class V5GolfEnv(gym.Env):
                     pre_pos = d.geom_xpos[self.head_geom].copy(); pre_R = d.geom_xmat[self.head_geom].reshape(3, 3).copy(); swept = True
                 else: swept = False
             else: swept = False
-            mujoco.mj_step(m, d); self.sub_count += 1
+            mujoco.mj_step(m, d); self.sub_count += 1; self._ffc = None
             if self.tether:
                 d.qpos[0:7] = self.pel_q0; d.qvel[0:6] = 0
             if not self.contact and swept:

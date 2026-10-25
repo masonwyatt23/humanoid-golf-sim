@@ -937,3 +937,9 @@ Orchestrator-confirmed v4 bundle (for Mason, standing approval t108u); the Evalu
 - Zero-residual probes: the V10l 100k policy with action_net zeroed, i.e. the pure reference keys. Snapshots R0V10h_s0_100000 / R0V10r_s0_100000 (ckpts not committed, JSONs committed). Both score 2 fails (nominal t/c fail), contact .88, plant .67/.62.
 - The refit's own slip metric (.85/.92 pass) is therefore far more lenient than the harness. It ignores misses, the warn band, and the harness's own top-of-backswing index.
 - Next lever: contact under noise (misses 4/24), then the foot warn band.
+
+## STEP2(1) CPU efficiency: `--fast_env` (Trainer c0dc758, ported)
+- Opt-in (`--fast_env`, `env.fast_env`, default off). Three changes: (a) one pass over the contacts per substep caches the sole/floor forces and the lead-sole contact frames; foot_forces(), _log_seg and JEnv's shear loop read the cache, which is invalidated after every mj_step, at reset and at the start of _obs. (b) `_log_seg_fast` uses the same calls in the same order, with preallocated buffers. (c) `SwingRef.memo` memoises q(t) and returns a copy.
+- Equivalence: `scripts/fast_env_equiv.py` (V10l 100k policy + random actions, seeds 4000/7000/7001, 3 episodes each, 633 steps). Trace md5 0734e5da6f7f8ec3c77463f09fac964d with fast_env off and on: IDENTICAL (Trainer's run, reproduced on the port).
+- Honesty guard (always on, no behaviour change on defaults): `make()` aborts with "FLAG GUARD" if any configured non-default flag is not live on the JEnv instance.
+- Trainer-reported speed-up (Trainer's machine, shared load): 1 env +13%, 4-env SubprocVecEnv +11% env steps/s. Not re-measured here.

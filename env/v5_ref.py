@@ -100,7 +100,14 @@ class SwingRef:
         x = np.clip((t - self.t_imp) / T_FOLLOW, 0, 1); s = 3 * x * x - 2 * x ** 3
         return self.K[1] + (self.K[2] - self.K[1]) * s
 
+    memo = False   # STEP2(1) fast_env: memoise q(t) for repeated calls at the same t (pure function of t; returns a copy). Default off
     def q(self, t):
+        if self.memo:
+            c = getattr(self, "_qm", None)
+            if c is not None and c[0] == t: return c[1].copy()
+            v = self._q(t); self._qm = (t, v); return v.copy()
+        return self._q(t)
+    def _q(self, t):
         d = self.delta(t)
         if getattr(self, 'il_idx', None):
             b = float(np.exp(-0.5 * ((t - self.t_imp) / 0.035) ** 2)); d = d.copy()

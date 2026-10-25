@@ -169,6 +169,8 @@ PYTHONPATH=. python -m eval.realism_check <path/to/v5/ckpt> --env v5 --json out.
 
 The v5 G1 models (`env/models/humanoid_golf_v5_g1_{lh,rh}.xml`) use a relative `meshdir`, so MuJoCo Menagerie must be cloned as `menagerie/` next to this repo (sibling directory). Otherwise, edit `meshdir` or set `MENAGERIE_DIR` for the env builders.
 
+Default-path baseline check (head hash, 3-seed reward md5, CLI guard; K32a strike-log comparison only if a local checkpoint is given): `OMP_NUM_THREADS=2 PYTHONPATH=. python scripts/default_baseline_check.py` (see its docstring). `--fast_env` (opt-in, Trainer-only) is checked against the default path with `python scripts/fast_env_equiv.py <path/to/V10l_100k/ckpt_100000>`.
+
 ## Running the realism harness
 
 `eval/realism_check.py` (rules in `eval/swing_realism.py`, `eval/robust_grf.py`) scores one policy against swing and shot bands.
