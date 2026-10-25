@@ -10,9 +10,10 @@ The robustness perturbation is meant to be posture noise only (eval/robust_grf.p
 - **Foot correction:** after the noise and mj_forward, a damped-least-squares IK runs over the floating base (6 dof) plus the 12 leg dofs. It drives both `{left,right}_sole_site` back to their unperturbed address world position and orientation. That is 12 equations in 18 unknowns, solved as the minimum-norm change from the perturbed pose, so the leg noise is only partly removed. Leg joints are clipped to their ranges. It converges in about 3 iterations.
 - **What stays as v4 made it:** the waist, arm and wrist noise is kept exactly. The club free body moves with the base's rigid transform, so the hand-club relation is the one v4 produced. The ball is not touched, and base qvel is set to 0.
 - **Grading:** the row uses exactly the v3d/v4 chain that grades `mine/robustness`: the same contact, start and plant triple and the same tails, including the club p10 rule. It is stored as `mine/robustness_v4_1_reground_info` with status info and gating False. `verdict_if_gating` holds the grade it would have received.
-- **Caveat:** this restores the feet, not the whole address. Moving the base moves the hands and club with it. In an offline probe of the 24 address states, the base shifted by a median of 6.0 mm (max 14.2 mm) and the clubhead moved relative to the ball by a median of 9.3 mm (max 13.3 mm). v4.1 is "feet re-grounded". It is not a full re-address with the clubhead behind the ball.
+- **Caveat:** this restores the feet, not the whole address. Moving the base moves the hands and club with it. In a probe of the 24 address states, the base shifted by a median of 6.0 mm (max 14.2 mm) and the clubhead (face-centre site) moved relative to the ball by a median of 9.8 mm (max 15.8 mm). Correction: an earlier version of this note said 9.3 / 13.3 mm from an uncommitted offline probe; the committed probe reproduces every other figure here but gives 9.8 / 15.8 mm for the clubhead. v4.1 is "feet re-grounded". It is not a full re-address with the clubhead behind the ball.
 
 ## Foot residuals: max over both soles, 24 seeds (the address state is the same for every snapshot)
+Data: `results/overnight/v41_reground_residuals.json` (per seed + summary), script `results/overnight/_probe_v41_residuals.py` (address states only, no policy rollouts; Trainer export via `HGS_RO_TRAINER`, RO export b663c9f6, V18l_s590 args.json).
 | | position mm (median / max) | orientation deg (median / max) | lateral \|dy\| mm (median / max) |
 |---|---|---|---|
 | v4 (after noise, no re-grounding) | 15.5 / 27.2 | 2.19 / 4.44 | 11.2 / 22.9 |
@@ -27,7 +28,7 @@ The robustness perturbation is meant to be posture noise only (eval/robust_grf.p
 
 - Re-grounding does **not** help these policies. V18l gets clearly worse: contact .958 -> .833, start .917 -> .792, plant .875 -> .833.
 - The club-speed tails tighten: V18l p10 goes from 60.5 to 68.6 mph (0.86x -> 0.97x median).
-- So the 1 cm stance shift is not what limits robustness here. The likely reasons are that the policies were trained on the un-grounded address, and that re-grounding moves the clubhead about 9 mm relative to the ball (see Caveat).
+- So the 1 cm stance shift is not what limits robustness here. The likely reasons are that the policies were trained on the un-grounded address, and that re-grounding moves the clubhead about 10 mm relative to the ball (see Caveat).
 - n = 24 per row, so a single episode moves a fraction by .042.
 - In each --reground run, every check other than the new row matches the official v4 JSON exactly.
 
