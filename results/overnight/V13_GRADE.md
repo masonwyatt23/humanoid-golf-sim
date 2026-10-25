@@ -29,6 +29,6 @@ This is the OFFICIAL grade. The Trainer's local numbers are not official.
 **v5 held-out DR (NON-GATING estimates, `--harness v5 --heldout-dr 24 --heldout2-dr 32`, same 1.5 in row; v4 part reproduced 13/5/1):**
 - heldout-1 (seeds 910000-910023): contact .46, start .33, plant .12 (V10l 100k: .50/.29/.08).
 - heldout-2 excluding slope (28 eps): .75/.68/.75. Contact by dim: torque, latency, loft, foot 4/4; head mass 3/4; trunk 2/4; thigh+calf 0/4. Slope 0/4 (info-only, modelling gap).
-- Task-accuracy rows n/a (not goal-conditioned). Driver per-club: smash/launch/spin pass, land angle 22.7 deg FAIL (non-gating). D-plane PASS.
+- Task-accuracy rows n/a (not goal-conditioned). Driver per-club: smash/launch/spin pass, land angle 22.7 deg FAIL (non-gating). D-plane PASS. [NOMINAL-ONLY, n=1: graded on identical deterministic rollouts; see results/overnight/DPLANE_CORRECTION.md; V13h not re-run]
 
 No full pass, so no cinematic render.

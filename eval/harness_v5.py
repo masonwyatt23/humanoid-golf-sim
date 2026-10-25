@@ -274,30 +274,57 @@ def sample_heldout(seed, nq, H=HELDOUT_DR):
 DPLANE_T = dict(face_frac=0.85, start_err_deg=2.0, axis_min_deg=0.5, curve_min_m=0.5,
                 src="assumption (ours): start direction ~ 0.85 x face (D-plane rule of thumb, Trainer brief); |start - 0.85 face| <= 2 deg; curvature sign = spin-axis sign when |axis| >= 0.5 deg and |curve| >= 0.5 m")
 
-def dplane_row(eps):
-    E = [e for e in (eps or []) if e.get("contact") and e.get("impact")]
-    if not E: return dict(status="n/a", passed=False, gating=False, values=None, tag="info_only", why=["impact logging not available (export lacks DREnv impact_log, or no contact episodes)"])
+def _dplane_per(eps):
     per = []
-    for e in E:
+    for e in [e for e in (eps or []) if e.get("contact") and e.get("impact")]:
         im = e["impact"]; g = shot_geometry(e.get("shot_extra")); fw = im["impact_face_world_deg"]; pred = DPLANE_T["face_frac"] * fw
         d = dict(seed=e.get("seed"), face_world_deg=fw, path_world_deg=im.get("impact_path_world_deg"), face_to_path_world_deg=im.get("impact_face_to_path_world_deg"),
-                 spin_loft_deg=im.get("impact_spin_loft_deg"), spin_axis_deg=im.get("impact_spin_axis_deg"), start_pred_deg=pred, start_deg=None, start_ok=None, curve_y_m=None, curve_sign_ok=None)
+                 spin_loft_deg=im.get("impact_spin_loft_deg"), spin_axis_deg=im.get("impact_spin_axis_deg"), start_pred_deg=pred, start_deg=None, start_err_deg=None, start_ok=None, curve_y_m=None, curve_sign_ok=None)
         if g:
             d.update(start_deg=g["azimuth_deg"], start_err_deg=g["azimuth_deg"] - pred, start_ok=abs(g["azimuth_deg"] - pred) <= DPLANE_T["start_err_deg"], curve_y_m=g["curve_y_m"])
             ax = im.get("impact_spin_axis_deg")
             if ax is not None and abs(ax) >= DPLANE_T["axis_min_deg"] and abs(g["curve_y_m"]) >= DPLANE_T["curve_min_m"]: d["curve_sign_ok"] = (ax > 0) == (g["curve_y_m"] > 0)
         per.append(d)
+    return per
+
+def _dplane_stats(per):
     S = [d for d in per if d["start_ok"] is not None]; C = [d for d in per if d["curve_sign_ok"] is not None]
-    fs = sum(d["start_ok"] for d in S) / len(S) if S else None; fc = sum(d["curve_sign_ok"] for d in C) / len(C) if C else None
     med = lambda k: (sorted(d[k] for d in per if d.get(k) is not None)[len([d for d in per if d.get(k) is not None]) // 2] if any(d.get(k) is not None for d in per) else None)
-    st = "n/a" if fs is None else ("pass" if fs >= TASK_T["rate"]["pass_"] and (fc is None or fc >= TASK_T["rate"]["pass_"]) else "warn" if fs >= TASK_T["rate"]["warn"] else "fail")
-    return dict(status=st, passed=st == "pass", gating=False, tag="info_only", frame="world, + = left (+y)", thresholds=DPLANE_T,
-                values=dict(n=len(per), start_vs_085face_pass_frac=fs, n_start=len(S), curve_sign_vs_axis_pass_frac=fc, n_curve_sign=len(C),
-                            face_world_med_deg=med("face_world_deg"), path_world_med_deg=med("path_world_deg"), start_med_deg=med("start_deg"), start_err_med_deg=med("start_err_deg"), spin_loft_med_deg=med("spin_loft_deg"), spin_axis_med_deg=med("spin_axis_deg")),
-                episodes=per, why=["NON-GATING: D-plane check from WORLD-frame impact keys only (Trainer --impact_log); golfer-frame face_yaw_deg/club_path_deg not used"])
+    err = sorted(d["start_err_deg"] for d in S)
+    q = lambda f: err[min(len(err) - 1, int(round(f * (len(err) - 1))))] if err else None
+    distinct = len({(round(d["face_world_deg"], 6), None if d["start_deg"] is None else round(d["start_deg"], 6)) for d in per})
+    return dict(n=len(per), start_vs_085face_pass_frac=(sum(d["start_ok"] for d in S) / len(S) if S else None), n_start=len(S),
+                curve_sign_vs_axis_pass_frac=(sum(d["curve_sign_ok"] for d in C) / len(C) if C else None), n_curve_sign=len(C), distinct_starts=distinct,
+                face_world_med_deg=med("face_world_deg"), path_world_med_deg=med("path_world_deg"), start_med_deg=med("start_deg"), start_err_med_deg=med("start_err_deg"),
+                start_err_p10_deg=q(0.1), start_err_p90_deg=q(0.9), start_err_min_deg=(err[0] if err else None), start_err_max_deg=(err[-1] if err else None),
+                spin_loft_med_deg=med("spin_loft_deg"), spin_axis_med_deg=med("spin_axis_deg"))
+
+def dplane_row(eps, rob_eps=None):
+    """v5/dplane (NON-GATING). Graded on the PERTURBED robustness episodes (v4 robustness DR, seeds 7000-7023) when they carry impact keys;
+    the deterministic nominal rollouts are identical copies of one swing, so they are reported only as an n=1 'nominal' sub-entry.
+    If the graded episodes are all identical (distinct_starts == 1 with n > 1) the row is n/a: 24 copies of one swing are not 24 checks."""
+    per_r = _dplane_per(rob_eps); per_n = _dplane_per(eps)
+    src = "robustness (perturbed, v4 robustness DR)" if per_r else "nominal (deterministic)"
+    per = per_r or per_n
+    if not per: return dict(status="n/a", passed=False, gating=False, values=None, tag="info_only", why=["impact logging not available (export lacks DREnv impact_log, or no contact episodes)"])
+    v = _dplane_stats(per); v["source"] = src
+    nom = None
+    if per_n:
+        ns = _dplane_stats(per_n); nd = per_n[0]
+        nom = dict(n=1, n_rollouts=len(per_n), rollouts_identical=ns["distinct_starts"] == 1, face_world_deg=nd["face_world_deg"], path_world_deg=nd["path_world_deg"], start_deg=nd["start_deg"],
+                   start_err_deg=nd["start_err_deg"], start_ok=nd["start_ok"], spin_axis_deg=nd["spin_axis_deg"], spin_loft_deg=nd["spin_loft_deg"], curve_sign_ok=nd["curve_sign_ok"])
+    v["nominal"] = nom
+    why = ["NON-GATING: D-plane check from WORLD-frame impact keys only (Trainer --impact_log); golfer-frame face_yaw_deg/club_path_deg not used", f"graded episodes: {src}, n={v['n']}, distinct_starts={v['distinct_starts']}"]
+    fs, fc = v["start_vs_085face_pass_frac"], v["curve_sign_vs_axis_pass_frac"]
+    if v["n"] > 1 and v["distinct_starts"] == 1:
+        st = "n/a"; why.append("all graded episodes are identical (one swing repeated); a pass fraction over copies is not evidence, so status n/a")
+    else:
+        st = "n/a" if fs is None else ("pass" if fs >= TASK_T["rate"]["pass_"] and (fc is None or fc >= TASK_T["rate"]["pass_"]) else "warn" if fs >= TASK_T["rate"]["warn"] else "fail")
+    return dict(status=st, passed=st == "pass", gating=False, tag="info_only", frame="world, + = left (+y)", thresholds=DPLANE_T, values=v,
+                episodes=per, nominal_episodes=per_n if per_r else None, why=why)
 
 # ---------------------------------------------------------------- assembly
-def apply_v5(r_v4, eps=None, goal=None, run_args=None, club=None, heldout_row=None, heldout2_row=None):
+def apply_v5(r_v4, eps=None, goal=None, run_args=None, club=None, heldout_row=None, heldout2_row=None, rob_eps=None):
     """r_v4: output of eval.harness_v4.apply_v4 (verdict untouched). Adds r['v5'] (all rows non-gating)."""
     out = dict(r_v4); v5 = dict(harness="v5", gate="v4 (unchanged; v5 rows are NON-GATING)", rows={})
     t_rows, per = task_accuracy(eps or [], goal, run_args); v5["rows"].update(t_rows); v5["task_episodes"] = per
@@ -309,7 +336,7 @@ def apply_v5(r_v4, eps=None, goal=None, run_args=None, club=None, heldout_row=No
     if heldout2_row is not None:
         if isinstance(heldout2_row, dict) and "slope_info" in heldout2_row: v5["rows"]["v5/heldout2_slope_info"] = heldout2_row.pop("slope_info")
         v5["rows"]["v5/heldout2_dr_robustness"] = heldout2_row
-    v5["rows"]["v5/dplane"] = dplane_row(eps)
+    v5["rows"]["v5/dplane"] = dplane_row(eps, rob_eps)
     v5["goal_obs"] = bool((run_args or {}).get("goal_obs")); v5["frame"] = FRAME
     v5["v4_verdict"] = r_v4.get("verdict"); out["v5"] = v5
     return out

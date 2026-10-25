@@ -27,6 +27,6 @@ Nominal: club 70.3 mph, smash 1.427, spin 2855, launch 14.7, carry vs golfphys -
 **v5 held-out DR (NON-GATING estimates, `--harness v5 --heldout-dr 24 --heldout2-dr 32`; v4 part reproduced 13/5/1):**
 - heldout-1: .375/.25/.083 (V16y .54/.33/.17, V13h .46/.33/.12).
 - heldout-2 excl. slope (28 eps): .79/.79/.79 (V16y .82). Slope 0/4 (info-only).
-- Driver per-club: smash/launch/spin pass, land angle WARN 26.1 deg (V16y FAIL 20.7). D-plane PASS: start vs 0.85 x face 24/24, curvature sign 24/24 (V16y/V17f 0/24). Task rows n/a (not goal-conditioned).
+- Driver per-club: smash/launch/spin pass, land angle WARN 26.1 deg (V16y FAIL 20.7). D-plane PASS: start vs 0.85 x face 24/24, curvature sign 24/24 (V16y/V17f 0/24). [NOMINAL-ONLY, n=1: graded on identical deterministic rollouts; see results/overnight/DPLANE_CORRECTION.md; corrected V18d 9/22 = .409 FAIL, V16y 10/23 = .435 FAIL] Task rows n/a (not goal-conditioned).
 
 No full pass (robustness fails), so no cinematic render.

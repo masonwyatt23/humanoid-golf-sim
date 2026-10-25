@@ -30,6 +30,6 @@ Nominal V16y / V17f: club 69.8 / 69.7 mph, spin 2911 / 2953, launch 12.3 / 11.8,
 **v5 held-out DR (NON-GATING estimates, `--harness v5 --heldout-dr 24 --heldout2-dr 32`; v4 part reproduced 13/4/2):**
 - heldout-1: V16y .54/.33/.17, V17f .54/.375/.17 (V13h .46/.33/.12).
 - heldout-2 excl. slope (28 eps): .82/.82/.82 both. Contact by dim: torque, latency, loft, trunk, foot 4/4; head mass 3/4; thigh+calf 0/4; slope 0/4 (info-only).
-- Driver per-club land angle FAIL (20.7 / 19.7 deg); smash/launch/spin pass. D-plane FAIL (start vs 0.85 x face 0/24; curvature sign 24/24). Task rows n/a (not goal-conditioned).
+- Driver per-club land angle FAIL (20.7 / 19.7 deg); smash/launch/spin pass. D-plane FAIL (start vs 0.85 x face 0/24; curvature sign 24/24). [NOMINAL-ONLY, n=1: graded on identical deterministic rollouts; see results/overnight/DPLANE_CORRECTION.md; corrected V16y start vs 0.85 x face 10/23 = .435 FAIL, V17f not re-run] Task rows n/a (not goal-conditioned).
 
 No full pass (total/carry fails), so no cinematic render.

@@ -137,6 +137,7 @@ def run_robustness(a, repo, ck, arm, env, P=None):
     J = json.load(open(outp)); os.unlink(outp)
     if J.get("perturb_spec") is None: return dict(status="skip", passed=False, values=None, why=["worker did not apply the perturbation"], ref=None, tag="derived"), []
     E = [_robust_ep(r, J["bw_N"]) for r in J["eps"]]
+    a._last_rob_v5 = [dict(seed=(r.get("seed") if r.get("seed") is not None else s0 + i), contact=bool(r.get("contact")), shot_extra=r.get("shot_extra"), impact=r.get("impact")) for i, r in enumerate(J["eps"])]   # v5/dplane on perturbed eps
     P["floor_mu_nominal"] = J.get("floor_mu_nominal")
     P["floor_mu_note"] = J.get("floor_mu_note")
     return RG.robustness_row(E, P, [s0 + i for i in range(n)]), E
@@ -271,6 +272,7 @@ def run_v5(a):
     from eval import robust_grf as RG
     if getattr(a, "robustness", 0):
         C["mine/robustness"], ROB = run_robustness(a, repo, ck, arm, env, RG.default_perturb(getattr(a, "harness", "v3c")))
+        a._v5_rob_eps = getattr(a, "_last_rob_v5", None)   # main v4 robustness DR episodes only (not wide/stress/held-out)
         if getattr(a, "robust_wide_info", False):   # INFO only: same seeds/noise, env friction U(0.5, 1.2); never gating
             from eval import robust_grf as RG
             w, _ = run_robustness(a, repo, ck, arm, env, RG.wide_perturb(getattr(a, "harness", "v3c")))
@@ -348,7 +350,7 @@ def _apply_v5(a, r):
             if srow is not None: h2["slope_info"] = dict(srow, status="info", gating=False, tag="info_only", label="modelling gap; partial plumb-address option exists on main (ea0b69da, configure(plumb_addr=True), effective only up to about 1% slope per the Trainer)", why=[H5.HELDOUT2_DR["info_only_why"]])
         h2 = dict(h2, gating=False, verdict_if_gating=h2.get("status"), heldout=H5.HELDOUT2_DR, training_dr_assumed=H5.TRAINING_DR,
                   why=["NON-GATING, OPT-IN: held-out DR v5-heldout-2 (new dims, ESTIMATE ranges just outside training; one dim per episode)"] + list(h2.get("why") or []))
-    return H5.apply_v5(r, eps, goal, run_args, a.club, hrow, h2)
+    return H5.apply_v5(r, eps, goal, run_args, a.club, hrow, h2, rob_eps=getattr(a, "_v5_rob_eps", None))
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter); ap.add_argument("target"); ap.add_argument("--env", default="v1", choices=["v1", "v5"])

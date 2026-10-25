@@ -270,3 +270,24 @@ def test_goal_set_is_discriminative():
         a = i / 10; assert sum(abs(a - d) <= dpass for d in dirs) <= len(G) / 2, a
     for c in range(600, 2201):   # constant carry 60-220 m in 0.1 m steps
         c = c / 10; assert sum(100 * abs(c - g["target_carry_m"]) / g["target_carry_m"] <= cpass for g in G) <= len(G) / 2, c
+
+def _dp_ep(face, az, curve, axis, seed=1):
+    return dict(contact=True, seed=seed, impact=_imp(face, 0.0, axis), shot_extra=dict(env_carry_m=150, azimuth_deg=az, env_lateral_m=150 * math.tan(math.radians(az)) + curve, sidespin_rpm=axis * 50, backspin_rpm=3000.0))
+
+def test_dplane_identical_episodes_are_na():
+    r = H.dplane_row([_dp_ep(4.0, 3.4, 5.0, 3.0, seed=s) for s in range(24)])
+    assert r["status"] == "n/a" and r["passed"] is False and r["values"]["distinct_starts"] == 1 and r["values"]["n"] == 24
+    assert any("identical" in w for w in r["why"])
+    assert r["values"]["nominal"]["n"] == 1 and r["values"]["nominal"]["rollouts_identical"] is True
+
+def test_dplane_uses_perturbed_episodes_when_available():
+    nominal = [_dp_ep(4.0, 3.4, 5.0, 3.0, seed=s) for s in range(24)]
+    rob = [_dp_ep(4.0 + 0.1 * i, 0.85 * (4.0 + 0.1 * i) + (5.0 if i < 6 else 0.0), 5.0, 3.0, seed=7000 + i) for i in range(24)]
+    r = H.dplane_row(nominal, rob)
+    v = r["values"]
+    assert v["source"].startswith("robustness") and v["n"] == 24 and v["distinct_starts"] == 24
+    assert v["start_vs_085face_pass_frac"] == 18 / 24 and r["status"] == "warn"
+    assert v["start_err_max_deg"] > 4.9 and abs(v["start_err_min_deg"]) < 1e-9 and v["start_err_p10_deg"] <= v["start_err_med_deg"] <= v["start_err_p90_deg"]
+    assert v["nominal"]["n"] == 1 and v["nominal"]["start_ok"] is True and {e["seed"] for e in r["episodes"]} == set(range(7000, 7024))
+    # robustness episodes without impact keys fall back to nominal (which is then n/a: identical copies)
+    assert H.dplane_row(nominal, [dict(contact=True, seed=7000)])["values"]["source"].startswith("nominal")

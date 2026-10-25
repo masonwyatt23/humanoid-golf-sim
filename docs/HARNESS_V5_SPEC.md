@@ -222,6 +222,11 @@ Not done yet: one persistent process that loads the env once and swaps checkpoin
   It records the WORLD-frame keys (+ = left) `impact_face_world_deg`, `impact_path_world_deg`, `impact_face_to_path_world_deg`, `impact_spin_loft_deg`, `impact_dloft_deg`, `impact_aoa_deg`, `impact_spin_axis_deg`, `impact_sidespin_rpm` on the contact step.
   - Grading (assumptions, ours): start direction (world azimuth) within 2° of 0.85 × face (world); curvature sign equals the spin-axis sign when |axis| ≥ 0.5° and |curve| ≥ 0.5 m.
   - The env's `face_yaw_deg`, `club_path_deg` and ep `face_path` are GOLFER frame (× hand_sign) and are never used here.
+  - **Episodes graded (corrected 2026-10-25 ET).** The row is graded on the PERTURBED v4 robustness episodes (seeds 7000-7023, the `mine/robustness` DR; not the wide/stress/held-out sets) whenever they carry impact keys (`values.source`).
+    Before this fix it was graded on the 24 deterministic nominal rollouts, which are identical copies of one swing, so every earlier "24/24" (V13h, V14, V15, V16 grades) was one nominal swing, not 24 checks.
+  - The nominal swing is reported separately as `values.nominal` (n = 1, with `n_rollouts` and `rollouts_identical`).
+  - `values` also gives `distinct_starts` and the start_err median / p10 / p90 / min / max. If the graded episodes are all identical (distinct_starts = 1, n > 1) the status is n/a with a why line, never pass.
+  - Tests: `test_dplane_identical_episodes_are_na`, `test_dplane_uses_perturbed_episodes_when_available`.
 - **Segment mass (heldout-2).** Training: f = clip(1 + N(0, CV × breadth), 1 ± 2 CV), with inertia scaled by the same f, giving trunk 0.92–1.08, thigh/calf 0.84–1.16, foot 0.86–1.14.
   - Training CVs come from the Data Agent segment-mass rows committed in 75a97112 (`data/references/goalcond_club_shot_shape_dr_refs.csv`, single cadaver study). The held-out band placement is an UNSOURCED engineering estimate (≈2.5–3 SD, NON-GATING): trunk 0.88–0.90 or 1.10–1.12; thigh+calf (one factor) 0.76–0.80 or 1.20–1.24; foot 0.79–0.825 or 1.175–1.21.
   - Applied by the worker as mass and inertia × f on the Trainer's `train.dr_goal.SEG` bodies.
