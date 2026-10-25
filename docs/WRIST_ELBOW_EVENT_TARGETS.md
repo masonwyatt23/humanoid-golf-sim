@@ -9,7 +9,7 @@ Nothing in `env/`, `eval/`, `train/` was changed; the v3/v4_power XMLs were only
 ## 1. Biggest finding: arm roles do not match
 - The env uses `right_*` = **trail (club) arm** and `left_*` = **lead arm** for both handednesses (`docs/HANDEDNESS.md`, which also says a left-hander's physical right limbs belong in the `left_*` columns).
 - Mason's 11-column files store the **anatomical right** arm in cols 2/3 (`joint_convention` string in the npz, `data/process_video.py`). For Mason (left-handed) that is the **lead** arm. So the reference `right_elbow` / `right_wrist` columns that a name-matched reward compares with env `right_elbow` / `right_wrist` are Mason's **lead** arm against the env's **trail** arm.
-- CMU and MultiSense cols 2/3 are the **trail** arm (`data/convert_cmu_mocap.py`: `T` is the trail side). So the unified set mixes roles: CMU/MultiSense are role-correct, Mason is not.
+- CMU and MultiSense cols 2/3 are the **trail** arm (`data/convert_cmu_mocap.py` (held locally): `T` is the trail side). So the unified set mixes roles: CMU/MultiSense are role-correct, Mason is not.
 - I confirmed this by reading code and docs. I did not run the env or the reward.
 - The trail arm (anatomical left for Mason) is not in the 11 columns. This job recomputes it from the stored 33-landmark world track with the same formulas as `landmarks_to_joints`. The lead arm values reproduce the stored columns within a few degrees (cross-check fields in the JSON), which supports the formula port.
 

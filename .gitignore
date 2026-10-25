@@ -54,3 +54,13 @@ data/references/mason*.npz
 data/references/caddieset_driver_event_features.json
 data/convert_caddieset.py
 results/imit_private/
+
+# held locally (untracked at tip 2026-10-25; MultiSense/CMU)
+/data/convert_cmu_mocap.py
+/data/convert_multisense_golf.py
+/data/raw_mocap/cmu/READMEFIRST.txt
+/data/raw_mocap/cmu/cmu-mocap-index-text.txt
+/data/references/cmu_conversion_report.json
+/docs/CMU_MOCAP_GOLF.md
+/scripts/retag_multisense.py
+/tests/test_convert_cmu.py

@@ -123,7 +123,7 @@ No-go: sequence is wrong but ball flight passes -> report both honestly; the bal
 Ramp the speed-gap penalty (100 -> 110 -> 120). Only on the hypothetical tier or with torque x2-x3 / speed x1.5. Go: 3-seed pass at >= 110 mph. Labelled **hypothetical**.
 
 ## 7. Motion priors (soft rewards only)
-- **CMU golf** (public, free for use; `docs/CMU_MOCAP_GOLF.md`; subject not Adam Scott [read]): retarget joint *angles* (anatomical, needs frame mapping) to compute a **phase-free** reward `exp(-d(DTW(q_agent, q_ref)))` on pelvis/thorax/arm angle trajectories, and sequence timing. Weight <= 0.2 (annealed). Right-handed data must be mirrored for the left-hander.
+- **CMU golf** (public, free for use; `docs/CMU_MOCAP_GOLF.md` (held locally); subject not Adam Scott [read]): retarget joint *angles* (anatomical, needs frame mapping) to compute a **phase-free** reward `exp(-d(DTW(q_agent, q_ref)))` on pelvis/thorax/arm angle trajectories, and sequence timing. Weight <= 0.2 (annealed). Right-handed data must be mirrored for the left-hander.
 - **Data Agent targets**: the published segment peak speeds/timing in section 5.3 (public only).
 - **Mason refs (private)**: local-only soft reward on left-shoulder/elbow/wrist rate medians; **the files and any numbers derived from them must not be committed, logged to committed docs, or sent to other agents**; the extracted rates are noted as weak (2D, unknown frame rate) by the Data Agent. Optional, weight <= 0.1, and Stage A/B must pass without it.
 - Priors may shape but never gate: a run without priors is the control for every claim of "from scratch".

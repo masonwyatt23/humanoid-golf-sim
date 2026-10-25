@@ -215,6 +215,8 @@ def test_retag_script_is_idempotent_and_preserves_arrays(tmp_path):
     import shutil
     import sys
     sys.path.insert(0, str(ROOT / "scripts"))
+    if not (ROOT / "scripts/retag_multisense.py").exists():
+        pytest.skip("scripts/retag_multisense.py is held locally (untracked at the tip)")
     import retag_multisense as R
     src = ROOT / "data/references/multisense_P19_s20.npz"
     f = tmp_path / "multisense_P19_s20.npz"
