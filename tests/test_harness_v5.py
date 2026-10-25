@@ -176,7 +176,7 @@ def test_bend_goal_graded_on_spin_axis_with_handedness(handed, shape, side, ok):
 def test_trainer_goal_keys_match_if_clone_present():
     import os
     from pathlib import Path
-    tr = os.environ.get("HGS_TRAINER_REPO") or str(Path(__file__).resolve().parents[2] / "humanoid-golf-scott")
+    tr = os.environ.get("HGS_TRAINER_REPO") or str(Path(__file__).resolve().parents[1])   # main carries train/dr_goal.py itself
     f = Path(tr, "train", "dr_goal.py")
     if not f.exists(): pytest.skip("Trainer dr_goal.py not present")
     t = f.read_text()
