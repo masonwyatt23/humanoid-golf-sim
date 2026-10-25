@@ -27,7 +27,7 @@ If no goal is found, all four task rows are reported as **`n/a (policy not goal-
 
 **Per-episode values** come from the worker's `shot_extra`: `env_carry_m`, `azimuth_deg` and `env_lateral_m`.
 - curvature `curve_y = lateral − carry·tan(azimuth)`, i.e. the bend away from the start line;
-- golfer-frame bend `curve_draw = s·curve_y`, where s = +1 for a right-hander and −1 for a left-hander, so a positive value is a draw. **The sign convention must be confirmed by the Trainer against the env.**
+- golfer-frame bend `curve_draw = s·curve_y`, where s = +1 for a right-hander and −1 for a left-hander, so a positive value is a draw. ****Frame (confirmed by the Trainer 2026-10-25):** the sim world frame has +y = +azimuth = left of the target line (golfphys/impact.py face/path/HLA + left, sidespin/spin axis + draw; golfphys/sim.py `lateral_carry_m`; sim/golf_simulator.py `lateral_carry_yd` + left). v5 reads the WORLD-frame worker fields `shot_extra.azimuth_deg` / `env_lateral_m` (golfphys values from env.v5). Only if those are absent does it fall back to env/humanoid_golf_env.py `info['ball_lateral']` / `info['launch_direction']`, which are GOLFER frame (x hand_sign); it converts them explicitly (world = golfer x hand_sign, hand_sign +1 RH / -1 LH) and records `frame_source`. Draw/fade is a golfer-frame command: a LH draw curves to world right (-y), a LH fade to world left (+y). Every task row records `values.frame` and `values.shape_frame`.**
 - carry error = carry − target, also given as a % of target;
 - direction error = azimuth − target_dir;
 - final lateral error = lateral − (target_carry·tan(target_dir) + commanded curve_y);

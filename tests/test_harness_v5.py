@@ -113,3 +113,26 @@ def test_heldout_payload_and_apply_v5_keeps_v4_verdict():
     assert out["verdict"] == "FAIL" and out["v5"]["v4_verdict"] == "FAIL" and out["v5"]["club"] == "driver"
     assert all(r.get("gating") is False for r in out["v5"]["rows"].values())
     assert out["v5"]["rows"]["v5/heldout_dr_robustness"]["status"] == "skip"
+
+
+@pytest.mark.parametrize("shape,lat,ok", [("draw", -6.0, True), ("draw", +6.0, False), ("fade", +6.0, True), ("fade", -6.0, False)])
+def test_left_handed_draw_and_fade_world_frame(shape, lat, ok):
+    """LH golfer: draw curves to world RIGHT (-y), fade to world LEFT (+y); RH is the mirror."""
+    g = H.validate_goal(dict(target_carry_m=150, shape=shape, curve_m=6, handed="left"))
+    t = H.task_episode(H.shot_geometry(dict(env_carry_m=150, azimuth_deg=0.0, env_lateral_m=lat)), g)
+    assert t["shape_ok"] is ok
+    g_rh = H.validate_goal(dict(target_carry_m=150, shape=shape, curve_m=6, handed="right"))
+    assert H.task_episode(H.shot_geometry(dict(env_carry_m=150, azimuth_deg=0.0, env_lateral_m=-lat)), g_rh)["shape_ok"] is ok
+
+def test_golfer_frame_fallback_converted_with_hand_sign():
+    # humanoid_golf_env info: ball_lateral/launch_direction are golfer frame (x hand_sign). LH: golfer +6 -> world -6.
+    geo = H.shot_geometry(dict(carry=150, ball_lateral=6.0, launch_direction=2.0), handed="left")
+    assert geo["lateral_m"] == -6.0 and geo["azimuth_deg"] == -2.0 and geo["frame_source"].startswith("golfer")
+    assert H.shot_geometry(dict(carry=150, ball_lateral=6.0, launch_direction=2.0), handed="right")["lateral_m"] == 6.0
+    w = H.shot_geometry(dict(env_carry_m=150, azimuth_deg=1.0, env_lateral_m=3.0, ball_lateral=-99, launch_direction=-99), handed="left")
+    assert w["lateral_m"] == 3.0 and w["frame_source"] == "world"   # world fields win
+
+def test_rows_record_frame():
+    rows, _ = H.task_accuracy([ep(150, 0, -6)], dict(target_carry_m=150, shape="draw", curve_m=6, handed="left"))
+    assert all("world" in r["values"]["frame"] for r in rows.values())
+    na, _ = H.task_accuracy([ep(150, 0, 0)]); assert all("world" in r["values"]["frame"] for r in na.values())

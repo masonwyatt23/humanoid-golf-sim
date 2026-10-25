@@ -43,16 +43,25 @@ def find_goal(ep=None, run_args=None, cli_goal=None):
 
 def draw_sign(handed):
     """World +y = left of the +x target line (MuJoCo right-handed frame, z up). A right-hander's draw curves left (+y), a left-hander's right (-y).
-    SIGN CONVENTION TO BE CONFIRMED by the Trainer against the env's lateral_carry_m sign."""
+    Confirmed by the Trainer 2026-10-25: sim world frame +y / +azimuth = left of target (golfphys/impact.py, golfphys/sim.py lateral_carry_m,
+    sim/golf_simulator.py lateral_carry_yd); env.v5 shot azimuth_deg / lateral_carry_m are golfphys world-frame values."""
     return 1.0 if handed == "right" else -1.0
 
-def shot_geometry(shot_extra):
-    """From the worker's per-episode shot_extra: carry (m), start azimuth (deg), lateral at carry (m), curvature = lateral - carry*tan(azimuth) (m, world y)."""
+FRAME = "world (+y = +azimuth = left of the +x target line; golfphys/env.v5 shot_extra azimuth_deg, env_lateral_m)"
+
+def hand_sign(handed): return 1.0 if str(handed).lower().startswith("r") else -1.0
+
+def shot_geometry(shot_extra, handed="left"):
+    """WORLD-frame carry (m), start azimuth (deg), lateral at carry (m), curvature = lateral - carry*tan(azimuth) (m, world y).
+    Preferred: worker shot_extra env_carry_m / azimuth_deg / env_lateral_m (golfphys world frame). Fallback ONLY when those are absent:
+    env/humanoid_golf_env.py info 'ball_lateral' / 'launch_direction' (+ 'carry'), which are GOLFER frame (x hand_sign) -> world = golfer * hand_sign."""
     s = shot_extra or {}
-    c, az, lat = s.get("env_carry_m"), s.get("azimuth_deg"), s.get("env_lateral_m")
+    c, az, lat = s.get("env_carry_m"), s.get("azimuth_deg"), s.get("env_lateral_m"); src = "world"
+    if (az is None or lat is None) and s.get("ball_lateral") is not None and s.get("launch_direction") is not None:
+        hs = hand_sign(handed); lat = float(s["ball_lateral"]) * hs; az = float(s["launch_direction"]) * hs; c = s.get("carry", c); src = "golfer->world (x hand_sign)"
     if c is None or az is None or lat is None: return None
     c, az, lat = float(c), float(az), float(lat)
-    return dict(carry_m=c, azimuth_deg=az, lateral_m=lat, curve_y_m=lat - c * math.tan(math.radians(az)))
+    return dict(carry_m=c, azimuth_deg=az, lateral_m=lat, curve_y_m=lat - c * math.tan(math.radians(az)), frame_source=src)
 
 # Thresholds (PROVISIONAL, ours, NON-GATING; held for counsel). Direction pass/warn reuse the v4 start-direction band (R22-01, |az| pass<=7 warn<=9).
 TASK_T = dict(carry_err_pct=dict(pass_=5.0, warn=10.0, src="assumption (ours): |carry - target| as % of target"),
@@ -81,11 +90,11 @@ def task_accuracy(eps, goal=None, run_args=None):
     rows = {}; per = []
     g0, src = find_goal(eps[0] if eps else None, run_args, goal)
     if g0 is None:
-        na = dict(status="n/a", passed=False, gating=False, values=None, why=[NA], tag="info_only")
+        na = dict(status="n/a", passed=False, gating=False, values=dict(frame=FRAME), why=[NA], tag="info_only")
         return {k: dict(na) for k in ("v5/task_carry_error", "v5/task_direction_error", "v5/task_lateral_error", "v5/task_draw_fade")}, []
     for e in eps:
         g, _ = find_goal(e, run_args, goal)
-        geo = shot_geometry(e.get("shot_extra")) if e.get("contact") else None
+        geo = shot_geometry(e.get("shot_extra"), (g or {}).get("handed", "left")) if e.get("contact") else None
         if geo is None: per.append(dict(seed=e.get("seed"), contact=bool(e.get("contact")), goal=g)); continue
         per.append(dict(seed=e.get("seed"), contact=True, goal=g, **geo, **task_episode(geo, g)))
     ok = [p for p in per if "carry_err_m" in p]; n = len(per)
@@ -95,7 +104,8 @@ def task_accuracy(eps, goal=None, run_args=None):
         else:
             vals = sorted(abs(p[key]) for p in ok); med = vals[len(vals) // 2]; ps = [_band(abs(p[key]), thr["pass_"], thr["warn"]) == "pass" for p in ok]
         r = sum(ps) / len(ok); st = "pass" if r >= TASK_T["rate"]["pass_"] else "warn" if r >= TASK_T["rate"]["warn"] else "fail"
-        return dict(status=st, passed=st == "pass", gating=False, tag="provisional (held for counsel)", values=dict(n=n, n_contact=len(ok), pass_rate=r, median_abs=med, goal_source=src),
+        return dict(status=st, passed=st == "pass", gating=False, tag="provisional (held for counsel)", values=dict(n=n, n_contact=len(ok), pass_rate=r, median_abs=med, goal_source=src, frame=FRAME,
+                                                                                               shape_frame="golfer (draw = curve toward the trail->lead side: world +y for RH, -y for LH)"),
                     why=[f"{label}: {sum(ps)}/{len(ok)} contact episodes pass ({r:.2f}); NON-GATING, thresholds provisional"], ref=(thr or {}).get("src"))
     rows["v5/task_carry_error"] = rate_row("carry", "carry_err_pct", TASK_T["carry_err_pct"], "carry error <= 5% of target (warn 10%)")
     rows["v5/task_direction_error"] = rate_row("dir", "dir_err_deg", TASK_T["dir_err_deg"], "start-direction error <= 7 deg (warn 9)")
@@ -132,7 +142,7 @@ def club_band_rows(medians, club, bands=None):
     held = "held for counsel" in cb["status"]
     for k, b in cb["bands"].items():
         st = _grade(medians.get(k), b)
-        out[f"v5/club_{club}_{k}"] = dict(status=st if st != "skip" else "skip", passed=st == "pass", gating=False, values=dict(median=medians.get(k), band=b),
+        out[f"v5/club_{club}_{k}"] = dict(frame="n/a (scalar launch metrics)", status=st if st != "skip" else "skip", passed=st == "pass", gating=False, values=dict(median=medians.get(k), band=b),
                                           tag=("held for counsel" if held else "sourced (v4 driver band)"), why=[f"{club} {k}: {st}; NON-GATING" + ("; band HELD FOR COUNSEL" if held else "")])
     return out
 
