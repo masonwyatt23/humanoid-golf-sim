@@ -47,7 +47,7 @@ def spin_axis_target_deg(face_to_path_deg, spin_loft_deg, handed="LH"):
     return -a if handed == "LH" else a
 
 class DREnv(JEnv):
-    dr = False; dr_stage = 0; goal_obs = False; goal_w = 0.0; impact_log = False
+    dr = False; dr_stage = 0; goal_obs = False; goal_w = 0.0; dr_slope_p = None; dr_hi_breadth = None; dr_slope_max = None; impact_log = False
     def __init__(self, dt=0.002, seed=0, keys=None, res_scale=1.0, t_down=0.27):
         if seed >= SEED_MAX: raise SystemExit(f"DR SEED GUARD: training env seed {seed} >= {SEED_MAX} (held-out seeds 910000-910023)")
         super().__init__(dt=dt, seed=seed, keys=keys, res_scale=res_scale, t_down=t_down); self.goal = None; self._next_goal = None; self.dr_log = None; self._abuf = None; self._lat = 0
@@ -70,11 +70,11 @@ class DREnv(JEnv):
         lo_b, hi_b, p = spec
         if hi_on and self.rng2.random() < p:
             b = hi_b if isinstance(hi_b[0], float) else hi_b[self.rng2.integers(len(hi_b))]
-            return float(self.rng2.uniform(*b))
+            hb = 1.0 if self.dr_hi_breadth is None else float(self.dr_hi_breadth); return float(self.rng2.uniform(b[0], b[0] + (b[1] - b[0]) * hb))   # --dr_hi_breadth (default None = full band)
         return float(lo_b[0] + self.rng2.random() * (lo_b[1] - lo_b[0]) * sc) if spec is not DR["mu"] else float(self.rng2.uniform(1.0 - (1.0 - lo_b[0]) * sc, 1.0 + (lo_b[1] - 1.0) * sc))
     def _mag(self, spec, n, sc, hi_on):   # per-component magnitudes with random sign
         lo_b, hi_b, p = spec; hi = self.rng2.random(n) < (p if hi_on else 0.0)
-        m = np.where(hi, self.rng2.uniform(hi_b[0], hi_b[1], n), self.rng2.uniform(lo_b[0], lo_b[0] + (lo_b[1] - lo_b[0]) * sc, n))
+        hb = 1.0 if self.dr_hi_breadth is None else float(self.dr_hi_breadth); m = np.where(hi, self.rng2.uniform(hi_b[0], hi_b[0] + (hi_b[1] - hi_b[0]) * hb, n), self.rng2.uniform(lo_b[0], lo_b[0] + (lo_b[1] - lo_b[0]) * sc, n))
         return m * self.rng2.choice((-1.0, 1.0), n)
     def _model_base(self):
         m = self.env.m
@@ -92,8 +92,9 @@ class DREnv(JEnv):
         cb = m.body("club").id; dm = (self.rng2.uniform(*DR["head_g"]) - 200.0) * sc / 1000.0; hp = m.geom_pos[e.head_geom]; M = bm[cb]
         m.body_mass[cb] = M + dm; m.body_ipos[cb] = (M * bp[cb] + dm * hp) / (M + dm); m.body_inertia[cb] = bi[cb] * (M + dm) / M; L["head_dm_g"] = round(dm * 1000, 2)
         dl = math.radians(self.rng2.uniform(-1, 1) * DR["loft_deg"] * sc); q = np.zeros(4); mujoco.mju_axisAngle2Quat(q, np.array([0.0, 1.0, 0.0]), dl); qo = np.zeros(4); mujoco.mju_mulQuat(qo, gq[e.head_geom], q); m.geom_quat[e.head_geom] = qo; L["loft_d_deg"] = round(math.degrees(dl), 3)
-        if self.rng2.random() < DR["slope_p"]:
-            g = self.rng2.uniform(0, DR["slope_max"] * sc); az = self.rng2.uniform(0, 2 * math.pi); t = math.atan(g); G = float(np.linalg.norm(gr))
+        if self.rng2.random() < (DR["slope_p"] if self.dr_slope_p is None else float(self.dr_slope_p)):   # --dr_slope_p (default None = 0.5)
+            g = self.rng2.uniform(0, (DR["slope_max"] if self.dr_slope_max is None else float(self.dr_slope_max)) * sc);   # --dr_slope_max (default None = 0.07)
+            az = self.rng2.uniform(0, 2 * math.pi); t = math.atan(g); G = float(np.linalg.norm(gr))
             m.opt.gravity[:] = (G * math.sin(t) * math.cos(az), G * math.sin(t) * math.sin(az), -G * math.cos(t)); L["slope"] = (round(g, 4), round(math.degrees(az), 1))
         e.tau[:] = tau * self.rng2.uniform(1.0 - (DR["tau"][1] - DR["tau"][0]) * sc, DR["tau"][1]); L["tau_scale"] = round(float(e.tau[0] / tau[0]), 4)
         mu = self._band(DR["mu"], sc, hi_on); m.geom_friction[e.floor, 0] = mu; L["mu"] = round(mu, 4)
@@ -102,6 +103,10 @@ class DREnv(JEnv):
     def reset(self, **kw):
         if kw.get("seed") is not None and HELDOUT["seeds"][0] <= int(kw["seed"]) <= HELDOUT["seeds"][1]: raise SystemExit("DR SEED GUARD: held-out seed passed to a training env")
         if self._next_goal is not None: self.goal = self._next_goal
+        elif getattr(self, "goal_sample", False):   # --goal_sample (default off): per-episode training goal (train/goal_task.py); set_goal() still overrides (eval)
+            from train.goal_task import sample_goal, curr_c
+            if getattr(self, "_goal_rng", None) is None: self._goal_rng = np.random.default_rng(1_000_003 + int(kw.get("seed") if kw.get("seed") is not None else (getattr(self.rng2.bit_generator.seed_seq, 'entropy', 0) or 0) % (1 << 31)))
+            self.goal = sample_goal(self._goal_rng, curr_c(getattr(self, "progress", 0.0), getattr(self, "goal_curr", None)))
         if getattr(self.ref, "_plumb_base", None) is not None: self.ref = self.ref._plumb_base   # --plumb_addr: drop last episode's offset reference
         if not self.dr:
             out = super().reset(**kw); self._abuf = None
@@ -125,9 +130,10 @@ class DREnv(JEnv):
         if (te or tr) and "ep" in info:
             if self.goal is not None:
                 info["ep"]["goal"] = dict(self.goal); g = self.goal
-                if self.goal_w > 0 and info["ep"].get("contact"):
-                    ec = abs(float(info["ep"].get("carry", 0.0)) - float(g["target_carry"])) / max(float(g["target_carry"]), 1.0); ed = abs(float(info["ep"].get("az", 0.0)) - float(g["target_dir"])) / 10.0
-                    r += self.goal_w * (2.0 - min(ec, 1.0) - min(ed, 1.0))
+                if self.goal_w > 0 and info.get("contact"):   # --goal_w: harness-v5-shaped task reward (train/goal_task.py docstring); 0 when off
+                    from train.goal_task import task_reward
+                    gr, gl = task_reward(info, g, self.goal_w); r += gr
+                    if gl: info["ep"].update(gl)
             if self.dr: info["ep"]["dr"] = self.dr_log
         if self.impact_log and info.get("contact") and "face_yaw_deg" in info:   # --impact_log (default off): WORLD-frame impact geometry, + = LEFT (+y, target +x). Info/ep only; reward untouched
             hs = 1.0 if self.env.handed.upper().startswith("R") else -1.0          # env face_yaw_deg/club_path_deg are golfer-frame (world x hs); undo it

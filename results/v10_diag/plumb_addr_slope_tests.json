@@ -1,0 +1,352 @@
+{
+ "label": "LOCAL, NOT OFFICIAL",
+ "code": "66ec75f (main ea0b69da) DREnv --plumb_addr; scripts/slope_diag.py",
+ "ckpt": "V10l_s104_100000/ckpt_100000 (HGS_V10L_CKPT, not in git)",
+ "seeds": "920000+i, i<n; slope azimuth from np.random.default_rng(0) per run (same azimuths off vs on)",
+ "rows": [
+  {
+   "policy": "v10l",
+   "plumb_addr": true,
+   "slope": 0.0,
+   "n": 6,
+   "contact": 6,
+   "fell": 0,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": true,
+   "slope": 0.03,
+   "n": 6,
+   "contact": 1,
+   "fell": 1,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": true,
+   "slope": 0.07,
+   "n": 6,
+   "contact": 1,
+   "fell": 4,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": true,
+   "slope": 0.09,
+   "n": 6,
+   "contact": 1,
+   "fell": 4,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": false,
+   "slope": 0.0,
+   "n": 6,
+   "contact": 6,
+   "fell": 0,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": false,
+   "slope": 0.03,
+   "n": 6,
+   "contact": 1,
+   "fell": 2,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": false,
+   "slope": 0.07,
+   "n": 6,
+   "contact": 0,
+   "fell": 4,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": false,
+   "slope": 0.09,
+   "n": 6,
+   "contact": 0,
+   "fell": 5,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "zero",
+   "plumb_addr": true,
+   "slope": 0.0,
+   "n": 6,
+   "contact": 6,
+   "fell": 0,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "zero",
+   "plumb_addr": true,
+   "slope": 0.03,
+   "n": 6,
+   "contact": 2,
+   "fell": 1,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "zero",
+   "plumb_addr": true,
+   "slope": 0.07,
+   "n": 6,
+   "contact": 1,
+   "fell": 4,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "zero",
+   "plumb_addr": true,
+   "slope": 0.09,
+   "n": 6,
+   "contact": 1,
+   "fell": 2,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "zero",
+   "plumb_addr": false,
+   "slope": 0.0,
+   "n": 6,
+   "contact": 6,
+   "fell": 0,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "zero",
+   "plumb_addr": false,
+   "slope": 0.03,
+   "n": 6,
+   "contact": 3,
+   "fell": 0,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "zero",
+   "plumb_addr": false,
+   "slope": 0.07,
+   "n": 6,
+   "contact": 0,
+   "fell": 4,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "zero",
+   "plumb_addr": false,
+   "slope": 0.09,
+   "n": 6,
+   "contact": 0,
+   "fell": 5,
+   "qacc_eps": 0
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": false,
+   "slope": 0.005,
+   "n": 6,
+   "contact": 3,
+   "fell": 0,
+   "qacc_eps": 0,
+   "run": "small-slope"
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": true,
+   "slope": 0.005,
+   "n": 6,
+   "contact": 5,
+   "fell": 0,
+   "qacc_eps": 0,
+   "run": "small-slope"
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": false,
+   "slope": 0.01,
+   "n": 6,
+   "contact": 2,
+   "fell": 2,
+   "qacc_eps": 0,
+   "run": "small-slope"
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": true,
+   "slope": 0.01,
+   "n": 6,
+   "contact": 6,
+   "fell": 0,
+   "qacc_eps": 0,
+   "run": "small-slope"
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": false,
+   "slope": 0.02,
+   "n": 6,
+   "contact": 2,
+   "fell": 2,
+   "qacc_eps": 0,
+   "run": "small-slope"
+  },
+  {
+   "policy": "v10l",
+   "plumb_addr": true,
+   "slope": 0.02,
+   "n": 6,
+   "contact": 2,
+   "fell": 0,
+   "qacc_eps": 0,
+   "run": "small-slope"
+  }
+ ],
+ "sole_ik_failures": [
+  {
+   "policy": "v10l",
+   "slope": 0.07,
+   "az_deg": 309,
+   "sole_pos_res_mm": [
+    9.3822,
+    11.0249
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 8.92,
+   "max_leg_delta_deg": 45.837
+  },
+  {
+   "policy": "v10l",
+   "slope": 0.07,
+   "az_deg": 263,
+   "sole_pos_res_mm": [
+    29.7355,
+    17.2111
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 4.07,
+   "max_leg_delta_deg": 45.837
+  },
+  {
+   "policy": "v10l",
+   "slope": 0.07,
+   "az_deg": 311,
+   "sole_pos_res_mm": [
+    7.6708,
+    9.8305
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 9.07,
+   "max_leg_delta_deg": 45.837
+  },
+  {
+   "policy": "v10l",
+   "slope": 0.09,
+   "az_deg": 241,
+   "sole_pos_res_mm": [
+    45.8099,
+    24.1153
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 3.99,
+   "max_leg_delta_deg": 45.837
+  },
+  {
+   "policy": "v10l",
+   "slope": 0.09,
+   "az_deg": 233,
+   "sole_pos_res_mm": [
+    41.6415,
+    16.8387
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 3.39,
+   "max_leg_delta_deg": 45.837
+  },
+  {
+   "policy": "zero",
+   "slope": 0.07,
+   "az_deg": 309,
+   "sole_pos_res_mm": [
+    9.3822,
+    11.0249
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 8.92,
+   "max_leg_delta_deg": 45.837
+  },
+  {
+   "policy": "zero",
+   "slope": 0.07,
+   "az_deg": 263,
+   "sole_pos_res_mm": [
+    29.7355,
+    17.2111
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 4.07,
+   "max_leg_delta_deg": 45.837
+  },
+  {
+   "policy": "zero",
+   "slope": 0.07,
+   "az_deg": 311,
+   "sole_pos_res_mm": [
+    7.6708,
+    9.8305
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 9.07,
+   "max_leg_delta_deg": 45.837
+  },
+  {
+   "policy": "zero",
+   "slope": 0.09,
+   "az_deg": 241,
+   "sole_pos_res_mm": [
+    45.8099,
+    24.1153
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 3.99,
+   "max_leg_delta_deg": 45.837
+  },
+  {
+   "policy": "zero",
+   "slope": 0.09,
+   "az_deg": 233,
+   "sole_pos_res_mm": [
+    41.6415,
+    16.8387
+   ],
+   "contact": false,
+   "fell": true,
+   "club_lift_mm": 3.39,
+   "max_leg_delta_deg": 45.837
+  }
+ ],
+ "caveats": [
+  "V10l was never trained on slopes; remaining failures at >=2% look like the policy, not the env setup",
+  "6-DOF leg IK fails (sole error 8-46 mm) for some slope azimuths, probably joint limits; feet not flat in those episodes",
+  "club lift up to ~12 mm at 7-9% changes face-to-ball height at address",
+  "mid-swing RSI starts (modes 1/2) are not corrected",
+  "leg offsets (6-40 deg) are held for the whole swing via the reference",
+  "target (contact at 7% within 0.15 of flat for V10l) NOT met: 1/6 vs 6/6"
+ ]
+}
