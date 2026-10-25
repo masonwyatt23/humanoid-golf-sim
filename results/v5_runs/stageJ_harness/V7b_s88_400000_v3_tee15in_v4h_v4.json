@@ -1,0 +1,1932 @@
+{
+ "tee_info": {
+  "head": {
+   "mode": "v4",
+   "source": "Trainer v4 env (env_v4 / set_env_v4), cross-checked vs eval/harness_v4.V4_SPEC",
+   "face_limits_m": [
+    0.027,
+    0.0525
+   ],
+   "measured": {
+    "face_centre_z_ground_m": 0.028999999999999915,
+    "cfz_m": 0.038999999999999944,
+    "lie_deg": 58.5,
+    "izz_gcm2": 5600.000000000001,
+    "tee_15in_ball_centre_m": 0.059435,
+    "tee_16in_ball_centre_m": 0.062,
+    "face_half_h_m": 0.027,
+    "face_half_w_m": 0.0525
+   },
+   "expected": {
+    "face_centre_z_ground_m": 0.029,
+    "cfz_m": 0.039,
+    "lie_deg": 58.5,
+    "izz_gcm2": 5600.0,
+    "tee_15in_ball_centre_m": 0.059434999999999995,
+    "tee_16in_ball_centre_m": 0.061975,
+    "face_half_h_m": 0.027,
+    "face_half_w_m": 0.0525
+   },
+   "geometry": {
+    "crown_tee_ball_z_m": 0.062,
+    "default_tee_ball_z_m": 0.062,
+    "tee_15in": {
+     "ball_centre_z_m": 0.059435,
+     "ball_bottom_z_m": 0.0381,
+     "ball_radius_m": 0.021335,
+     "head_half_height_m": 0.027,
+     "face_centre_z_m": 0.028999999999999915,
+     "crown_z_m": 0.062,
+     "crown_boxtop_z_m": 0.06833019630255809,
+     "crown_maxcorner_z_m": 0.06200000000000014,
+     "sole_min_z_m": 1.3877787807814457e-16,
+     "face_up": [
+      -0.18223552549214747,
+      -0.0,
+      0.9832549075639543
+     ],
+     "ball_minus_face_centre_along_up_m": 0.026011355247188468,
+     "head": "realistic",
+     "crown_source": "env _head_geo crown_z (Trainer _crown_tee_dz definition: sole clearance + sourced crown height)",
+     "crown_shell_maxcorner_z_m": 0.06200000000000014,
+     "face_formula_crown_z_m": 0.05554788250422668,
+     "plate_half_height_m": 0.04,
+     "face_centre_above_sole_m": 0.028999999999999776,
+     "crown_above_sole_m": 0.062,
+     "ball_xy_m": [
+      0.1,
+      0.5
+     ],
+     "face_centre_xy_m": [
+      0.07852225654712303,
+      0.49999999999999994
+     ]
+    },
+    "tee_crown": {
+     "ball_centre_z_m": 0.062,
+     "ball_bottom_z_m": 0.040665,
+     "ball_radius_m": 0.021335,
+     "head_half_height_m": 0.027,
+     "face_centre_z_m": 0.028999999999999915,
+     "crown_z_m": 0.062,
+     "crown_boxtop_z_m": 0.06833019630255809,
+     "crown_maxcorner_z_m": 0.06200000000000014,
+     "sole_min_z_m": 1.3877787807814457e-16,
+     "face_up": [
+      -0.18223552549214747,
+      -0.0,
+      0.9832549075639543
+     ],
+     "ball_minus_face_centre_along_up_m": 0.02853340408509001,
+     "head": "realistic",
+     "crown_source": "env _head_geo crown_z (Trainer _crown_tee_dz definition: sole clearance + sourced crown height)",
+     "crown_shell_maxcorner_z_m": 0.06200000000000014,
+     "face_formula_crown_z_m": 0.05554788250422668,
+     "plate_half_height_m": 0.04,
+     "face_centre_above_sole_m": 0.028999999999999776,
+     "crown_above_sole_m": 0.062,
+     "ball_xy_m": [
+      0.1,
+      0.5
+     ],
+     "face_centre_xy_m": [
+      0.07852225654712303,
+      0.49999999999999994
+     ]
+    },
+    "crown_z_m": 0.062,
+    "sole_min_z_m": 1.3877787807814457e-16,
+    "address_json": "env/models/v5_address_LH_115_v4.json",
+    "sole_clear_measured_m": 1.3877787807814457e-16,
+    "crown_above_ground_m": 0.062,
+    "swingweight": {
+     "m_butt_g": 5.673045907143257,
+     "z_box_m": -1.2028307723501885,
+     "z_real_m": -1.2191407793332254
+    },
+    "v4_dict": {
+     "fc_z_ground": 0.029,
+     "sole_clear": 0.0,
+     "fc_shaft": 0.039,
+     "izz": 0.00056,
+     "tee_15in_bottom": 0.0381
+    },
+    "address_json_lie_deg": 58.5,
+    "address_json_ball_pos": [
+     0.1,
+     0.5,
+     0.062
+    ]
+   },
+   "check": "passed"
+  },
+  "mode": "1.5in",
+  "args_env_v4": true,
+  "args_tee_mode": "1.5in",
+  "args": {
+   "tee_dz": null,
+   "ball_dx": null,
+   "face_h": null,
+   "tee_mode": "1.5in"
+  },
+  "tee_dz_used_m": 0.0,
+  "ball_dx_used_m": 0.0,
+  "face_h_used_m": null,
+  "tee_mode_used": "1.5in",
+  "crown": {
+   "source": "env tee_mode '1.5in' (ball bottom 38.1 mm above ground)"
+  },
+  "geometry": {
+   "ball_centre_z_m": 0.059435,
+   "ball_bottom_z_m": 0.0381,
+   "ball_radius_m": 0.021335,
+   "head_half_height_m": 0.027,
+   "face_centre_z_m": 0.028999999999999915,
+   "crown_z_m": 0.062,
+   "crown_boxtop_z_m": 0.06833019630255809,
+   "crown_maxcorner_z_m": 0.06200000000000014,
+   "sole_min_z_m": 1.3877787807814457e-16,
+   "face_up": [
+    -0.18223552549214747,
+    -0.0,
+    0.9832549075639543
+   ],
+   "ball_minus_face_centre_along_up_m": 0.026011355247188468,
+   "head": "realistic",
+   "crown_source": "env _head_geo crown_z (Trainer _crown_tee_dz definition: sole clearance + sourced crown height)",
+   "crown_shell_maxcorner_z_m": 0.06200000000000014,
+   "face_formula_crown_z_m": 0.05554788250422668,
+   "plate_half_height_m": 0.04,
+   "face_centre_above_sole_m": 0.028999999999999776,
+   "crown_above_sole_m": 0.062,
+   "ball_xy_m": [
+    0.1,
+    0.5
+   ],
+   "face_centre_xy_m": [
+    0.07852225654712303,
+    0.49999999999999994
+   ]
+  },
+  "note": "tee/ball geometry read after reset at the address pose (seed 0, no perturbation)"
+ },
+ "strike_episodes": [
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  },
+  {
+   "strike_dy_mm": 6.195856620129068,
+   "strike_dz_mm": -23.7396872846376,
+   "strike_centre": {
+    "dz_used_m": 0.0,
+    "dy_m": 0.006195856620129068,
+    "smash": 1.4578532794327332,
+    "spin_rpm": 2147.1316567111035,
+    "backspin_rpm": 1984.5675368434236,
+    "launch_deg": 11.808731276281652,
+    "ball_speed_mph": 99.41124167754627,
+    "carry_m_noroll": 102.74573496912768
+   }
+  }
+ ],
+ "harness_v3": {
+  "harness": "v4",
+  "robust_wide_info": true,
+  "grf_method": "butter",
+  "grf_source": null,
+  "robustness_n": 24,
+  "robust_seed0": 7000,
+  "base_run": "v3c",
+  "bands": "v3d"
+ },
+ "timing_resolution": null,
+ "key": "V7b_s88_400000/ckpt_400000",
+ "arm_dist": 0.6,
+ "strike_gate_nx": null,
+ "n_foul": 0,
+ "env": "v5 (G1, club_len 1.15, tether 0, strike gate OFF, arm_dist 0.6 [BEnv, as B2-B4/C train])",
+ "n_episodes": 24,
+ "true_contact": 24,
+ "checks": {
+  "swing/kinematic_sequence_order": {
+   "status": "warn",
+   "passed": false,
+   "values": {
+    "pelvis": 1.212,
+    "thorax": 1.296,
+    "arm": 1.292,
+    "club": 1.292
+   },
+   "expected": [
+    "pelvis",
+    "thorax",
+    "arm",
+    "club"
+   ],
+   "why": [
+    "v3d: pelvis first, club last, thorax/arm tie or inversion <= 30 ms allowed (DERIVED)"
+   ],
+   "ref": "Cheetham 2008 (pros), Parker 2018, Tinmark 2007 (n=47)",
+   "tag": "published",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "warn": 24
+   }
+  },
+  "swing/kinematic_sequence_timing_ms_before_club_peak": {
+   "status": "warn",
+   "passed": false,
+   "values": {
+    "pelvis": 80.0,
+    "thorax": -4.0,
+    "arm": 0.0
+   },
+   "expected": {
+    "arm_to_club_min_ms": 20.0,
+    "thorax_arm_inversion_max_ms": 30.0,
+    "pelvis_min_ms": 15.0,
+    "max_ms": 150.0
+   },
+   "why": [
+    "arm peaks 0 ms before club (< 20 ms required, DERIVED Cheetham amateur 64-2x23)"
+   ],
+   "ref": "derived: roughly +/-50 % around the Cheetham means",
+   "tag": "assumption",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "warn": 24
+   }
+  },
+  "swing/peak_speed_pelvis_deg_s": {
+   "status": "warn",
+   "passed": false,
+   "values": 243.0,
+   "expected": "v3d floor >= 250 deg/s (DERIVED, Cheetham 2008 amateur -2 SD, lowered); info target ~340",
+   "why": [
+    "243.0 deg/s vs floor 250"
+   ],
+   "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
+   "tag": "derived",
+   "extrapolated": true,
+   "episode_status_counts": {
+    "warn": 24
+   },
+   "info_target_dps": 340.0
+  },
+  "swing/peak_speed_thorax_deg_s": {
+   "status": "pass",
+   "passed": true,
+   "values": 737.4,
+   "expected": "597 x [0.7, 1.3]",
+   "why": [
+    "1.24 x target at 68 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+   ],
+   "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
+   "tag": "derived",
+   "extrapolated": true,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "swing/peak_speed_arm_deg_s": {
+   "status": "pass",
+   "passed": true,
+   "values": 687.7,
+   "expected": "783 x [0.7, 1.3]",
+   "why": [
+    "0.88 x target at 68 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+   ],
+   "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
+   "tag": "derived",
+   "extrapolated": true,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "swing/peak_speed_club_deg_s": {
+   "status": "pass",
+   "passed": true,
+   "values": 1867.3,
+   "expected": "1834 x [0.7, 1.3]",
+   "why": [
+    "1.02 x target at 68 mph (target EXTRAPOLATED beyond measured 88-109 mph)"
+   ],
+   "ref": "kseq-reference scaling_to_chs (Cheetham two-group power-law fit, data/speed_gap_100_120.py)",
+   "tag": "derived",
+   "extrapolated": true,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "swing/x_factor_top_deg": {
+   "status": "pass",
+   "passed": true,
+   "values": 61.4,
+   "expected": [
+    40,
+    65
+   ],
+   "why": [
+    "max |thorax - pelvis| before impact (published 24-59 deg, method dependent); stretch not checked"
+   ],
+   "ref": "Parker 54.9+-7.9 (elite), Myers 44.2/49.5/59.1, Hume review 24-38 (long vs short hitters), Burden 70; kseq doc recommends 45-62",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "swing/actuator_torque_speed_limits": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "expected": null,
+   "why": [
+    "pass tier='stock'|'elite' to enable"
+   ],
+   "ref": null,
+   "tag": null,
+   "extrapolated": false,
+   "episode_status_counts": {
+    "skip": 24
+   }
+  },
+  "swing/pelvis_yaw_avg_torque_Nm": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "expected": null,
+   "why": [
+    "no torque:pelvis_yaw trace"
+   ],
+   "ref": null,
+   "tag": null,
+   "extrapolated": false,
+   "episode_status_counts": {
+    "skip": 24
+   }
+  },
+  "swing/grf_lead_vertical_bw": {
+   "status": "warn",
+   "passed": false,
+   "values": {
+    "peak": 1.852,
+    "min": 0.0,
+    "method": "butter"
+   },
+   "expected": [
+    0.8,
+    1.7
+   ],
+   "why": [
+    "peak lead-foot vertical force in body weights, WINDOWED top of backswing -> impact (+20 ms jitter allowance when method=butter), de-spiked (butter); bands unchanged (pass [0.8, 1.7], warn [0.5, 2.4], FAIL outside warn); PROVISIONAL"
+   ],
+   "ref": "PRIMARY: 4th-order Butterworth low-pass 50 Hz, zero-lag (filtfilt), applied before the peak - Rachnavy et al. 2026 (PMC13111475, 4th-order 50 Hz) and Liu et al. 2026 (PMC13272296, 50 Hz); MEDIUM confidence, NO consensus (GRF cutoffs 6-50 Hz in the literature: Lin 2023 / Li 2026 6 Hz, Harada 2023 12 Hz, Chen 2024 14 Hz); zero-lag is OUR choice (not stated for GRF in any source). Secondary guard: >=3 consecutive samples (harness heuristic, no source). WINDOW: top of backswing -> impact is supported (Worsfold 2007 PMC3794489, Liu 2025 PMC12416643, Lin 2023 PMC10215287, Han 2019 MED/31042142: lead-foot peak in the downswing, before impact) + 20 ms EVENT-JITTER ALLOWANCE (our choice, not a literature value). BAND: 1.7 BW upper limit has NO source (PROVISIONAL, unverified); the only confirmed driver figure is 0.84 BW lead foot (Worsfold 2007). Notes: <local-path> (Data Agent 2026-10-19)",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "warn": 24
+   }
+  },
+  "shot/smash": {
+   "status": "pass",
+   "passed": true,
+   "values": 1.421,
+   "expected": "1.3..1.49 (hard ceiling 1.5)",
+   "why": [
+    "inside expected range"
+   ],
+   "ref": "launch_targets_120_132_limits.json gate_recommendation (TrackMan smash blog, R&A WLD, PGA Tour pdf)",
+   "tag": "published",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "shot/club_speed_mph": {
+   "status": "pass",
+   "passed": true,
+   "values": 68.2,
+   "expected": [
+    60,
+    150
+   ],
+   "why": [
+    "driver swing speed range"
+   ],
+   "ref": "R&A WLD 145 mph, record ball speed 241.6 mph (Berkshire) -> club speed ~165 mph; sim below 60 mph is not a driver swing",
+   "tag": "assumption",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "shot/spin_rpm": {
+   "status": "warn",
+   "passed": false,
+   "values": 3694.0,
+   "expected": "v3d: 2000-3700 at 70-85 mph (DERIVED, TrackMan optimizer envelope), WARN 1200-4000",
+   "why": [
+    "driver spin gate (published windows, derived thresholds)"
+   ],
+   "ref": "launch_targets_120_132_limits.json gate_recommendation",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "warn": 24
+   }
+  },
+  "shot/launch_deg": {
+   "status": "pass",
+   "passed": true,
+   "values": 8.06,
+   "expected": [
+    7.0,
+    16.0
+   ],
+   "why": [
+    "driver launch window (TrackMan 7.8-9.3 at AoA 0, Foresight 10-14)"
+   ],
+   "ref": "TrackMan optimizer 7.8-9.3 at AoA 0 (120-132 mph), Foresight window 10-14, WLD 11.2, tour 10.4-11.2",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "shot/descent_deg": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "expected": null,
+   "why": [
+    "no descent angle (log it: golfphys ShotResult.descent_deg)"
+   ],
+   "ref": null,
+   "tag": null,
+   "extrapolated": false,
+   "episode_status_counts": {
+    "skip": 24
+   }
+  },
+  "shot/total_over_carry": {
+   "status": "fail",
+   "passed": false,
+   "values": 1.658,
+   "expected": [
+    1.04,
+    1.25
+   ],
+   "why": [
+    "total/carry (normal turf 1.07-1.13, firm to ~1.2; env without roll gives 1.0)"
+   ],
+   "ref": "roll_aoa_validation (normal turf 1.07-1.13, firm ~1.2); TrackMan total optimizer 1.17-1.22",
+   "tag": "derived",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "fail": 24
+   }
+  },
+  "shot/carry_vs_golfphys_yd": {
+   "status": "pass",
+   "passed": true,
+   "values": -1.7,
+   "expected": "|residual| <= 15",
+   "why": [
+    "reported carry 96 vs golfphys 97 yd from ball speed/launch/spin (model-only; Foresight tables sit 14-33 yd above golfphys at 120-145 mph)"
+   ],
+   "ref": "golfphys vs TrackMan chart within ~3 yd (consistency only); vs Foresight 14-33 yd lower at 120-145 mph (unresolved vendor disagreement)",
+   "tag": "model",
+   "extrapolated": false,
+   "episode_status_counts": {
+    "pass": 24
+   }
+  },
+  "mine/segments_rotate": {
+   "status": "pass",
+   "passed": true,
+   "values": {
+    "pelvis": 256.30781920505115,
+    "thorax": 739.8849900816472,
+    "arm": 726.1990244308585,
+    "club": 1898.8661992638229
+   },
+   "why": [],
+   "ref": "DERIVED 20 deg/s",
+   "tag": "derived"
+  },
+  "mine/ground_contact_weight_shift": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/joint_limits": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/torque_saturation_smoothness": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/tempo": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/carry_vs_trackman_band": {
+   "status": "skip",
+   "passed": false,
+   "values": null,
+   "why": [
+    "not implemented for the v5 recorder (v1 recorder only)"
+   ],
+   "ref": null,
+   "tag": "derived"
+  },
+  "mine/start_direction": {
+   "status": "pass",
+   "passed": true,
+   "values": {
+    "azimuth_abs_deg": 2.425566032111249,
+    "lateral_yd_per_100yd": 8.378642824084434
+   },
+   "why": [
+    "|azimuth| 2.43 deg (pass; pass <=7, warn <=9); lateral 8.38 yd/100 yd carry (pass; pass <=13.5, warn <=17); worst of the two; PROVISIONAL; medium confidence"
+   ],
+   "ref": "USGA/R&A R22-01 Tables 6-7 (~2 SD of PGA Tour launch-dir SD 3.3 deg / carry-side 6.7 yd per 100 yd carry, and male Cat 1 3.4 / 8.3); |az| pass<=7 warn<=9 deg; lateral pass<=13.5 warn<=17 yd/100 yd; PROVISIONAL; medium confidence",
+   "tag": "derived"
+  },
+  "mine/lead_foot_plant": {
+   "status": "warn",
+   "passed": false,
+   "values": {
+    "airborne_max_ctrl_steps": 0.0,
+    "airborne_max_s": 0.0,
+    "slip_m": 0.031524970911524425,
+    "slip_frac": 0.15762485455762212,
+    "turn_deg": 10.225901478812347,
+    "foot_length_m": 0.2
+   },
+   "why": [
+    "lead foot top->impact vs address: airborne max 0.00 ctrl steps / 0 ms (pass; fail >=3, warn >=1.8); slip 3.2 cm = 15.8% of foot (warn; fail >25%, warn >15%); turn 10.2 deg (pass; fail >20, warn >12); median over 24 contact eps; top = logged; heel/toe-only lift allowed; post-impact not judged; PROVISIONAL; low confidence"
+   ],
+   "ref": "Data Agent judgement 2026-10-19 (no public lead-foot cm data; Scheffler/Nicklaus/Reed descriptive exceptions): top->impact vs address; airborne FAIL >=3 ctrl steps (WARN at 60%); slip FAIL >25% of sole length 20 cm; turn FAIL >20 deg; heel/toe-only lift allowed; no weight-share gate; PROVISIONAL; low confidence",
+   "tag": "derived"
+  },
+  "mine/total_over_carry_speed_matched (golfphys model, info only, not gating)": {
+   "status": "info",
+   "passed": false,
+   "values": {
+    "ball_mph": 96.87688137616111,
+    "actual_total_over_carry": 1.6581748554133522,
+    "min_total_over_carry": 1.2604119761712957,
+    "at_launch_deg": 16.0,
+    "at_backspin_rpm": 3000.0,
+    "at_carry_yd": 127.87060394778786,
+    "at_total_yd": 161.16964061604838,
+    "at_descent_deg": 27.852667318082386,
+    "actual_minus_min": 0.39776287924205644,
+    "sweep": {
+     "launch_deg": [
+      7,
+      16,
+      1
+     ],
+     "backspin_rpm": [
+      1800,
+      3000,
+      100
+     ]
+    }
+   },
+   "why": [
+    "actual total/carry 1.658 vs golfphys speed-matched minimum 1.260 at 96.9 mph ball speed (launch 16 deg, backspin 3000 rpm); golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict"
+   ],
+   "ref": "eval/golfphys_total.py sweep: launch 7-16 deg x backspin 1800-3000 rpm at the shot's median ball speed (golfphys.sim.shot_from_launch, vendored golfphys-lh-fix 357bc0c)",
+   "tag": "info_only",
+   "gating": false
+  },
+  "mine/grf_lead_vertical_raw_info": {
+   "status": "info",
+   "passed": false,
+   "values": {
+    "peak": 3.924
+   },
+   "why": [
+    "OLD rule, INFO only: whole-episode raw lead-GRF peak (includes follow-through and single-sample contact spikes); not gating",
+    "sensitivity (INFO, not gating): same window + guard with 4th-order zero-lag Butterworth at 12Hz -> 1.816 BW, 14Hz -> 1.806 BW (lower cutoffs lower the peak)"
+   ],
+   "ref": "previous swing/grf_lead_vertical_bw definition (eval/realism_check.py, v2)",
+   "tag": "info_only",
+   "gating": false,
+   "sensitivity": {
+    "12Hz": 1.816,
+    "14Hz": 1.806
+   }
+  },
+  "mine/lead_foot_shear_ratio_info": {
+   "status": "info",
+   "passed": false,
+   "values": {
+    "peak_median": 1.033117719613621,
+    "peak_max": 1.033117719613621,
+    "p95_median": 0.9247721020128673,
+    "p95_max": 0.9247721020128673,
+    "n_eps": 24,
+    "frac_eps_peak_above_075": 1.0,
+    "ref_ceiling": [
+     0.65,
+     0.75
+    ]
+   },
+   "why": [
+    "lead-foot shear/vertical top->impact: peak median 1.033 (max 1.033), p95 median 0.925; reference <= 0.65-0.75"
+   ],
+   "ref": "INFO only, not gating. Utilized COF (shear/vertical) in real swings 0.62 +/- 0.03 (Worsfold 2007, PMC3794489); driver front foot 0.61-0.63 (PMC3761538); suggested ceiling <= 0.65-0.75 (turf_friction_NOTES.md). Filter 4th-order zero-lag Butterworth 50.0 Hz on both components; samples with vertical < 0.1 BW ignored; window top of backswing -> impact.",
+   "tag": "info_only",
+   "gating": false
+  },
+  "mine/robustness": {
+   "status": "fail",
+   "passed": false,
+   "values": {
+    "n": 24,
+    "contact_frac": 0.6666666666666666,
+    "start_direction_pass_frac": 0.375,
+    "lead_foot_plant_pass_frac": 0.5416666666666666,
+    "shot": {
+     "club_speed_mph": {
+      "median": 68.39885034352503,
+      "p10": 56.0064610596057,
+      "p90": 68.94419223858634,
+      "status": {
+       "median": "pass",
+       "p10": "warn",
+       "p90": "pass"
+      }
+     },
+     "smash": {
+      "median": 1.3966811469018907,
+      "p10": 1.3301278539952333,
+      "p90": 1.4611616437706016,
+      "status": {
+       "median": "pass",
+       "p10": "pass",
+       "p90": "pass"
+      }
+     },
+     "launch_deg": {
+      "median": 10.466158809974853,
+      "p10": 8.228860982114059,
+      "p90": 12.309990728980942,
+      "status": {
+       "median": "pass",
+       "p10": "pass",
+       "p90": "pass"
+      }
+     },
+     "spin_rpm": {
+      "median": 1871.5736366734243,
+      "p10": 1021.7322124528905,
+      "p90": 3562.3533897317443,
+      "status": {
+       "median": "pass",
+       "p10": "fail",
+       "p90": "warn"
+      }
+     },
+     "total_over_carry": {
+      "median": 1.9840194190284413,
+      "p10": 1.4726984539986745,
+      "p90": 3.1256460751245045,
+      "status": {
+       "median": "fail",
+       "p10": "fail",
+       "p90": "fail"
+      }
+     }
+    },
+    "perturb": {
+     "joint_deg": 1.5,
+     "joint_vel": 0.05,
+     "ball_tol_m": 0.01,
+     "friction_rand": false,
+     "friction_range": [
+      0.7,
+      1.05
+     ],
+     "seed0": 7000,
+     "n": 24,
+     "friction_source": "PROVISIONAL, MEDIUM-LOW confidence: turf_friction_NOTES.md (Data Agent 2026-10-19). Worsfold, Smith, Dyson 2006 (J Turfgrass Sports Surf Sci 82, abstract only) limiting slip coefficients on natural grass: spiked 0.91-0.97 forefoot / 1.01 whole foot, spikeless flat 0.66 / 0.88 -> range 0.7-1.05; utilized COF in real swings 0.62 +/- 0.03 (Worsfold 2007, PMC3794489) and driver front foot 0.61-0.63 (PMC3761538). 1.1 kept only as a non-gating stress value.",
+     "floor_mu_nominal": 1.0,
+     "floor_mu_note": "floor_mu_nominal = floor geom friction of a freshly compiled model (env/v5_body.py build_model, floor friction [1.0, 0.005, 0.0001]), read before any reset/randomisation. Until the 2026-10-19 label fix the worker read it after the env's construction-time reset, which had already drawn U(0.5, 1.2): the 0.978 in earlier v3 JSONs was one random draw, mislabeled as nominal; verdicts unaffected."
+    },
+    "seeds": [
+     7000,
+     7001,
+     7002,
+     7003,
+     7004,
+     7005,
+     7006,
+     7007,
+     7008,
+     7009,
+     7010,
+     7011,
+     7012,
+     7013,
+     7014,
+     7015,
+     7016,
+     7017,
+     7018,
+     7019,
+     7020,
+     7021,
+     7022,
+     7023
+    ],
+    "applied": {
+     "n": 24,
+     "floor_mu_min": 0.7166333924661122,
+     "floor_mu_max": 1.0059042794617228,
+     "ball_xy_abs_max_m": 0.009558579952061552,
+     "ball_xy_nonzero_eps": 24,
+     "joint_deg_abs_max": 1.4984103543804312
+    },
+    "club_p10_over_median": 0.8188216728544407,
+    "club_p10_rule": ">= 0.93 x median (v3d, LOW CONFIDENCE: Shaw 2023 abstract CV<=5.8%)"
+   },
+   "why": [
+    "contact 0.67 < 0.95",
+    "start_direction pass 0.38 < 0.90",
+    "lead_foot_plant pass 0.54 < 0.90",
+    "spin_rpm p10 outside WARN band",
+    "total_over_carry median/p10/p90 outside WARN band",
+    "club speed p10 56.0 = 0.82 x median (< 0.93, v3d LOW CONFIDENCE)",
+    "club_speed_mph leaves PASS band"
+   ],
+   "ref": "Orchestrator-approved robustness gate 2026-10-19 (PROVISIONAL): contact >=95%, start_direction PASS >=90%, lead_foot_plant PASS >=90%, shot median and p10/p90 inside WARN band; WARN if any leaves PASS band. Magnitudes: joints +/-1.5 deg, +/-0.05 rad/s (ours); ball +/-1 cm (env ball_tol_m); floor friction U(0.7,1.05) (PROVISIONAL, MEDIUM-LOW confidence: turf_friction_NOTES.md (Data Agent 2026-10-19). Worsfold, Smith, Dyson 2006 (J Turfgrass Sports Surf Sci 82, abstract only) limiting slip coefficients on natural grass: spiked 0.91-0.97 forefoot / 1.01 whole foot, spikeless flat 0.66 / 0.88 -> range 0.7-1.05; utilized COF in real swings 0.62 +/- 0.03 (Worsfold 2007, PMC3794489) and driver front foot 0.61-0.63 (PMC3761538). 1.1 kept only as a non-gating stress value.; worker rng seed+0xF41C)",
+   "tag": "derived"
+  },
+  "mine/robustness_wide_friction_info": {
+   "status": "info",
+   "passed": false,
+   "values": {
+    "n": 24,
+    "contact_frac": 0.4583333333333333,
+    "start_direction_pass_frac": 0.3333333333333333,
+    "lead_foot_plant_pass_frac": 0.4166666666666667,
+    "shot": {
+     "club_speed_mph": {
+      "median": 68.17415906722466,
+      "p10": 67.98196892687149,
+      "p90": 68.67717694352228,
+      "status": {
+       "median": "pass",
+       "p10": "pass",
+       "p90": "pass"
+      }
+     },
+     "smash": {
+      "median": 1.4388735944318958,
+      "p10": 1.3814543357456015,
+      "p90": 1.4581490264633294,
+      "status": {
+       "median": "pass",
+       "p10": "pass",
+       "p90": "pass"
+      }
+     },
+     "launch_deg": {
+      "median": 10.17037308383985,
+      "p10": 5.538930242475631,
+      "p90": 11.491984590776767,
+      "status": {
+       "median": "pass",
+       "p10": "warn",
+       "p90": "pass"
+      }
+     },
+     "spin_rpm": {
+      "median": 2412.934070466232,
+      "p10": 1131.4824131625169,
+      "p90": 3221.463177831618,
+      "status": {
+       "median": "pass",
+       "p10": "fail",
+       "p90": "warn"
+      }
+     },
+     "total_over_carry": {
+      "median": 1.788992129467194,
+      "p10": 1.5628802990469073,
+      "p90": 2.539956774314726,
+      "status": {
+       "median": "fail",
+       "p10": "fail",
+       "p90": "fail"
+      }
+     }
+    },
+    "perturb": {
+     "joint_deg": 1.5,
+     "joint_vel": 0.05,
+     "ball_tol_m": 0.01,
+     "friction_rand": true,
+     "friction_range": null,
+     "seed0": 7000,
+     "n": 24,
+     "friction_source": "env friction_rand U(0.5, 1.2) (Stage A training randomisation)",
+     "floor_mu_nominal": 1.0,
+     "floor_mu_note": "floor_mu_nominal = floor geom friction of a freshly compiled model (env/v5_body.py build_model, floor friction [1.0, 0.005, 0.0001]), read before any reset/randomisation. Until the 2026-10-19 label fix the worker read it after the env's construction-time reset, which had already drawn U(0.5, 1.2): the 0.978 in earlier v3 JSONs was one random draw, mislabeled as nominal; verdicts unaffected."
+    },
+    "seeds": [
+     7000,
+     7001,
+     7002,
+     7003,
+     7004,
+     7005,
+     7006,
+     7007,
+     7008,
+     7009,
+     7010,
+     7011,
+     7012,
+     7013,
+     7014,
+     7015,
+     7016,
+     7017,
+     7018,
+     7019,
+     7020,
+     7021,
+     7022,
+     7023
+    ],
+    "applied": {
+     "n": 24,
+     "floor_mu_min": 0.5805400930244453,
+     "floor_mu_max": 1.1726856632219536,
+     "ball_xy_abs_max_m": 0.009558579952061538,
+     "ball_xy_nonzero_eps": 24,
+     "joint_deg_abs_max": 1.4984103543804312
+    }
+   },
+   "why": [
+    "INFO only (not gating): robustness under the env's wide friction U(0.5, 1.2)",
+    "contact 46% < 95%; start_direction PASS 33% < 90%; lead_foot_plant PASS 42% < 90%; spin_rpm p10 outside WARN band (median 2.41e+03, p10 1.13e+03, p90 3.22e+03); total_over_carry median/p10/p90 outside WARN band (median 1.79, p10 1.56, p90 2.54); launch_deg leaves PASS band (p10; median 10.2, p10 5.54, p90 11.5); 24 perturbed eps, seeds 7000..7023; PROVISIONAL"
+   ],
+   "ref": "Orchestrator-approved robustness gate 2026-10-19 (PROVISIONAL): contact >=95%, start_direction PASS >=90%, lead_foot_plant PASS >=90%, shot median and p10/p90 inside WARN band; WARN if any leaves PASS band. Magnitudes: joints +/-1.5 deg, +/-0.05 rad/s (ours); ball +/-1 cm (env ball_tol_m); floor friction U(0.5,1.2) (env friction_rand)",
+   "tag": "info_only",
+   "gating": false,
+   "verdict_if_gating": "fail"
+  },
+  "mine/robustness_stress_friction_info": {
+   "status": "info",
+   "passed": false,
+   "values": {
+    "n": 24,
+    "contact_frac": 0.5833333333333334,
+    "start_direction_pass_frac": 0.375,
+    "lead_foot_plant_pass_frac": 0.4583333333333333,
+    "shot": {
+     "club_speed_mph": {
+      "median": 68.22915263519798,
+      "p10": 50.62667389812097,
+      "p90": 68.77309882647494,
+      "status": {
+       "median": "pass",
+       "p10": "warn",
+       "p90": "pass"
+      }
+     },
+     "smash": {
+      "median": 1.3992651746011426,
+      "p10": 1.3257446381934255,
+      "p90": 1.4514110659467598,
+      "status": {
+       "median": "pass",
+       "p10": "pass",
+       "p90": "pass"
+      }
+     },
+     "launch_deg": {
+      "median": 9.81766509572708,
+      "p10": 6.238179210681053,
+      "p90": 13.062379980703213,
+      "status": {
+       "median": "pass",
+       "p10": "warn",
+       "p90": "pass"
+      }
+     },
+     "spin_rpm": {
+      "median": 2235.4696752650343,
+      "p10": 1023.7802597218664,
+      "p90": 3311.358842057476,
+      "status": {
+       "median": "pass",
+       "p10": "fail",
+       "p90": "warn"
+      }
+     },
+     "total_over_carry": {
+      "median": 2.0841025983530135,
+      "p10": 1.4631485434330571,
+      "p90": 3.4197033343602707,
+      "status": {
+       "median": "fail",
+       "p10": "fail",
+       "p90": "fail"
+      }
+     }
+    },
+    "perturb": {
+     "joint_deg": 1.5,
+     "joint_vel": 0.05,
+     "ball_tol_m": 0.01,
+     "friction_rand": false,
+     "friction_range": [
+      1.1,
+      1.1
+     ],
+     "seed0": 7000,
+     "n": 24,
+     "friction_source": "stress value 1.1, non-gating (turf_friction_NOTES.md)",
+     "floor_mu_nominal": 1.0,
+     "floor_mu_note": "floor_mu_nominal = floor geom friction of a freshly compiled model (env/v5_body.py build_model, floor friction [1.0, 0.005, 0.0001]), read before any reset/randomisation. Until the 2026-10-19 label fix the worker read it after the env's construction-time reset, which had already drawn U(0.5, 1.2): the 0.978 in earlier v3 JSONs was one random draw, mislabeled as nominal; verdicts unaffected."
+    },
+    "seeds": [
+     7000,
+     7001,
+     7002,
+     7003,
+     7004,
+     7005,
+     7006,
+     7007,
+     7008,
+     7009,
+     7010,
+     7011,
+     7012,
+     7013,
+     7014,
+     7015,
+     7016,
+     7017,
+     7018,
+     7019,
+     7020,
+     7021,
+     7022,
+     7023
+    ],
+    "applied": {
+     "n": 24,
+     "floor_mu_min": 1.1,
+     "floor_mu_max": 1.1,
+     "ball_xy_abs_max_m": 0.009558579952061552,
+     "ball_xy_nonzero_eps": 24,
+     "joint_deg_abs_max": 1.4984103543804312
+    }
+   },
+   "why": [
+    "INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md)",
+    "contact 58% < 95%; start_direction PASS 38% < 90%; lead_foot_plant PASS 46% < 90%; spin_rpm p10 outside WARN band (median 2.24e+03, p10 1.02e+03, p90 3.31e+03); total_over_carry median/p10/p90 outside WARN band (median 2.08, p10 1.46, p90 3.42); club_speed_mph leaves PASS band (p10; median 68.2, p10 50.6, p90 68.8); launch_deg leaves PASS band (p10; median 9.82, p10 6.24, p90 13.1); 24 perturbed eps, seeds 7000..7023; PROVISIONAL"
+   ],
+   "ref": "Orchestrator-approved robustness gate 2026-10-19 (PROVISIONAL): contact >=95%, start_direction PASS >=90%, lead_foot_plant PASS >=90%, shot median and p10/p90 inside WARN band; WARN if any leaves PASS band. Magnitudes: joints +/-1.5 deg, +/-0.05 rad/s (ours); ball +/-1 cm (env ball_tol_m); floor friction fixed at 1.1 (stress value 1.1, non-gating (turf_friction_NOTES.md))",
+   "tag": "info_only",
+   "gating": false,
+   "verdict_if_gating": "fail"
+  },
+  "mine/strike_dy_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "deterministic": {
+     "median": 6.195856620129068,
+     "p10": 6.195856620129068,
+     "p90": 6.195856620129068,
+     "n": 24,
+     "median_abs": 6.195856620129068
+    },
+    "robustness": {
+     "median": 2.917765288017203,
+     "p10": -22.31456295714269,
+     "p90": 21.923739444847477,
+     "n": 16
+    },
+    "units": "mm",
+    "axis": "toe (+)"
+   },
+   "why": [
+    "INFO only (not gating): strike dy at impact, mm from the face centre (env info['dy'])"
+   ],
+   "ref": null
+  },
+  "mine/strike_dz_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "deterministic": {
+     "median": -23.7396872846376,
+     "p10": -23.7396872846376,
+     "p90": -23.7396872846376,
+     "n": 24,
+     "median_abs": 23.7396872846376
+    },
+    "robustness": {
+     "median": 1.8677872727017766,
+     "p10": -16.98795768014528,
+     "p90": 13.16192531254877,
+     "n": 16
+    },
+    "units": "mm",
+    "axis": "up the face (+)"
+   },
+   "why": [
+    "INFO only (not gating): strike dz at impact, mm from the face centre (env info['dz'])"
+   ],
+   "ref": null
+  },
+  "mine/tee_dz_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "tee_dz_used_mm": 0.0,
+    "tee_dz_args_mm": null,
+    "tee_mode_args": "1.5in",
+    "harness_tee": "1.5in",
+    "ball_dx_used_mm": 0.0,
+    "ball_dx_args_mm": null,
+    "crown": {
+     "source": "env tee_mode '1.5in' (ball bottom 38.1 mm above ground)"
+    }
+   },
+   "why": [
+    "INFO only: tee offset used (V3_TEE=1.5in; 'crown' = derived from the active head geometry, crown-level per GOLF.com / Golf Digest / Golf Monthly advice)"
+   ],
+   "ref": null
+  },
+  "mine/face_h_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "face_h_used_mm": null,
+    "face_h_args_mm": null,
+    "head_box_height_mm": 54.0,
+    "non_default": false
+   },
+   "why": [
+    "INFO only: env face_h used (None = 64 mm head box; non-None = off-face contacts beyond face_h/2 become misses, which changes what is scored)"
+   ],
+   "ref": null
+  },
+  "mine/head_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "mode": "v4",
+    "source": "Trainer v4 env (env_v4 / set_env_v4), cross-checked vs eval/harness_v4.V4_SPEC",
+    "face_limits_mm": [
+     27.0,
+     52.5
+    ],
+    "expected": {
+     "face_centre_z_ground_m": 0.029,
+     "cfz_m": 0.039,
+     "lie_deg": 58.5,
+     "izz_gcm2": 5600.0,
+     "tee_15in_ball_centre_m": 0.059434999999999995,
+     "tee_16in_ball_centre_m": 0.061975,
+     "face_half_h_m": 0.027,
+     "face_half_w_m": 0.0525
+    },
+    "measured": {
+     "face_centre_z_ground_m": 0.028999999999999915,
+     "cfz_m": 0.038999999999999944,
+     "lie_deg": 58.5,
+     "izz_gcm2": 5600.000000000001,
+     "tee_15in_ball_centre_m": 0.059435,
+     "tee_16in_ball_centre_m": 0.062,
+     "face_half_h_m": 0.027,
+     "face_half_w_m": 0.0525
+    },
+    "estimates": null,
+    "compromises": null
+   },
+   "why": [
+    "INFO only: club head used = v4 head (sourced 460 cc, lie 58.5, Izz 5600 (n=1 manufacturer claim), CFZ 39, face centre 29 mm; cross-checked vs V4_SPEC)"
+   ],
+   "ref": null
+  },
+  "mine/tee_height_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "ball_centre_mm": 59.435,
+    "ball_bottom_mm": 38.1,
+    "ball_bottom_in": 1.5000000000000002,
+    "crown_mm": 62.0,
+    "face_centre_mm": 28.999999999999915,
+    "equator_minus_crown_mm": -2.5649999999999977,
+    "ball_minus_face_centre_along_up_mm": 26.01135524718847,
+    "sole_mm": 1.3877787807814457e-13
+   },
+   "why": [
+    "INFO only: address geometry above ground (env, after reset): ball centre / bottom (tee peg), head-box crown at the face, face centre"
+   ],
+   "ref": null
+  },
+  "mine/strike_height": {
+   "status": "warn",
+   "passed": false,
+   "tag": "provisional",
+   "gating": true,
+   "values": {
+    "median_abs_dz_mm": 23.7396872846376,
+    "median_dz_mm": -23.7396872846376
+   },
+   "expected": {
+    "pass_max_mm": 15.0,
+    "fail_at_mm": 27.0,
+    "fail_at_source": "env face_limits() vertical half-height (v4 head; 54 mm sourced face, cross-checked vs V4_SPEC 0.5 mm)"
+   },
+   "why": [
+    "PROVISIONAL (v3d only): deterministic median |dz| 23.7 mm; WARN > 15 mm (design choice, not sourced), FAIL >= 27 mm face edge (env face_limits() vertical half-height (v4 head; 54 mm sourced face, cross-checked vs V4_SPEC 0.5 mm))"
+   ],
+   "ref": "docs/HARNESS_V3D_NOTES.md (strike height)"
+  },
+  "mine/strike_within_sim_box_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "median_abs_dz_mm": 23.7396872846376,
+    "flag": true
+   },
+   "why": [
+    "INFO: median |dz| 23.7 mm within the sim head-box half-height 32 mm (sim geometry)"
+   ]
+  },
+  "mine/strike_outside_measured_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "median_abs_dz_mm": 23.7396872846376,
+    "flag": true
+   },
+   "why": [
+    "INFO: median |dz| 23.7 mm > 21 mm (R22-07 measured range for ball speed/smash, spin and launch; only 2 of 3 tee series reach +/-18/21 mm)"
+   ]
+  },
+  "mine/strike_beyond_r2207_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "median_abs_dz_mm": 23.7396872846376,
+    "flag": true
+   },
+   "why": [
+    "INFO: median |dz| 23.7 mm > 21 mm: beyond R22-07 data - smash extrapolated (LOW), r2207 spin None"
+   ]
+  },
+  "mine/spin_face_edge_capped_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "model": "capped",
+   "values": {
+    "deterministic": {
+     "spin_rpm": {
+      "median": 2584.749346341767,
+      "p10": 2584.749346341767,
+      "p90": 2584.749346341767,
+      "n": 24
+     },
+     "launch_deg": {
+      "median": 7.0607938193541315,
+      "p10": 7.0607938193541315,
+      "p90": 7.0607938193541315,
+      "n": 24
+     },
+     "smash": {
+      "median": 1.3586075216478826,
+      "p10": 1.3586075216478826,
+      "p90": 1.3586075216478826,
+      "n": 24
+     },
+     "carry_yd": {
+      "median": 76.18544633086486,
+      "p10": 76.18544633086486,
+      "p90": 76.18544633086486,
+      "n": 24
+     },
+     "total_over_carry": {
+      "median": 2.1410915981860343,
+      "p10": 2.1410915981860343,
+      "p90": 2.1410915981860343,
+      "n": 24
+     },
+     "ball_speed_mph": {
+      "median": 92.6436580312276,
+      "p10": 92.6436580312276,
+      "p90": 92.6436580312276,
+      "n": 24
+     }
+    },
+    "robustness": {
+     "spin_rpm": {
+      "median": 2001.8248304017977,
+      "p10": 1128.4139133998033,
+      "p90": 2742.670400772591,
+      "n": 16
+     },
+     "launch_deg": {
+      "median": 10.67268200273065,
+      "p10": 7.559367327904058,
+      "p90": 11.943822681099324,
+      "n": 16
+     },
+     "smash": {
+      "median": 1.371747993341184,
+      "p10": 1.301344456389737,
+      "p90": 1.455832228296948,
+      "n": 16
+     },
+     "carry_yd": {
+      "median": 91.41492959316838,
+      "p10": 60.674160709529374,
+      "p90": 114.42328785285704,
+      "n": 16
+     },
+     "total_over_carry": {
+      "median": 1.8328895658308078,
+      "p10": 1.4826304036640106,
+      "p90": 2.2889722091712006,
+      "n": 16
+     }
+    },
+    "n_off_face": {
+     "deterministic": 0,
+     "robustness": 0
+    }
+   },
+   "why": [
+    "INFO: side-by-side face-edge model (capped, +/-12.7 mm saturation as written) on a golfphys centre strike",
+    "148 mph is a MODEL value (TrajectoWare)",
+    "R22-07 = R&A/USGA equipment research report 'The effect of impact position on driving distance' (~2022; PDF header says Nov 2006 but it cites the 2019 ODS; PDF author metadata Andrew Johnson); spin rises to a peak near -15 mm then falls",
+    "smash: LOW confidence",
+    "leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read",
+    "51.3 rpm/mm and 0.201 deg/mm DERIVED from measured Hotstix data (secondary source)",
+    "side-by-side model only, never the default ball model"
+   ]
+  },
+  "mine/spin_face_edge_linear_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "model": "linear",
+   "values": {
+    "deterministic": {
+     "spin_rpm": {
+      "median": 2965.155837975477,
+      "p10": 2965.155837975477,
+      "p90": 2965.155837975477,
+      "n": 24
+     },
+     "launch_deg": {
+      "median": 7.0607938193541315,
+      "p10": 7.0607938193541315,
+      "p90": 7.0607938193541315,
+      "n": 24
+     },
+     "smash": {
+      "median": 1.3586075216478826,
+      "p10": 1.3586075216478826,
+      "p90": 1.3586075216478826,
+      "n": 24
+     },
+     "carry_yd": {
+      "median": 78.22666308779712,
+      "p10": 78.22666308779712,
+      "p90": 78.22666308779712,
+      "n": 24
+     },
+     "total_over_carry": {
+      "median": 2.035870667133642,
+      "p10": 2.035870667133642,
+      "p90": 2.035870667133642,
+      "n": 24
+     },
+     "ball_speed_mph": {
+      "median": 92.6436580312276,
+      "p10": 92.6436580312276,
+      "p90": 92.6436580312276,
+      "n": 24
+     }
+    },
+    "robustness": {
+     "spin_rpm": {
+      "median": 2001.8248304017977,
+      "p10": 1116.7162088184527,
+      "p90": 2969.18523118578,
+      "n": 16
+     },
+     "launch_deg": {
+      "median": 10.67268200273065,
+      "p10": 7.559367327904058,
+      "p90": 11.943822681099324,
+      "n": 16
+     },
+     "smash": {
+      "median": 1.371747993341184,
+      "p10": 1.301344456389737,
+      "p90": 1.455832228296948,
+      "n": 16
+     },
+     "carry_yd": {
+      "median": 91.27729404036623,
+      "p10": 60.674160709529374,
+      "p90": 114.13322133126613,
+      "n": 16
+     },
+     "total_over_carry": {
+      "median": 1.8259571594343549,
+      "p10": 1.4980779376605047,
+      "p90": 2.2889722091712006,
+      "n": 16
+     }
+    },
+    "n_off_face": {
+     "deterministic": 0,
+     "robustness": 0
+    }
+   },
+   "why": [
+    "INFO: side-by-side face-edge model (linear, extrapolated linearly beyond 12.7 mm) on a golfphys centre strike",
+    "148 mph is a MODEL value (TrajectoWare)",
+    "R22-07 = R&A/USGA equipment research report 'The effect of impact position on driving distance' (~2022; PDF header says Nov 2006 but it cites the 2019 ODS; PDF author metadata Andrew Johnson); spin rises to a peak near -15 mm then falls",
+    "smash: LOW confidence",
+    "leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read",
+    "51.3 rpm/mm and 0.201 deg/mm DERIVED from measured Hotstix data (secondary source)",
+    "side-by-side model only, never the default ball model"
+   ]
+  },
+  "mine/spin_face_edge_r2207_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "model": "r2207",
+   "values": {
+    "deterministic": {
+     "spin_rpm": null,
+     "launch_deg": null,
+     "smash": null,
+     "carry_yd": null,
+     "total_over_carry": null,
+     "ball_speed_mph": null
+    },
+    "robustness": {
+     "spin_rpm": {
+      "median": 1964.1168938201456,
+      "p10": 994.8223541744137,
+      "p90": 2791.904792543232,
+      "n": 15
+     },
+     "launch_deg": {
+      "median": 11.006157987148478,
+      "p10": 7.476584042107569,
+      "p90": 11.968242191409006,
+      "n": 15
+     },
+     "smash": {
+      "median": 1.3750996435975287,
+      "p10": 1.2999014761722234,
+      "p90": 1.4559812679722979,
+      "n": 15
+     },
+     "carry_yd": {
+      "median": 90.58256374925277,
+      "p10": 58.97865483144015,
+      "p90": 114.81287649828494,
+      "n": 15
+     },
+     "total_over_carry": {
+      "median": 1.8490946383436309,
+      "p10": 1.4727653604029742,
+      "p90": 2.3012546227715966,
+      "n": 15
+     }
+    },
+    "n_off_face": {
+     "deterministic": 0,
+     "robustness": 0
+    }
+   },
+   "why": [
+    "INFO: side-by-side face-edge model (r2207: digitized R22-07 Fig 1-2, under Evaluator review; NOT in any verdict) on a golfphys centre strike",
+    "148 mph is a MODEL value (TrajectoWare)",
+    "R22-07 = R&A/USGA equipment research report 'The effect of impact position on driving distance' (~2022; PDF header says Nov 2006 but it cites the 2019 ODS; PDF author metadata Andrew Johnson); spin rises to a peak near -15 mm then falls",
+    "smash: LOW confidence",
+    "leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read",
+    "51.3 rpm/mm and 0.201 deg/mm DERIVED from measured Hotstix data (secondary source)",
+    "side-by-side model only, never the default ball model"
+   ]
+  },
+  "mine/launch_face_edge_r2207_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "deterministic": {
+     "r2207": null,
+     "hotstix": {
+      "median": 7.0607938193541315,
+      "p10": 7.0607938193541315,
+      "p90": 7.0607938193541315,
+      "n": 24
+     }
+    },
+    "robustness": {
+     "r2207": {
+      "median": 10.437621458718905,
+      "p10": 6.980415870820399,
+      "p90": 11.739671535695487,
+      "n": 15
+     },
+     "hotstix": {
+      "median": 10.67268200273065,
+      "p10": 7.559367327904058,
+      "p90": 11.943822681099324,
+      "n": 16
+     }
+    },
+    "n_r2207_none": {
+     "deterministic": 24
+    }
+   },
+   "why": [
+    "INFO: launch under R22-07 Fig 3 averaged table (MEDIUM, derived; None beyond +/-21 mm; only 2 of 3 tee series reach +/-18/21 mm) next to Hotstix 0.20 deg/mm"
+   ]
+  },
+  "mine/smash_legacy_quadratic_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "values": {
+    "deterministic": {
+     "median": 1.387195130301662,
+     "p10": 1.387195130301662,
+     "p90": 1.387195130301662,
+     "n": 24
+    },
+    "robustness": {
+     "median": 1.4053375449635594,
+     "p10": 1.3231522953185741,
+     "p90": 1.459644099668123,
+     "n": 16
+    }
+   },
+   "why": [
+    "INFO: legacy quadratic smash (MyGolfSpy-derived, LOW confidence), superseded by the R22-07 ratio"
+   ]
+  },
+  "mine/smash_r2207_info": {
+   "status": "info",
+   "passed": false,
+   "tag": "info_only",
+   "gating": false,
+   "model": "r2207",
+   "values": {
+    "deterministic": null,
+    "robustness": {
+     "median": 1.3750996435975287,
+     "p10": 1.2999014761722234,
+     "p90": 1.4559812679722979,
+     "n": 15
+    }
+   },
+   "why": [
+    "INFO: smash under digitized R22-07 Fig 1-2 (ball-speed ratio vs dz): MEDIUM, derived for |dz| <= 21 mm (one robot driver ~115 mph, ratio assumed speed-independent); LOW beyond"
+   ]
+  }
+ },
+ "checks_passed": 10,
+ "n_checks": 19,
+ "n_warn": 7,
+ "n_fail": 2,
+ "n_skip": 8,
+ "n_info": 20,
+ "verdict": "FAIL",
+ "club_mph_median": 68.19015540180304,
+ "golfphys_total": {
+  "n": 24,
+  "source": "eval/golfphys_total.py: golfphys.sim.shot_from_launch from measured ball speed / launch / azimuth / back+side spin, roll=True vs roll=False, normal turf (verified vs TrackMan rows, tests/test_golfphys_total.py)",
+  "carry_yd_median": 95.75285251144844,
+  "total_yd_median": 158.77497236858704,
+  "total_over_carry_median": 1.6581748554133522,
+  "descent_deg_median": 13.985267074369109,
+  "env_carry_yd_median_noroll": 95.91451343050481,
+  "env_total_yd_median": 158.7035673374726,
+  "env_total_over_carry_median": 1.6546355881006665,
+  "total_over_carry_max": 1.6581748554133522,
+  "total_over_carry_min": 1.6581748554133522,
+  "max_abs_total_diff_vs_env_yd": 0.07140503111443763
+ },
+ "sample_interval": {
+  "used_ms": 4.0000000000000036,
+  "declared_ms": 4.0,
+  "n_declared_mismatch": 0,
+  "method": "measured median spacing of the worker's logged sim time per episode (dt fix 2026-10-19; pre-fix assumed 5 ms)"
+ },
+ "new_tee_only": false,
+ "spin_band_only": false,
+ "face_edge_model": {
+  "verdict": "FAIL",
+  "n_pass": 9,
+  "n_warn": 6,
+  "n_fail": 2,
+  "spin_status_det": "no_data",
+  "spin_status_robust": {
+   "median": "pass",
+   "p10": "fail",
+   "p90": "pass"
+  },
+  "launch_status_det": "no_data",
+  "launch_rule": "BOTH Hotstix 0.20 deg/mm and R22-07 Fig 3 launch in 7-16 deg (deterministic median); r2207 None = no data",
+  "rule": "spin passes only if capped AND linear AND r2207 (where defined, |dz|<=21 mm) pass; r2207 undefined = no data"
+ },
+ "face_edge_model_only": false,
+ "v4_crown_tee_only": false,
+ "label": "LOCAL RUN of Evaluator harness v4 code @915348c (not an official Evaluator score)"
+}

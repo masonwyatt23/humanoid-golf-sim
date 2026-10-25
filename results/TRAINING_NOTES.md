@@ -910,3 +910,4 @@ Orchestrator-confirmed v4 bundle (for Mason, standing approval t108u); the Evalu
   - V6a: dz_gate 10 mm / zero at 15 mm, launch_hi 14.5 -> 16 (removes the launch pull toward -10 mm).
   - V6b: rsi_full 0.8, miss_w 15.
   - Both warm-start from V5a 200k, lr 3e-5, 500k, scored every 50k.
+- Erratum (V7 watcher commit labels, 937efed..596bdcf and the earlier V6/V7 "harness ..." commits): those messages mixed two harnesses in one label. To be precise: `<run>_<N>.json` comes from the box-head v2 script (not the v4 env). The `*_v3*_tee15in_v4h*.json` (main) and `*_teedefault_v4h*.json` (info) rows are local runs of the Evaluator v4 worker @915348c on the env_v4 realistic head. None are official. The watcher text is now clearer.
