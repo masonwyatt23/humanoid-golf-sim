@@ -911,3 +911,7 @@ Orchestrator-confirmed v4 bundle (for Mason, standing approval t108u); the Evalu
   - V6b: rsi_full 0.8, miss_w 15.
   - Both warm-start from V5a 200k, lr 3e-5, 500k, scored every 50k.
 - Erratum (V7 watcher commit labels, 937efed..596bdcf and the earlier V6/V7 "harness ..." commits): those messages mixed two harnesses in one label. To be precise: `<run>_<N>.json` comes from the box-head v2 script (not the v4 env). The `*_v3*_tee15in_v4h*.json` (main) and `*_teedefault_v4h*.json` (info) rows are local runs of the Evaluator v4 worker @915348c on the env_v4 realistic head. None are official. The watcher text is now clearer.
+- Note (V8, 2026-10-24): **dz sources.**
+  - The "noisy dz/dy" in my V5-V8 tables comes from `results/strike_location_V5_*.csv` (scripts/strike_log.py). That script uses its own approximation of the start perturbation, not the Evaluator gate's exact episodes, and takes the median over contacts only. For V8a 100k that gives -1.0 mm with 23/24 contacts.
+  - The harness value is `mine/strike_dz_info.robustness` in `*_tee15in_v4h_v4.json`: the median over the gate's contact episodes. It is **-4.55 mm (n=19)**, which matches the Evaluator's official grade (2efbad3).
+  - The harness value is the one to quote. The V8b run and its snapshots are seed 89 (`V8b_s89`). `s88` belongs to V7b only.
