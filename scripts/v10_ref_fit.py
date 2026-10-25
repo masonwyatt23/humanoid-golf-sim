@@ -19,7 +19,7 @@ def one(e, ref, pid):
 V.one = one
 _t8 = F.term
 def term(r, cap=85.0):
-    s = _t8(r, cap); return s - float(__import__("os").environ.get("V10_SLIP_W","20")) * min(max(r.get("h_slip", 0.1) - 0.025, 0) / 0.01, 5) - 8.0 * min(max(r.get('h_turn', 30) - 10.0, 0) / 3.0, 4)
+    s = _t8(r, cap) - float(__import__('os').environ.get('V10_TURN_W', '0')) * min(max(r.get('h_turn', 30) - float(__import__('os').environ.get('V10_TURN_TGT', '6.5')), 0) / 2.0, 3); return s - float(__import__("os").environ.get("V10_SLIP_W","20")) * min(max(r.get("h_slip", 0.1) - 0.025, 0) / 0.01, 5) - 8.0 * min(max(r.get('h_turn', 30) - 10.0, 0) / 3.0, 4)
 F.term = term; V.term = term
 _s8 = F.score
 W_SPD = float(__import__('os').environ.get('V10_SPD_W', '0')); W_PEL = float(__import__('os').environ.get('V10_PEL_W', '0'))
