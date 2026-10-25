@@ -6,7 +6,7 @@ model: `data/shot_shape_model.py`, tests: `tests/test_goalcond_refs.py`. Sources
 Conventions (same as `DRIVER_HEAD_460CC_REFS.md`): every row has `label` (measured / spec / rule / derived / model /
 estimate / manufacturer claim / gap), `n` (independent published sources or models), `source_url`, `author_date`, and the
 claim. n=1 rows are marked "single published spec (n=1)" (or "(n=1)") and are never shown as population ranges.
-Aggregates only. Held locally pending counsel (not tracked): per-model (n=1) manufacturer spec rows, the R&A R04 per-site turf rows, and the TrackMan PGA/LPGA tour-average rows (launch, spin, carry). The schema test for the tour averages is skipped for that reason.
+Aggregates only. Held locally pending counsel (not tracked): per-model (n=1) manufacturer spec rows, the R&A R04 per-site turf rows, and the TrackMan PGA/LPGA tour-average rows (launch, spin, carry). The schema test for the tour averages is skipped for that reason. Aggregate equipment rows give only nominal (midpoint or median, derived), range, n and attribution. The per-model values behind them are held pending counsel.
 
 ## Key values
 | Section | Quantity | Nominal | Range | Label | n |

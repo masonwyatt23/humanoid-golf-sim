@@ -16,8 +16,8 @@
    "source_url": "https://wishongolf.com/989cla-irons/ ; https://ping.com/en-us/golf-clubs/irons/i230-iron",
    "author_date": "Wishon Golf, 989CLA irons specifications page ; PING, i230 key specifications page (design specs)",
    "table_or_page": "spec tables, #7",
-   "claim": "standard 7-iron lofts 31 and 33 deg on two sheets",
-   "note": "nominal is midpoint (derived); one maker offers 31.5/35 alt lofts"
+   "claim": "range across 2 manufacturer spec sheets; per-model values held pending counsel",
+   "note": "nominal is midpoint of range (derived)"
   },
   {
    "section": "1_equipment",
@@ -32,7 +32,7 @@
    "source_url": "https://wishongolf.com/989cla-irons/ ; https://ping.com/en-us/golf-clubs/irons/i230-iron",
    "author_date": "Wishon Golf, 989CLA irons specifications page ; PING, i230 key specifications page (design specs)",
    "table_or_page": "spec tables, #7",
-   "claim": "both sheets list 62 deg",
+   "claim": "range across 2 manufacturer spec sheets; per-model values held pending counsel",
    "note": ""
   },
   {
@@ -48,8 +48,8 @@
    "source_url": "https://wishongolf.com/989cla-irons/ ; https://ping.com/en-us/golf-clubs/irons/i230-iron ; https://www.titleist.com/golf-clubs/wedges/sm10",
    "author_date": "Wishon Golf, 989CLA irons specifications page ; PING, i230 key specifications page (design specs) ; Titleist, Vokey SM10 specifications page",
    "table_or_page": "spec tables PW / 46 deg wedge",
-   "claim": "45, 45, 46",
-   "note": ""
+   "claim": "range across 3 manufacturer spec sheets; per-model values held pending counsel",
+   "note": "nominal is median (derived)"
   },
   {
    "section": "1_equipment",
@@ -64,8 +64,8 @@
    "source_url": "https://wishongolf.com/989cla-irons/ ; https://ping.com/en-us/golf-clubs/irons/i230-iron ; https://www.titleist.com/golf-clubs/wedges/sm10",
    "author_date": "Wishon Golf, 989CLA irons specifications page ; PING, i230 key specifications page (design specs) ; Titleist, Vokey SM10 specifications page",
    "table_or_page": "spec tables",
-   "claim": "64.5, 64.1, 64 (all wedges)",
-   "note": ""
+   "claim": "range across 3 manufacturer spec sheets; per-model values held pending counsel",
+   "note": "nominal is median (derived)"
   },
   {
    "section": "1_equipment",
@@ -80,7 +80,7 @@
    "source_url": "https://ping.com/en-us/golf-clubs/irons/i230-iron ; https://www.titleist.com/golf-clubs/wedges/sm10",
    "author_date": "PING, i230 key specifications page (design specs) ; Titleist, Vokey SM10 specifications page",
    "table_or_page": "spec tables",
-   "claim": "35 1/2\" and 35.75\"",
+   "claim": "range across 2 manufacturer spec sheets; per-model values held pending counsel",
    "note": ""
   },
   {
@@ -96,7 +96,7 @@
    "source_url": "https://ping.com/en-us/golf-clubs/irons/i230-iron ; https://www.titleist.com/golf-clubs/wedges/sm10",
    "author_date": "PING, i230 key specifications page (design specs) ; Titleist, Vokey SM10 specifications page",
    "table_or_page": "spec tables",
-   "claim": "D2 and D3",
+   "claim": "range across 2 manufacturer spec sheets; per-model values held pending counsel",
    "note": ""
   },
   {
@@ -112,7 +112,7 @@
    "source_url": "https://wishongolf.com/989cla-irons/ ; https://ping.com/en-us/golf-clubs/irons/i230-iron ; https://www.titleist.com/golf-clubs/wedges/sm10",
    "author_date": "Wishon Golf, 989CLA irons specifications page ; PING, i230 key specifications page (design specs) ; Titleist, Vokey SM10 specifications page",
    "table_or_page": "spec tables",
-   "claim": "50 (gap) and 50/52 options",
+   "claim": "range across 3 manufacturer spec sheets; per-model values held pending counsel",
    "note": ""
   },
   {
@@ -128,7 +128,7 @@
    "source_url": "https://ping.com/en-us/golf-clubs/irons/i230-iron ; https://www.titleist.com/golf-clubs/wedges/sm10",
    "author_date": "PING, i230 key specifications page (design specs) ; Titleist, Vokey SM10 specifications page",
    "table_or_page": "spec tables",
-   "claim": "35 1/2\" both",
+   "claim": "range across 2 manufacturer spec sheets; per-model values held pending counsel",
    "note": ""
   },
   {
@@ -144,8 +144,8 @@
    "source_url": "https://ping.com/en-us/golf-clubs/irons/i230-iron ; https://www.titleist.com/golf-clubs/wedges/sm10",
    "author_date": "PING, i230 key specifications page (design specs) ; Titleist, Vokey SM10 specifications page",
    "table_or_page": "shaft tables",
-   "claim": "steel options 93-119 g (iron sheet) and 130 g wedge steel; 95 g wedge lite",
-   "note": "nominal = median-ish of listed steel options (derived)"
+   "claim": "range of listed steel options across 2 manufacturer spec sheets; per-model values held pending counsel",
+   "note": "nominal = approximate median of listed options (derived)"
   },
   {
    "section": "1_equipment",

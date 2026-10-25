@@ -55,16 +55,16 @@ def R(section, club, quantity, nominal, rng, unit, label, n, src, page, claim, n
 
 S1 = "1_equipment"
 R(S1, "7-iron", "loft (standard)", 32, "31-33", "deg", "manufacturer spec (aggregate)", 2, "wishon+ping", "spec tables, #7",
-  "standard 7-iron lofts 31 and 33 deg on two sheets", "nominal is midpoint (derived); one maker offers 31.5/35 alt lofts")
-R(S1, "7-iron", "lie (standard)", 62.0, "62.0-62.0", "deg", "manufacturer spec (aggregate)", 2, "wishon+ping", "spec tables, #7", "both sheets list 62 deg")
-R(S1, "PW", "loft", 45, "45-46", "deg", "manufacturer spec (aggregate)", 3, "wishon+ping+vokey", "spec tables PW / 46 deg wedge", "45, 45, 46")
-R(S1, "PW", "lie", 64.1, "64.0-64.5", "deg", "manufacturer spec (aggregate)", 3, "wishon+ping+vokey", "spec tables", "64.5, 64.1, 64 (all wedges)")
-R(S1, "PW", "length", 35.5, "35.5-35.75", "in", "manufacturer spec (aggregate)", 2, "ping+vokey", "spec tables", "35 1/2\" and 35.75\"")
-R(S1, "PW", "swingweight", "D2", "D2-D3", "", "manufacturer spec (aggregate)", 2, "ping+vokey", "spec tables", "D2 and D3")
-R(S1, "GW", "loft", 50, "50-52", "deg", "manufacturer spec (aggregate)", 3, "wishon+ping+vokey", "spec tables", "50 (gap) and 50/52 options")
-R(S1, "GW", "length", 35.5, "35.5-35.5", "in", "manufacturer spec (aggregate)", 2, "ping+vokey", "spec tables", "35 1/2\" both")
+  "range across 2 manufacturer spec sheets; per-model values held pending counsel", "nominal is midpoint of range (derived)")
+R(S1, "7-iron", "lie (standard)", 62.0, "62.0-62.0", "deg", "manufacturer spec (aggregate)", 2, "wishon+ping", "spec tables, #7", "range across 2 manufacturer spec sheets; per-model values held pending counsel")
+R(S1, "PW", "loft", 45, "45-46", "deg", "manufacturer spec (aggregate)", 3, "wishon+ping+vokey", "spec tables PW / 46 deg wedge", "range across 3 manufacturer spec sheets; per-model values held pending counsel", "nominal is median (derived)")
+R(S1, "PW", "lie", 64.1, "64.0-64.5", "deg", "manufacturer spec (aggregate)", 3, "wishon+ping+vokey", "spec tables", "range across 3 manufacturer spec sheets; per-model values held pending counsel", "nominal is median (derived)")
+R(S1, "PW", "length", 35.5, "35.5-35.75", "in", "manufacturer spec (aggregate)", 2, "ping+vokey", "spec tables", "range across 2 manufacturer spec sheets; per-model values held pending counsel")
+R(S1, "PW", "swingweight", "D2", "D2-D3", "", "manufacturer spec (aggregate)", 2, "ping+vokey", "spec tables", "range across 2 manufacturer spec sheets; per-model values held pending counsel")
+R(S1, "GW", "loft", 50, "50-52", "deg", "manufacturer spec (aggregate)", 3, "wishon+ping+vokey", "spec tables", "range across 3 manufacturer spec sheets; per-model values held pending counsel")
+R(S1, "GW", "length", 35.5, "35.5-35.5", "in", "manufacturer spec (aggregate)", 2, "ping+vokey", "spec tables", "range across 2 manufacturer spec sheets; per-model values held pending counsel")
 R(S1, "iron", "steel iron shaft mass (stock options)", 106, "93-130", "g", "manufacturer spec (aggregate)", 2, "ping+vokey",
-  "shaft tables", "steel options 93-119 g (iron sheet) and 130 g wedge steel; 95 g wedge lite", "nominal = median-ish of listed steel options (derived)", "medium")
+  "shaft tables", "range of listed steel options across 2 manufacturer spec sheets; per-model values held pending counsel", "nominal = approximate median of listed options (derived)", "medium")
 for q, v, c in [("groove width max", "0.9", "W must not exceed 0.035 in (0.9 mm), 30-degree method"),
                 ("groove spacing min", "1.905", "S >= 3W and >= 0.075 in (1.905 mm)"),
                 ("groove depth max", "0.508", "depth <= 0.020 in (0.508 mm)"),
