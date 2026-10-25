@@ -253,8 +253,15 @@ for i in range(n):
             e.tee[:2] = np.array(e.addr["ball_pos"], float)[:2] + _bxy; e.d.qpos[e.ball_q:e.ball_q + 2] = e.tee[:2]
         else:
             dq = np.radians(float(PERT.get('joint_deg', 0.0))) * rg.uniform(-1, 1, nq); dv = float(PERT.get('joint_vel', 0.0)) * rg.uniform(-1, 1, nq)
-        e.d.qpos[e.qa] += dq; e.d.qvel[e.da] += dv; mujoco.mj_forward(e.m, e.d); o = te._xobs(e._obs())
+        _RG = None
+        if PERT.get('reground'):   # harness v4.1 (NON-GATING info row, eval/reground.py): unperturbed address sole poses, taken before the noise; absent = v4 path, unchanged
+            from eval.reground import sole_poses as _sp, reground as _rgnd
+            mujoco.mj_forward(e.m, e.d); _T = _sp(e.m, e.d)
+        e.d.qpos[e.qa] += dq; e.d.qvel[e.da] += dv; mujoco.mj_forward(e.m, e.d)
+        if PERT.get('reground'): _RG = _rgnd(e.m, e.d, _T)
+        o = te._xobs(e._obs())
         pinfo = dict(heldout2=(_h2 if PERT.get('heldout2') else None), joint_deg_max=float(np.degrees(np.abs(dq)).max()), joint_vel_max=float(np.abs(dv).max()), ball_xy_off_m=[float(x) for x in (e.tee[:2] - np.array(e.addr["ball_pos"], float)[:2])], floor_mu=float(e.m.geom_friction[e.floor, 0]))
+        if _RG is not None: pinfo['reground'] = _RG
     _HIT.clear(); _IMP = None
     while not done:
         a = model.predict(vn.normalize_obs(o[None]), deterministic=True)[0][0]; o, r, term, trunc, info = te.step(_lat(a)); done = term or trunc

@@ -48,3 +48,17 @@ spin 2128, launch 12.84, smash 1.38, 69.76 mph; 1.5 in tee 22/25, dz -2.33, dy -
 ## V4 re-baseline done (2026-10-24 ~18:40 ET): see docs/V4_REBASELINE.md
 V4a_s80 50k-200k and V4b_s81 50k-300k (Trainer 54b49c6 export), K34a 200k cross-head ref: every gating v4 1.5 in row FAILs (mine/robustness, shot/total_over_carry);
 no full pass, no crown-only pass. Cross-check passes on every run. K32a 200k ref blocked by its args face_h 0.053 (face_half_h 26.5 vs 27); rerun with V3_FACE_H=none pending.
+
+## v4.1 robustness INFO row (re-grounded, NON-GATING; Orchestrator decision 2026-10-25 ET)
+v4 stays the official gate, unchanged. A full pass is claimed only on v4; a v4.1-only pass is reported as exactly that ("passes v4.1 info row, fails v4").
+Reason: the robustness perturbation is meant to be posture noise only (eval/robust_grf.py header, "small perturbations at address"). v4 applies it as
+qpos offsets on the actuated joints + mj_forward with no re-grounding (results/overnight/_j_worker_gp_v3.py, `if PERT:` block). With the floating base
+fixed, leg-joint noise moves the feet: the lead sole shifts about 1 cm sideways at takeaway (Trainer finding: lead-foot lateral shift r -.64 with strike dy).
+That is a moved stance, not posture noise; a real golfer would re-address the ball.
+Option: `--reground` (eval/realism_check.py, default OFF; off = byte-identical v4 output). Row key `mine/robustness_v4_1_reground_info`,
+label "v4.1 robustness (re-grounded, info only, non-gating)". Same seeds 7000-7023, same joint/velocity noise draws, ball offset and friction as v4;
+then eval/reground.py: damped-least-squares IK over the floating base (6 dof) + the 12 leg dofs, driving both sole sites to their unperturbed address
+world pose (12 equations, 18 unknowns, minimum-norm change; leg joints clipped to range). Waist/arm/wrist noise is kept exactly; the club free body is moved
+by the base's rigid transform (hand-club relation as in v4); ball untouched; base qvel 0. Graded with exactly the v3d/v4 chain used for mine/robustness
+(same contact/start/plant triple and tails), then labelled status info, gating False, verdict_if_gating = the grade. Per-episode sole residuals before
+and after are in perturb.reground and summarised in the row's `reground` block. Results: results/overnight/V4_1_INFO_ROW.md.

@@ -4,7 +4,7 @@ v1 (default): rolls the model out under ITS OWN env kwargs (the results JSON's e
 v5: the Trainer's G1 env (local commit 71197e6, NOT on origin/main). Run from the Trainer's checkout via a subprocess (`--v5-repo`, default $V5_REPO or the Trainer worktree) because its `env` package collides with this repo's.
     <ckpt> is the checkpoint base (ckpt_*.zip / final.zip with a sibling *_vecnorm.pkl). Uses their tether 0, friction nominal, deterministic.
 Prints PASS/WARN/FAIL/SKIP per check and the overall verdict (only PASS is showcase/qualifying-eligible). Run it under `taskset -c 0-1` with OMP/MKL/OPENBLAS threads <= 2."""
-import argparse, json, os, subprocess, sys, tempfile
+import argparse, copy, json, os, subprocess, sys, tempfile
 from pathlib import Path
 import numpy as np
 ROOT = Path(__file__).resolve().parent.parent
@@ -116,6 +116,30 @@ def _robust_ep(r, bw):
                total_over_carry=(gp or {}).get("total_over_carry"), az_abs=abs(az) if az is not None else None, lat_per100=lat, **_strike_mm(r))
     return out
 
+V41_KEY = "mine/robustness_v4_1_reground_info"
+V41_LABEL = "v4.1 robustness (re-grounded, info only, non-gating)"
+
+def v41_summary(E):
+    """Per-seed sole residuals (mm / deg) before and after re-grounding, from the worker's perturb.reground records."""
+    R = [(e.get("perturb") or {}).get("reground") for e in E]; R = [x for x in R if x]
+    if not R: return None
+    q = lambda xs: dict(median=float(np.median(xs)), max=float(np.max(xs)))
+    return dict(n=len(R), before_pos_mm=q([1000 * x["before"]["pos_max_m"] for x in R]), after_pos_mm=q([1000 * x["after"]["pos_max_m"] for x in R]),
+                before_rot_deg=q([x["before"]["rot_max_deg"] for x in R]), after_rot_deg=q([x["after"]["rot_max_deg"] for x in R]),
+                before_lateral_mm=q([1000 * max(abs(d_[1]) for d_ in x["before"]["dxyz_m"]) for x in R]), after_lateral_mm=q([1000 * max(abs(d_[1]) for d_ in x["after"]["dxyz_m"]) for x in R]), method=R[0]["method"])
+
+def v41_row(r0, v41, v3d, v4):
+    """Grade the re-grounded robustness row with exactly the chain used for mine/robustness (swap it into a copy of the pre-grade result), then label it INFO."""
+    row, E = v41; rr = copy.deepcopy(r0); rr["checks"]["mine/robustness"] = row
+    if row.get("status") != "skip":
+        if v3d:
+            from eval.harness_v3d import apply_v3d_flagged; rr = apply_v3d_flagged(rr)
+        if v4:
+            from eval.harness_v4 import apply_v4; rr = apply_v4(rr)
+    g = rr["checks"]["mine/robustness"]
+    return dict(g, label=V41_LABEL, status="info", passed=False, tag="info_only", gating=False, verdict_if_gating=g.get("status"), reground=v41_summary(E),
+                why=[V41_LABEL + ": same v4 perturbation (seeds, joint/vel noise, ball offset, friction), then both soles restored to the unperturbed address; a full pass is claimed only on v4"] + list(g.get("why") or []))
+
 def resolve_harness(a):
     """Fill unset v3 options from --harness: v3b -> butter + 24 robustness eps (+ wide info row); v2 -> legacy GRF, no robustness."""
     v2 = getattr(a, "harness", "v3c") == "v2"
@@ -131,7 +155,7 @@ def run_robustness(a, repo, ck, arm, env, P=None):
     x = worker_args(a, repo, ck, arm, s0)
     if "_v3" not in os.path.basename(x[1]):
         return dict(status="skip", passed=False, values=None, why=[f"worker {os.path.basename(x[1])} has no perturb support (needs _j_worker_gp_v3.py)"], ref=None, tag="derived"), []
-    x[6] = str(n); x = [y for y in x if y != "seg1"] + ["seg1", "perturb=" + json.dumps({k: P[k] for k in ("joint_deg", "joint_vel", "ball_tol_m", "friction_rand", "friction_range", "heldout", "heldout2") if k in P})]   # "heldout" only in v5 held-out DR payloads
+    x[6] = str(n); x = [y for y in x if y != "seg1"] + ["seg1", "perturb=" + json.dumps({k: P[k] for k in ("joint_deg", "joint_vel", "ball_tol_m", "friction_rand", "friction_range", "heldout", "heldout2", "reground") if k in P})]   # "heldout" only in v5 held-out DR payloads
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
     subprocess.run([outp if y == "{OUT}" else y for y in x], check=True, cwd=str(repo), env=env)
     J = json.load(open(outp)); os.unlink(outp)
@@ -273,6 +297,8 @@ def run_v5(a):
     if getattr(a, "robustness", 0):
         C["mine/robustness"], ROB = run_robustness(a, repo, ck, arm, env, RG.default_perturb(getattr(a, "harness", "v3c")))
         a._v5_rob_eps = getattr(a, "_last_rob_v5", None)   # main v4 robustness DR episodes only (not wide/stress/held-out)
+        if getattr(a, "reground", False):   # harness v4.1 (opt-in, NON-GATING info row): same perturbation + feet re-grounded (eval/reground.py); graded in main() by the same v3d/v4 chain
+            _keep = getattr(a, "_last_rob_v5", None); a._v41 = run_robustness(a, repo, ck, arm, env, dict(RG.default_perturb(getattr(a, "harness", "v3c")), reground=True)); a._last_rob_v5 = _keep
         if getattr(a, "robust_wide_info", False):   # INFO only: same seeds/noise, env friction U(0.5, 1.2); never gating
             from eval import robust_grf as RG
             w, _ = run_robustness(a, repo, ck, arm, env, RG.wide_perturb(getattr(a, "harness", "v3c")))
@@ -364,6 +390,7 @@ def main():
     ap.add_argument("--club", default=None, choices=["driver", "7iron", "wedge"], help="v5 only: club for the per-club band rows (default: goal club, else driver)")
     ap.add_argument("--heldout-dr", type=int, default=None, help="v5 only: held-out DR episodes (default 24 = all held-out seeds; 0 = off)")
     ap.add_argument("--heldout2-dr", type=int, default=0, help="v5 only, OPT-IN: v5-heldout-2 episodes (new DR dims; 32 = all seeds, 4 per dim; slope episodes info-only; default 0 = off)")
+    ap.add_argument("--reground", action="store_true", help="opt-in (default OFF = v4 output unchanged): ALSO run the v4.1 robustness INFO row (NON-GATING): same seeds/noise/ball/friction, then both soles re-grounded to the unperturbed address (eval/reground.py, docs/HARNESS_V4_NOTES.md)")
     ap.add_argument("--no-robust-info", action="store_true", help="opt-in, top-k PRE-SCREEN only: skip the wide/stress friction INFO robustness rows (not for official grades)")
     a = ap.parse_args(); v5 = a.harness == "v5"; a.v5 = v5
     if v5:
@@ -373,11 +400,13 @@ def main():
     if v4: os.environ.setdefault("V3_HEAD", "v4"); os.environ.setdefault("V3_TEE", "1.5in")   # worker reads these; crown info = rerun with V3_TEE=crown
     if v3d or v4: a.harness = "v3c"   # v3d/v4 = same v3c episodes, re-graded
     resolve_harness(a); r = run_v5(a) if a.env == "v5" else run_v1(a)
+    r0 = copy.deepcopy(r) if getattr(a, "_v41", None) else None
     if v3d:
         from eval.harness_v3d import apply_v3d_flagged; a.harness = "v3d"; r = apply_v3d_flagged(r)
     if v4:
         from eval.harness_v4 import apply_v4; a.harness = "v4"; r = apply_v4(r)
     if v5: r = _apply_v5(a, r)
+    if r0 is not None: r["checks"][V41_KEY] = v41_row(r0, a._v41, v3d, v4)
     print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}" + (f" info {r['n_info']} (not gating)" if r.get('n_info') else ""))
     for n, c in r["checks"].items():
         print(f"  {c['status'].upper():5s} {n}" + (f"  - {'; '.join(x for x in c['why'] if x)[:200]}" if c["status"] in ("fail", "warn") else "") + (f"  - {'; '.join(x for x in c['why'] if x)}" if c["status"] == "info" else ""))
