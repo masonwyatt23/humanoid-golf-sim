@@ -987,10 +987,13 @@ stageDRb (2026-10-25 02:25 EDT): stageDRa stopped at ~150k (stuck at address: fe
 
 ## plumb_addr (Trainer 66ec75f): PARTIAL, Trainer-only, single seed
 - `train/plumb_addr.py` plus DREnv hooks, default off, set only via `configure(plumb_addr=True)` (no CLI flag). On a gravity-tilt slope it rotates the base and club rigidly about the ball, lifts the club off the floor, solves 6-DOF leg IK that keeps the sole poses, and adds the leg offsets to the reference q(t). Diagnostics: `scripts/slope_diag.py` / `scripts/slope_train_check.py` with 4th arg `plumb` (needs `HGS_V10L_CKPT`).
-- Status: PARTIAL. It helps only at slopes up to about 1%; from 2% up, contacts are still mostly misses. The leg IK hits joint limits in about 4 of 18 sloped episodes (logged in `dr_log['plumb']`). It does not meet the 7% slope target.
+- Status: PARTIAL. It helps only at slopes up to about 1%; from 2% up, contacts are still mostly misses. In 5 V10l plumb-on episodes, all at 7-9% slope, the leg IK leaves the feet more than 1 mm off (`results/v10_diag/plumb_addr_slope_tests.json`, `sole_ik_failures`; logged in `dr_log['plumb']`). It does not meet the 7% slope target.
 - V10l 100k at 1% slope: contact 2/6 with plumb_addr off vs 6/6 on (`results/v10_diag/plumb_addr_slope_tests.json` / `.md`, Trainer 8ebe8f5). PARTIAL, Trainer-only, n=6 per cell (seeds 920000+i), single policy. From 2% up the same file shows 2/6 or fewer with the flag on, and lists 5 V10l flag-on episodes at 7-9% slope with sole-IK error above 1 mm.
 - Defaults unchanged (plumb_addr off): reward md5 fe76b45d, dr_smoke 40532803, baseline check OK.
 
 ## DR slope options and goal task (Trainer dd670c2 / dc175ff flags, 8904d25)
 - All default off: `--dr_slope_p` (default None = 0.5), `--dr_hi_breadth` (default None = full high bands), `--dr_slope_max` (default None = 0.07), and `--plumb_addr` as a CLI flag in `train/v5_train_dr.py`.
 - Goal task (`train/goal_task.py`): `--goal_sample` draws training goals (driver, LH; carry U(100,180) m; dir U(-15,+15) deg; fade/straight/draw 0.25/0.5/0.25; bend U(2,6) deg), with optional `--goal_curr`. `--goal_w` is now a harness-v5-shaped, contact-gated task reward. This range is a superset of the Evaluator's GOAL_SET_V5. No goal-trained run is committed. `scripts/goal_e2e_check.py` (needs `HGS_GOAL0_CKPT`) checks the pipeline on the goal-ignoring V10l_goal0 snapshot. LOCAL, NOT OFFICIAL.
+
+## --dr_seg_edge and --dr_breadth_contact (Trainer c284be9), default off
+- `--dr_seg_edge`: thigh/calf mass clip widened to ±2.25 SD, and w.p. 0.2 per episode |dev| ~ U(1.5, 2.25) SD with random sign; trunk/foot unchanged. Import-time assert keeps it disjoint from the heldout-2 segment band (2.5-3 SD); checked against main's harness v5 heldout-2 bands (thigh/calf 2.5-3.0 SD). `--dr_breadth_contact` (bundled in c284be9) overrides the DR breadth in the 'contact' stage only. Flag-off DR draws unchanged (dr_smoke DR-on traces 97aea8a4 / 76283c51).

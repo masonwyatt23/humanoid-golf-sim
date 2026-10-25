@@ -33,6 +33,12 @@ def assert_disjoint_heldout():
     assert DR["ball_max"] < HELDOUT["ball"][0], "ball DR overlaps held-out"
     assert SEED_MAX <= HELDOUT["seeds"][0]
 assert_disjoint_heldout()
+# --dr_seg_edge (default off): thigh/calf clip +-2.25 SD; w.p. 0.2 per episode |dev| ~ U(1.5, 2.25) SD, random sign. Trunk/foot unchanged.
+SEG_EDGE = dict(segs=("thigh", "calf"), clip_sd=2.25, p=0.2, edge_sd=(1.5, 2.25))
+HELDOUT2_SEG_SD = (2.5, 3.0)   # proposed heldout-2 segment-mass band (|dev| in SD, either sign), Trainer proposal f253d5d report
+def assert_disjoint_seg_edge():
+    assert max(2.0, SEG_EDGE["clip_sd"], SEG_EDGE["edge_sd"][1]) < HELDOUT2_SEG_SD[0], "segment-mass DR overlaps heldout-2 band"
+assert_disjoint_seg_edge()
 
 # (d) goal command block. Encoding (all float32), appended after the JEnv obs:
 GOAL_KEYS = ("club_driver", "club_7iron", "club_pw", "target_carry", "target_dir", "shape", "bend", "handedness")
@@ -81,14 +87,22 @@ class DREnv(JEnv):
         if getattr(self, "_mb", None) is None or self._mb[0] is not m:
             self._mb = (m, m.body_mass.copy(), m.body_inertia.copy(), m.body_ipos.copy(), m.geom_quat.copy(), m.opt.gravity.copy(), self.env.tau.copy())
         return self._mb
+    def _seg_edge_f(self, seg, sc):   # --dr_seg_edge (thigh/calf only); per-episode edge draw decided once per reset in _apply_model_dr
+        cv = DR["seg_cv"][seg]
+        if self._seg_edge_on: return 1.0 + float(self.rng2.choice((-1.0, 1.0))) * float(self.rng2.uniform(*SEG_EDGE["edge_sd"])) * cv
+        return float(np.clip(1.0 + self.rng2.normal(0, cv * sc), 1 - SEG_EDGE["clip_sd"] * cv, 1 + SEG_EDGE["clip_sd"] * cv))
+    dr_breadth_contact = None
+    def _breadth(self):   # --dr_breadth_contact (default None = BREADTH table) overrides stage 'contact' only
+        return float(self.dr_breadth_contact) if (self.dr_breadth_contact is not None and self.dr_stage == 1) else BREADTH[self.dr_stage]
     def _apply_model_dr(self):
-        e = self.env; m = e.m; _, bm, bi, bp, gq, gr, tau = self._model_base(); sc = BREADTH[self.dr_stage]; hi_on = HIGH_ON[self.dr_stage]; L = {}
+        e = self.env; m = e.m; _, bm, bi, bp, gq, gr, tau = self._model_base(); sc = self._breadth(); hi_on = HIGH_ON[self.dr_stage]; L = {}
+        self._seg_edge_on = bool(getattr(self, "dr_seg_edge", False)) and bool(self.rng2.random() < SEG_EDGE["p"])
         m.body_mass[:] = bm; m.body_inertia[:] = bi; m.body_ipos[:] = bp; m.geom_quat[:] = gq; m.opt.gravity[:] = gr; e.tau[:] = tau
         for seg, names in SEG.items():
             for b in range(m.nbody):
                 nm = m.body(b).name
                 if any(nm == s or nm.endswith(s) and nm.startswith(("left_", "right_")) for s in names):
-                    f = float(np.clip(1.0 + self.rng2.normal(0, DR["seg_cv"][seg] * sc), 1 - 2 * DR["seg_cv"][seg], 1 + 2 * DR["seg_cv"][seg])); m.body_mass[b] = bm[b] * f; m.body_inertia[b] = bi[b] * f; L[nm] = round(f, 4)
+                    f = float(np.clip(1.0 + self.rng2.normal(0, DR["seg_cv"][seg] * sc), 1 - 2 * DR["seg_cv"][seg], 1 + 2 * DR["seg_cv"][seg])) if not (getattr(self, "dr_seg_edge", False) and seg in SEG_EDGE["segs"]) else self._seg_edge_f(seg, sc); m.body_mass[b] = bm[b] * f; m.body_inertia[b] = bi[b] * f; L[nm] = round(f, 4)
         cb = m.body("club").id; dm = (self.rng2.uniform(*DR["head_g"]) - 200.0) * sc / 1000.0; hp = m.geom_pos[e.head_geom]; M = bm[cb]
         m.body_mass[cb] = M + dm; m.body_ipos[cb] = (M * bp[cb] + dm * hp) / (M + dm); m.body_inertia[cb] = bi[cb] * (M + dm) / M; L["head_dm_g"] = round(dm * 1000, 2)
         dl = math.radians(self.rng2.uniform(-1, 1) * DR["loft_deg"] * sc); q = np.zeros(4); mujoco.mju_axisAngle2Quat(q, np.array([0.0, 1.0, 0.0]), dl); qo = np.zeros(4); mujoco.mju_mulQuat(qo, gq[e.head_geom], q); m.geom_quat[e.head_geom] = qo; L["loft_d_deg"] = round(math.degrees(dl), 3)
@@ -116,7 +130,7 @@ class DREnv(JEnv):
         self.fr_rand = False; self.init_qn = 0.0; self.init_qvn = 0.0; self.ball_tol = 0.0   # DR replaces the JEnv draws (restored after)
         try: o, info = super().reset(**kw)
         finally: self.fr_rand, self.init_qn, self.init_qvn, self.ball_tol = fr0, qn0, qvn0, bt0
-        e = self.env; sc = BREADTH[self.dr_stage]; hi_on = HIGH_ON[self.dr_stage]
+        e = self.env; sc = self._breadth(); hi_on = HIGH_ON[self.dr_stage]
         if getattr(self, "plumb_addr", False): from train.plumb_addr import apply_plumb; apply_plumb(self); L["plumb"] = self.plumb_log   # --plumb_addr (default off)
         b = np.clip(self.rng2.normal(0, DR["ball_sd"] * sc, 2), -DR["ball_max"], DR["ball_max"]); e.tee[:2] += b; e.d.qpos[e.ball_q:e.ball_q + 2] = e.tee[:2]; L["ball_dxy_mm"] = [round(float(x) * 1000, 2) for x in b]
         if self.mode == 0:
