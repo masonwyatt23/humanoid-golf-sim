@@ -13,12 +13,13 @@ def one(e, ref, pid):
     S = {}; st = e.step
     def step(a):
         o = st(a); i = o[4]
+        if 'face_yaw_deg' in i and 'fy' not in S: S['fy'] = float(i['face_yaw_deg']); S['az'] = float(i.get('azimuth_deg', 0.0) or 0.0)
         if 'lateral_carry_m' in i and 'lat' not in S and float(i.get('carry_m_noroll', 0) or 0) > 1.0: S['lat'] = 100.0 * abs(float(i['lateral_carry_m'])) / float(i['carry_m_noroll'])
         return o
     e.step = step
     try: r = _one10(e, ref, None if pid is None else pid + P0)
     finally: e.__dict__.pop('step', None)
-    r['lat100'] = S.get('lat'); _R.append(r); return r
+    r['lat100'] = S.get('lat'); r['fy'] = S.get('fy'); r['az_i'] = S.get('az'); _R.append(r); return r
 V.one = one
 _s10 = V.score
 def score(x):
@@ -29,6 +30,12 @@ def score(x):
     d['heel'] = float(np.mean([bool(r.get('on_face')) and (r.get('dy') or 0) / 0.001 < -10.0 for r in R]))
     d['lat_med'] = float(np.median([r['lat100'] for r in on if r.get('lat100') is not None])) if on else None
     d['lat_nom'] = _R[0].get('lat100')
+    d['dy2'] = float(np.mean([bool(r.get('on_face')) and abs((r.get('dy') or 0) / 0.001) <= 8.0 for r in R]))   # V12V: two-sided |dy| <= 8 mm rate
+    d['nom_dy_abs'] = abs((_R[0].get('dy') or 0.05) / 0.001)
+    dp = [abs(r['az_i'] - 0.85 * r['fy']) for r in on if r.get('fy') is not None and r.get('az_i') is not None]
+    d['dplane'] = float(np.mean([x <= 2.0 for x in dp])) if dp else 0.0; d['dplane_med'] = float(np.median(dp)) if dp else None   # V12V: D-plane proxy |az - 0.85 face| <= 2 deg
+    w4 = float(os.environ.get('V12U_DY2_W', '0')); w5 = float(os.environ.get('V12U_DPL_W', '0'))
+    s -= w4 * (max(0.85 - d['dy2'], 0) / 0.05 + min(max(d['nom_dy_abs'] - 8.0, 0) / 2.0, 6)) + w5 * max(0.85 - d['dplane'], 0) / 0.05
     w1 = float(os.environ.get('V12U_SD2_W', '0')); w2 = float(os.environ.get('V12U_HEEL_W', '0')); w3 = float(os.environ.get('V12U_LAT_W', '0'))
     s -= w1 * max(0.92 - d['h_sd2'], 0) / 0.05 + w2 * d['heel'] / 0.05 + w3 * max((d['lat_med'] or 20) - 9.0, 0)
     return s, d

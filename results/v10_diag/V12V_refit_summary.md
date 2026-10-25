@@ -1,0 +1,13 @@
+# V12V reference refit (LOCAL refit proxies, NOT official)
+Cmd: results/v5_runs/stageV12V_ref_s1/cmd.txt. Init V12T keys. Fit draws pid 6000-6047; held-out pid 5000-5047 (disjoint). Heel-only term replaced by a two-sided |dy|<=8 mm term + nominal |dy| (W 40). D-plane proxy |az - 0.85*face| <= 2 deg (W 20): the sign/convention is unverified against the Evaluator v5 D-plane row.
+Held-out (V12T / V12U / V12V): contact .96/.96/.90; start-dir proxy h_sd2 .85/.90/.83; plant .94/.96/.88; nominal ref dy +13.6/+20.0/+1.9 mm; nominal ref t/c 1.42/1.47/1.32; nominal smash 1.38/1.36/1.42; |dy|<=8 rate V12V .35 (noisy starts spread, heel rate .33); D-plane proxy pass .23 (median |az-0.85f| 3.4 deg).
+Downstream, local harness: V18c 100k (V12V keys, warm V13h 50k): 13/5/1, nominal t/c 1.300 (PASS; was the wall), smash 1.43, nominal dy -1.0 mm. The only fail is robustness: gates .88/.75/.83, robust dy median -8.2 mm (heel), smash p10 1.22, robust t/c median 1.354.
+face_log V18c 100k (LOCAL trainer-randomised starts): az still tracks dy (r .82), not face (r -.28); az - 0.85*face median -2.6 (V16y -4.6, V13h -4.9). Start direction is not solved.
+
+## V12W (13:10 ET; LOCAL refit proxies, NOT official)
+Cmd: results/v5_runs/stageV12W_ref_s1/cmd.txt. Init V12V keys. Fit draws pid 8000-8047; held-out pid 5000-5047. Weights: |dy|<=8 W80, heel W15, D-plane proxy W20.
+Held-out (V12T/U/V/W): contact .96/.96/.90/.96; h_sd2 .85/.90/.83/.92; heel .125/.10/.33/.17; |dy|<=8 rate -/-/.35/.50; nominal ref dy +13.6/+20.0/+1.9/+4.1; nominal t/c 1.42/1.47/1.32/1.29; smash 1.38/1.36/1.42/1.42; D-plane proxy pass -/-/.23/.50 (median 3.4 -> 2.0 deg); plant .94/.96/.88/.90.
+V18e (V12W keys, warm V18c 50k), local harness: 50k 13/5/1 .88/.88/.75; 100k 13/5/1 .83/.83/.71. Nominal t/c 1.274, smash 1.424, nominal dy +4.4 mm, but nominal dz -10 mm (low). Robustness fails: plant .71-.75, contact .83-.88. Robust smash p10 1.35, t/c median 1.34.
+face_log V18e 100k (LOCAL): contact only 16/24 on trainer-randomised starts; az still tracks dy (r .84), not face (r .04); az - 0.85*face median -2.0. Start direction still comes mostly from strike location (gear effect), not face control.
+
+Label (port): all V12V/V12W figures are reference-refit PROXIES on held-out pid 5000-5047 (fit pids disjoint), NOT harness results and not Evaluator grades. The D-plane proxy (|az - 0.85*face| <= 2 deg) sign convention has NOT been checked against the Evaluator v5 D-plane row. V18c/V18e harness figures are Trainer-local and not backed by a committed results file. Start direction is still mostly gear effect (strike location), not solved.

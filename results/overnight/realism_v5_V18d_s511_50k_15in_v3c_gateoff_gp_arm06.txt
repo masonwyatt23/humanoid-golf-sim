@@ -1,0 +1,40 @@
+
+REALISM FAIL  V18d_s511_50k/ckpt_50000  [v5 (G1, club_len 1.15, tether 0, strike gate OFF, arm_dist 0.6 [BEnv, as B2-B4/C train])]  episodes 24 (true contact 24)  pass 12 warn 4 fail 2 skip 8 info 11 (not gating)
+  FAIL  swing/kinematic_sequence_order  - peak order violated: [('pelvis', 'thorax')]
+  WARN  swing/kinematic_sequence_timing_ms_before_club_peak  - outside band: {'pelvis': -24, 'thorax': 12, 'arm': 4} (pro means 87/68/65 ms, amateur 78/59/64)
+  WARN  swing/peak_speed_pelvis_deg_s  - 0.55 x target at 70 mph (target EXTRAPOLATED beyond measured 88-109 mph)
+  PASS  swing/peak_speed_thorax_deg_s
+  PASS  swing/peak_speed_arm_deg_s
+  PASS  swing/peak_speed_club_deg_s
+  PASS  swing/x_factor_top_deg
+  SKIP  swing/actuator_torque_speed_limits
+  SKIP  swing/pelvis_yaw_avg_torque_Nm
+  WARN  swing/grf_lead_vertical_bw  - peak lead-foot vertical force in body weights, WINDOWED top of backswing -> impact (+20 ms jitter allowance when method=butter), de-spiked (butter); bands unchanged (pass [0.8, 1.7], warn [0.5, 2.4], 
+  PASS  shot/smash
+  PASS  shot/club_speed_mph
+  PASS  shot/spin_rpm
+  PASS  shot/launch_deg
+  SKIP  shot/descent_deg
+  WARN  shot/total_over_carry  - total/carry (normal turf 1.07-1.13, firm to ~1.2; env without roll gives 1.0)
+  PASS  shot/carry_vs_golfphys_yd
+  PASS  mine/segments_rotate
+  SKIP  mine/ground_contact_weight_shift
+  SKIP  mine/joint_limits
+  SKIP  mine/torque_saturation_smoothness
+  SKIP  mine/tempo
+  SKIP  mine/carry_vs_trackman_band
+  PASS  mine/start_direction
+  PASS  mine/lead_foot_plant
+  INFO  mine/total_over_carry_speed_matched (golfphys model, info only, not gating)  - actual total/carry 1.285 vs golfphys speed-matched minimum 1.242 at 100.3 mph ball speed (launch 16 deg, backspin 3000 rpm); golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict
+  INFO  mine/grf_lead_vertical_raw_info  - OLD rule, INFO only: whole-episode raw lead-GRF peak (includes follow-through and single-sample contact spikes); not gating; sensitivity (INFO, not gating): same window + guard with 4th-order zero-lag Butterworth at 12Hz -> 1.884 BW, 14Hz -> 1.879 BW (lower cutoffs lower the peak)
+  INFO  mine/lead_foot_shear_ratio_info  - lead-foot shear/vertical top->impact: peak median 0.757 (max 0.757), p95 median 0.671; reference <= 0.65-0.75
+  FAIL  mine/robustness  - contact 92% < 95%; start_direction PASS 79% < 90%; lead_foot_plant PASS 88% < 90%; spin_rpm p10/p90 outside WARN band (median 2.86e+03, p10 701, p90 4.23e+03); total_over_carry median/p90 outside WARN
+  INFO  mine/robustness_wide_friction_info  - INFO only (not gating): robustness under the env's wide friction U(0.5, 1.2); contact 71% < 95%; start_direction PASS 62% < 90%; lead_foot_plant PASS 67% < 90%; spin_rpm p10/p90 outside WARN band (median 3.18e+03, p10 1.15e+03, p90 4.57e+03); total_over_carry median/p90 outside WARN band (median 1.4, p10 1.27, p90 2.05); club_speed_mph leaves PASS band (p10; median 70.2, p10 57, p90 70.6); smash leaves PASS band (p10; median 1.39, p10 1.15, p90 1.42); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/robustness_stress_friction_info  - INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md); contact 79% < 95%; start_direction PASS 67% < 90%; lead_foot_plant PASS 75% < 90%; spin_rpm p10/p90 outside WARN band (median 3.1e+03, p10 606, p90 4.33e+03); total_over_carry median/p90 outside WARN band (median 1.36, p10 1.26, p90 1.84); club_speed_mph leaves PASS band (p10; median 70.2, p10 52, p90 70.6); smash leaves PASS band (p10; median 1.4, p10 1.27, p90 1.43); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/strike_dy_info  - INFO only (not gating): strike dy at impact, mm from the face centre (env info['dy'])
+  INFO  mine/strike_dz_info  - INFO only (not gating): strike dz at impact, mm from the face centre (env info['dz'])
+  INFO  mine/tee_dz_info  - INFO only: tee offset used (V3_TEE=1.5in; 'crown' = derived from the active head geometry, crown-level per GOLF.com / Golf Digest / Golf Monthly advice)
+  INFO  mine/face_h_info  - INFO only: env face_h used (None = 64 mm head box; non-None = off-face contacts beyond face_h/2 become misses, which changes what is scored)
+  INFO  mine/head_info  - INFO only: club head used = v4 head (sourced 460 cc, lie 58.5, Izz 5600 (n=1 manufacturer claim), CFZ 39, face centre 29 mm; cross-checked vs V4_SPEC)
+  INFO  mine/tee_height_info  - INFO only: address geometry above ground (env, after reset): ball centre / bottom (tee peg), head-box crown at the face, face centre
+  -- sample interval: 4.0 ms measured from the logged sim time (worker declared 4.0 ms; 0 episodes disagree); tie tolerance 20 ms and thresholds unchanged
