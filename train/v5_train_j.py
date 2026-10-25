@@ -42,6 +42,8 @@ class JEnv(HEnv):
     def configure(self, **kw):
         for k, v in kw.items():
             if v is not None: setattr(self, k, v)
+        if getattr(self, 'stance_obs', None) and not getattr(self, '_stance_dim', False):   # V18: --stance_obs (default off) appends 4 obs dims (see _xobs); resize the space once
+            self._stance_dim = True; n = self.observation_space.shape[0] + 4; self.observation_space = spaces.Box(-np.inf, np.inf, (n,), np.float32)
     def _ensure_ref(self):
         e = self.env
         if self.xf_hard > 0 and (self.ref is None or self.ref_len != e.club_len):   # HARD X-factor cap: waist_yaw target clipped to address + xf_hard deg (also bounds the reference)
@@ -50,7 +52,12 @@ class JEnv(HEnv):
             self.ref = SwingRef(e.names, e.q_addr, e.lead, e.jlo, e.jhi, keys=self.ref_keys, t_down=self.t_down); self.ref.memo = bool(getattr(e, "fast_env", False)); self.ref_len = e.club_len; self.home = e.q_addr.copy()
     def _xobs(self, o):
         t = self.env.d.time; r = self.ref
-        return np.concatenate([o, [r.u(t), r.downswing_phase(t), 1.0 if t < r.t_dstart else 0.0, float(np.clip((r.t_imp - t) / 0.3, -1.0, 1.0))]]).astype(np.float32)
+        x = np.concatenate([o, [r.u(t), r.downswing_phase(t), 1.0 if t < r.t_dstart else 0.0, float(np.clip((r.t_imp - t) / 0.3, -1.0, 1.0))]]).astype(np.float32)
+        if getattr(self, 'stance_obs', None):   # V18 --stance_obs: ball xy minus lead / trail sole xy (world, x10 m); spread diag: lead-sole shift after the reset perturbation drives strike dy
+            e = self.env; b_ = e.d.qpos[e.ball_q:e.ball_q + 2]; tr_ = 'left' if e.lead == 'right' else 'right'
+            sp_ = lambda n_: e.d.site_xpos[e.m.site(f"{n_}_sole_site").id][:2]
+            x = np.concatenate([x, 10.0 * (b_ - sp_(e.lead)), 10.0 * (b_ - sp_(tr_))]).astype(np.float32)
+        return x
     def reset(self, **kw):
         if getattr(self, 'fast_env', None): self.env.fast_env = True   # STEP2(1) --fast_env (identical rewards/info/obs; scripts/fast_env_equiv.py)
         if getattr(self, 'env_v4', None) and not getattr(self.env, 'env_v4', False): self.env.set_env_v4(True); self.ref = None   # v4 re-baseline (new address -> rebuild the reference on the new q_addr)
@@ -71,10 +78,16 @@ class JEnv(HEnv):
             out = super().reset(**kw); e.q_addr = self.home.copy(); self.mode = 0
         self._nom = bool(getattr(self, 'nom_frac', None)) and self.mode == 0 and self.rng2.random() < self.nom_frac   # V15: noiseless address starts (harness nominal row), default off
         if self._nom: self.env.m.geom_friction[self.env.floor, 0] = 1.0
-        if self.mode == 0 and not self._nom and (self.init_qn > 0 or self.init_qvn > 0):   # K24: perturbed start at address (robustness gate)
+        _hs_on = bool(self.mode == 0 and not self._nom and getattr(self, 'hstart_frac', None) and self.rng2.random() < self.hstart_frac)
+        if self.mode == 0 and not self._nom and not _hs_on and (self.init_qn > 0 or self.init_qvn > 0):   # K24: perturbed start at address (robustness gate)
             nr_ = getattr(self, 'noise_ramp', None); sc_ = min(1.0, max(0.2, float(getattr(self, 'progress', 0.0)) / float(nr_))) if nr_ else 1.0   # V5: start-noise curriculum (20% -> 100% by fraction noise_ramp)
             e.d.qpos[e.qa] += self.rng2.uniform(-sc_ * self.init_qn, sc_ * self.init_qn, len(e.qa)); e.d.qvel[e.da] += self.rng2.uniform(-sc_ * self.init_qvn, sc_ * self.init_qvn, len(e.da))
             import mujoco; mujoco.mj_forward(e.m, e.d); out = (e._obs(), {})
+        self._hs = None
+        if _hs_on:   # V18: harness-v4-style perturbed start (Evaluator _j_worker_gp_v3 magnitudes/streams) on seeds 10000..899999 (never the gating seeds 7000-7023), replaces the trainer noise above; default off
+            import mujoco; sd_ = int(self.rng2.integers(10000, 900000)); self._hs = sd_
+            e.m.geom_friction[e.floor, 0] = np.random.default_rng(sd_ + 0xF41C).uniform(0.7, 1.05); rg_ = np.random.default_rng(sd_ + 0x5EED); nq_ = len(e.qa)
+            e.d.qpos[e.qa] += np.radians(1.5) * rg_.uniform(-1, 1, nq_); e.d.qvel[e.da] += 0.05 * rg_.uniform(-1, 1, nq_); mujoco.mj_forward(e.m, e.d); out = (e._obs(), {})
         e.q_addr = r.q(e.d.time); self.nstep = 6; self.trk_sum = 0.0; self.trk_n = 0; self._cprev = False; self._sl_ep = 0.0; self._slead = 0.0; self.prev_a = None
         return self._xobs(e._obs()), {}
     def step(self, a):
@@ -124,6 +137,7 @@ class JEnv(HEnv):
             elif getattr(self, 'loc_w', 0.0) > 0: rew -= self.loc_w * float(np.clip(abs(info['dz'] - self.loc_dz) / 0.01 + abs(info['dy'] - self.loc_dy) / 0.015, 0.0, 4.0))   # K31: per-episode strike-location target (gear effect is in vendored golfphys; offset from target is penalised every seed)
             if getattr(self, 'dz_lin_w', None): rew -= self.dz_lin_w * abs(info['dz'] - getattr(self, 'dz_tgt', 0.0015)) / 0.01   # V7: separate unclipped strike-height term (no dy dependence)
             if getattr(self, 'smash3_w', None) and self.mode == 0: rew += self.smash3_w * float(np.clip((float(info.get('smash', 0.0)) - getattr(self, 'smash3_lo', 1.30)) / (getattr(self, 'smash3_hi', 1.48) - getattr(self, 'smash3_lo', 1.30)), 0.0, 1.0))   # V17: smash/ball-speed term live up to 1.48 (smash_w/smash2_w saturate at 1.30/1.35); address starts, default off
+            if getattr(self, 'heel8_w', None) and self.mode == 0 and not getattr(self, '_nom', False) and info['dy'] < -0.008: rew -= self.heel8_w * (1.0 + float(np.clip((-0.008 - info['dy']) / 0.008, 0.0, 3.0)))   # V18: one-sided heel-tail penalty (dy < -8 mm) on noisy address starts; default off
             if getattr(self, 'dy_lin_w', None): rew -= self.dy_lin_w * min(abs(info['dy'] - getattr(self, 'dy_tgt', 0.0)) / 0.015, 10.0)   # V7: separate heel-toe term
             if getattr(self, 'launch_lo_w', None): rew -= self.launch_lo_w * float(np.clip((getattr(self, 'launch_lo', 12.0) - float(info.get('launch_deg', 0.0))) / 2.0, 0.0, 3.0))   # V8: launch floor (t/c)
             if getattr(self, 'lat_w', None) and self.mode == 0 and float(info.get('carry_m_noroll', 0.0) or 0.0) > 1.0: rew -= self.lat_w * float(np.clip((100.0 * abs(float(info.get('lateral_carry_m', 0.0) or 0.0)) / float(info['carry_m_noroll']) - getattr(self, 'lat_tgt', 10.0)) / 3.5, 0.0, 3.0))   # V13: lateral per 100 (harness start-direction pass <=13.5) on address starts, default off; TESTED AND RETIRED: did not lift start direction
@@ -232,7 +246,7 @@ if __name__ == "__main__":
     ap.add_argument("--ent", type=float, default=0.003); ap.add_argument("--log_std", type=float, default=-1.0); ap.add_argument("--log_std_end", type=float, default=-1.6); ap.add_argument("--std_end", type=float, default=0.7)
     ap.add_argument("--rate_w", type=float, default=0.05); ap.add_argument("--resume", action="store_true"); ap.add_argument("--reset_stall", action="store_true"); ap.add_argument("--init_ck", default=None)
     ap.add_argument("--smash3_w", type=float, default=None); ap.add_argument("--smash3_lo", type=float, default=None); ap.add_argument("--smash3_hi", type=float, default=None)
-    ap.add_argument("--nom_frac", type=float, default=None)
+    ap.add_argument("--nom_frac", type=float, default=None); ap.add_argument("--stance_obs", action="store_true", default=None, help="V18: append ball-minus-lead/trail-sole xy to the obs (+4 dims; default off)"); ap.add_argument("--heel8_w", type=float, default=None, help="V18: one-sided heel-tail penalty, dy<-8 mm on noisy address starts (default off)"); ap.add_argument("--hstart_frac", type=float, default=None, help="V18: fraction of noisy address starts drawn harness-v4-style on seeds 10000-899999 (default off)")
     ap.add_argument("--lat_w", type=float, default=None, help="TESTED AND RETIRED (V13: did not lift start direction); default off"); ap.add_argument("--lat_tgt", type=float, default=None, help="TESTED AND RETIRED; used only with --lat_w")
     ap.add_argument("--turn_m_w", type=float, default=None); ap.add_argument("--turn_tgt", type=float, default=None)
     ap.add_argument("--miss0_w", type=float, default=None)
@@ -240,7 +254,7 @@ if __name__ == "__main__":
     ap.add_argument("--grf_w", type=float, default=None); ap.add_argument("--xf_cap_lo", type=float, default=None); ap.add_argument("--xf_cap_w", type=float, default=None); ap.add_argument("--track_floor", type=float, default=None)
     a = ap.parse_args()
     keys = {tuple(k.split("|")): v for k, v in json.load(open(a.keys)).items()} if a.keys and a.keys != "none" else None
-    extra = dict(fast_env=(True if a.fast_env else None), smash3_w=a.smash3_w, smash3_lo=a.smash3_lo, smash3_hi=a.smash3_hi, nom_frac=a.nom_frac, lat_w=a.lat_w, lat_tgt=a.lat_tgt, turn_m_w=a.turn_m_w, turn_tgt=a.turn_tgt, miss0_w=a.miss0_w, plant_h_w=a.plant_h_w, res_l2_w=a.res_l2_w, launch_lo_w=a.launch_lo_w, launch_lo=a.launch_lo, sd_w=a.sd_w, loc_noclip=a.loc_noclip, dz_lin_w=a.dz_lin_w, dz_tgt=a.dz_tgt, dy_lin_w=a.dy_lin_w, dy_tgt=a.dy_tgt, dz_gate=a.dz_gate, dz_zero=a.dz_zero, rsi=((a.rsi_full, (1 - a.rsi_full) / 2, (1 - a.rsi_full) / 2) if a.rsi_full is not None else None), noise_ramp=a.noise_ramp, miss_w=a.miss_w, env_v4=(True if a.env_v4 else None), head=a.head, tee_anneal=a.tee_anneal, tee_mode=a.tee_mode, tee_dz=a.tee_dz, ball_dx=a.ball_dx, face_h=a.face_h, edge_w=a.edge_w, edge_dz=a.edge_dz, loc_w=a.loc_w, loc_dy=a.loc_dy, loc_dz=a.loc_dz, sep_lo=a.sep_lo, sep_span=a.sep_span, plant_term=a.plant_term, strike_w=a.strike_w, grfd_w=a.grfd_w, post_t=a.post_t, init_qn=a.init_qn, fr_rand=(True if a.fr_rand else None), ball_tol=a.ball_tol, fr_lo=a.fr_lo, spin_cap=a.spin_cap, spd_top=a.spd_top, shear_w=a.shear_w, shear_hi=a.shear_hi, slow_w=a.slow_w, slow_lo=a.slow_lo, dlh_w=a.dlh_w, fr_hi=a.fr_hi, init_qvn=a.init_qvn, tc_w=a.tc_w, smash2_w=a.smash2_w, ctr2_w=a.ctr2_w, xf_hard=a.xf_hard, grf_lo=a.grf_lo, grf_w=a.grf_w, xf_cap_lo=a.xf_cap_lo, xf_cap_w=a.xf_cap_w, ord2_w=a.ord2_w, launch_w=a.launch_w, launch_hi=a.launch_hi, dl_lo=a.dl_lo, dl_hi=a.dl_hi, aoa_lo=a.aoa_lo, spd_w=a.spd_w, pel_w=a.pel_w, pel_t_w=a.pel_t_w, pel_dps=a.pel_dps, pel_t_lo=a.pel_t_lo, sep_w=a.sep_w, early_w=a.early_w, aim_w=a.aim_w, foot_w=a.foot_w, ctr_w=a.ctr_w, res_mult=(json.loads(a.res_mult) if a.res_mult else None), ctrl_dt=a.ctrl_dt, pel_t_hi=a.pel_t_hi, smash_w=a.smash_w, spin_w=a.spin_w, spin_hi=a.spin_hi, spin_scale=a.spin_scale, fine_grf=(True if a.fine_grf else None), desc_w=a.desc_w, dloft_w=a.dloft_w, spin_lo_w=a.spin_lo_w, track_floor=a.track_floor)
+    extra = dict(fast_env=(True if a.fast_env else None), stance_obs=a.stance_obs, heel8_w=a.heel8_w, hstart_frac=a.hstart_frac, smash3_w=a.smash3_w, smash3_lo=a.smash3_lo, smash3_hi=a.smash3_hi, nom_frac=a.nom_frac, lat_w=a.lat_w, lat_tgt=a.lat_tgt, turn_m_w=a.turn_m_w, turn_tgt=a.turn_tgt, miss0_w=a.miss0_w, plant_h_w=a.plant_h_w, res_l2_w=a.res_l2_w, launch_lo_w=a.launch_lo_w, launch_lo=a.launch_lo, sd_w=a.sd_w, loc_noclip=a.loc_noclip, dz_lin_w=a.dz_lin_w, dz_tgt=a.dz_tgt, dy_lin_w=a.dy_lin_w, dy_tgt=a.dy_tgt, dz_gate=a.dz_gate, dz_zero=a.dz_zero, rsi=((a.rsi_full, (1 - a.rsi_full) / 2, (1 - a.rsi_full) / 2) if a.rsi_full is not None else None), noise_ramp=a.noise_ramp, miss_w=a.miss_w, env_v4=(True if a.env_v4 else None), head=a.head, tee_anneal=a.tee_anneal, tee_mode=a.tee_mode, tee_dz=a.tee_dz, ball_dx=a.ball_dx, face_h=a.face_h, edge_w=a.edge_w, edge_dz=a.edge_dz, loc_w=a.loc_w, loc_dy=a.loc_dy, loc_dz=a.loc_dz, sep_lo=a.sep_lo, sep_span=a.sep_span, plant_term=a.plant_term, strike_w=a.strike_w, grfd_w=a.grfd_w, post_t=a.post_t, init_qn=a.init_qn, fr_rand=(True if a.fr_rand else None), ball_tol=a.ball_tol, fr_lo=a.fr_lo, spin_cap=a.spin_cap, spd_top=a.spd_top, shear_w=a.shear_w, shear_hi=a.shear_hi, slow_w=a.slow_w, slow_lo=a.slow_lo, dlh_w=a.dlh_w, fr_hi=a.fr_hi, init_qvn=a.init_qvn, tc_w=a.tc_w, smash2_w=a.smash2_w, ctr2_w=a.ctr2_w, xf_hard=a.xf_hard, grf_lo=a.grf_lo, grf_w=a.grf_w, xf_cap_lo=a.xf_cap_lo, xf_cap_w=a.xf_cap_w, ord2_w=a.ord2_w, launch_w=a.launch_w, launch_hi=a.launch_hi, dl_lo=a.dl_lo, dl_hi=a.dl_hi, aoa_lo=a.aoa_lo, spd_w=a.spd_w, pel_w=a.pel_w, pel_t_w=a.pel_t_w, pel_dps=a.pel_dps, pel_t_lo=a.pel_t_lo, sep_w=a.sep_w, early_w=a.early_w, aim_w=a.aim_w, foot_w=a.foot_w, ctr_w=a.ctr_w, res_mult=(json.loads(a.res_mult) if a.res_mult else None), ctrl_dt=a.ctrl_dt, pel_t_hi=a.pel_t_hi, smash_w=a.smash_w, spin_w=a.spin_w, spin_hi=a.spin_hi, spin_scale=a.spin_scale, fine_grf=(True if a.fine_grf else None), desc_w=a.desc_w, dloft_w=a.dloft_w, spin_lo_w=a.spin_lo_w, track_floor=a.track_floor)
     out = f"results/v5_runs/{a.tag}_s{a.seed}"; os.makedirs(out, exist_ok=True)
     assert all(hasattr(a, k) for k in ('plant_h_w', 'res_l2_w', 'noise_ramp', 'miss_w')) and 'noise_ramp' in extra and 'plant_h_w' in extra   # V9: guard (V5-V8 flags were parsed but never reached the env)
     venv = SubprocVecEnv([make(i, a.seed, a.dt, keys, a.res_scale, a.t_down, extra) for i in range(a.workers)])
