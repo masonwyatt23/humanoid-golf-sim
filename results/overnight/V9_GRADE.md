@@ -31,3 +31,7 @@ Common warnings (v4 main): kinematic_sequence_order, kinematic_sequence_timing, 
 Nothing passes in full. No render.
 
 Versus the Trainer's local claims: all counts, robustness fractions, t/c p90 and nominal dz match (150k 11/7/1, .83/.71/.38, 2.15, -7.2; 100k 12/5/2, contact 0.96; V8a 300k 12/6/1, .83/.67/.25, 2.27, -3.2, noise-median -2.2/+4.1 over 20). No differences found.
+
+## Training-flag erratum (Trainer ac13405)
+
+The Trainer found that the V5-V8 reward flags (noise_ramp, miss_w, dz_gate, rsi_full, loc_noclip, dz/dy_lin, res_l2_w, launch_lo_w, sd_w) never reached the training env, so V5-V8 checkpoints trained on the base reward. The grades above are unaffected (they score the checkpoints as they are); only descriptions of what those reward terms did are wrong.
