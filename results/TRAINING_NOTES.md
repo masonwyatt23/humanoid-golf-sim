@@ -984,3 +984,9 @@ head c92f4d05...ec29eb3a OK; reward fe76b45d3ef9bcaa82a2650097f87218 111 steps t
 Same reward recipe on DREnv defaults and on DREnv(dr=False, goal_obs=False, goal_w=0, dr_stage=3): fe76b45d..., 111, 47.29053746950751 (identical).
 
 stageDRb (2026-10-25 02:25 EDT): stageDRa stopped at ~150k (stuck at address: fell 0.08-0.12 > 0.05). New curriculum options --fell_addr (default 0.05 = unchanged) and --stage_time (default 0 = off; >0 promotes after N steps in a stage, logged promoted_by=time; gate promotions are logged promoted_by=gate). stageDRb_s202 = stageDRa flags + --fell_addr 0.10 --stage_time 400000, seed 202 (env seeds 20391-20392), warm V10l 100k (command file not committed). Baseline check re-run after the change: head/reward fe76b45d/guard/strike OK. stageDRa snapshots + topk_table kept (local, not committed).
+
+## plumb_addr (Trainer 66ec75f): PARTIAL, Trainer-only, single seed
+- `train/plumb_addr.py` plus DREnv hooks, default off, set only via `configure(plumb_addr=True)` (no CLI flag). On a gravity-tilt slope it rotates the base and club rigidly about the ball, lifts the club off the floor, solves 6-DOF leg IK that keeps the sole poses, and adds the leg offsets to the reference q(t). Diagnostics: `scripts/slope_diag.py` / `scripts/slope_train_check.py` with 4th arg `plumb` (needs `HGS_V10L_CKPT`).
+- Status: PARTIAL. It helps only at slopes up to about 1%; from 2% up, contacts are still mostly misses. The leg IK hits joint limits in about 4 of 18 sloped episodes (logged in `dr_log['plumb']`). It does not meet the 7% slope target.
+- V10l 100k at 1% slope: contact 2/6 with plumb_addr off vs 6/6 on. Trainer-reported, no committed results file; single seed.
+- Defaults unchanged (plumb_addr off): reward md5 fe76b45d, dr_smoke 40532803, baseline check OK.

@@ -102,12 +102,17 @@ class DREnv(JEnv):
     def reset(self, **kw):
         if kw.get("seed") is not None and HELDOUT["seeds"][0] <= int(kw["seed"]) <= HELDOUT["seeds"][1]: raise SystemExit("DR SEED GUARD: held-out seed passed to a training env")
         if self._next_goal is not None: self.goal = self._next_goal
-        if not self.dr: out = super().reset(**kw); self._abuf = None; return out
+        if getattr(self.ref, "_plumb_base", None) is not None: self.ref = self.ref._plumb_base   # --plumb_addr: drop last episode's offset reference
+        if not self.dr:
+            out = super().reset(**kw); self._abuf = None
+            if getattr(self, "plumb_addr", False): from train.plumb_addr import apply_plumb; apply_plumb(self); out = (self._xobs(self.env._obs()), {})
+            return out
         L = self._apply_model_dr(); fr0, qn0, qvn0, bt0 = self.fr_rand, self.init_qn, self.init_qvn, self.ball_tol
         self.fr_rand = False; self.init_qn = 0.0; self.init_qvn = 0.0; self.ball_tol = 0.0   # DR replaces the JEnv draws (restored after)
         try: o, info = super().reset(**kw)
         finally: self.fr_rand, self.init_qn, self.init_qvn, self.ball_tol = fr0, qn0, qvn0, bt0
         e = self.env; sc = BREADTH[self.dr_stage]; hi_on = HIGH_ON[self.dr_stage]
+        if getattr(self, "plumb_addr", False): from train.plumb_addr import apply_plumb; apply_plumb(self); L["plumb"] = self.plumb_log   # --plumb_addr (default off)
         b = np.clip(self.rng2.normal(0, DR["ball_sd"] * sc, 2), -DR["ball_max"], DR["ball_max"]); e.tee[:2] += b; e.d.qpos[e.ball_q:e.ball_q + 2] = e.tee[:2]; L["ball_dxy_mm"] = [round(float(x) * 1000, 2) for x in b]
         if self.mode == 0:
             e.d.qpos[e.qa] += self._mag(DR["joint"], len(e.qa), sc, hi_on); e.d.qvel[e.da] += self._mag(DR["vel"], len(e.da), sc, hi_on)
