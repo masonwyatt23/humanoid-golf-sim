@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-24 (V11 grade)
+- **Evaluator** `scott-e` `587c123`: `results/overnight/V11_GRADE.md` (official, harness v4 1.5 in, export 55fa733: V10e_s98 100k and 50k each 13/5/1 FAIL, robustness only; no full pass) plus 8 slim result JSONs (episodes, robustness_episodes and strike_episodes stripped). md5/batch line made path-free. Skipped `_batch_V11.sh`, the md5 list and the txt/err logs.
+
 ## 2026-10-24 (V10)
 - **Trainer V10** (`3e7f870`, `598d40c`, `f579dc9`, `9ba1b8f`, harness V10 commits): `scripts/v10_ref_fit.py` and `scripts/v10_ref_eval.py` (refit adds an address-referenced lead-foot slip/turn term), `scripts/v8_ref_fit.py` summary fields, V10/V10b/V10c refit keys, and slim harness JSONs (strike_episodes stripped) plus strike CSVs for V10a/b/d/e/f/g/i. Trainer-only, all FAIL; best V10e 100k 13/5/1. Defaults unchanged: head hashes, K32a strike log and 3-seed default rewards are identical. Skipped: `c7d7566`, the V10a-V10i cmds, refit cmd files, watchers (`b69ec43`), the V9_DEBUG print (`d337839`) and the `55fa733` notes line.
 
