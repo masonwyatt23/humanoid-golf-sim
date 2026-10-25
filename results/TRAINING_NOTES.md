@@ -943,3 +943,42 @@ Orchestrator-confirmed v4 bundle (for Mason, standing approval t108u); the Evalu
 - Equivalence: `scripts/fast_env_equiv.py` (V10l 100k policy + random actions, seeds 4000/7000/7001, 3 episodes each, 633 steps). Trace md5 0734e5da6f7f8ec3c77463f09fac964d with fast_env off and on: IDENTICAL (Trainer's run, reproduced on the port).
 - Honesty guard (always on, no behaviour change on defaults): `make()` aborts with "FLAG GUARD" if any configured non-default flag is not live on the JEnv instance.
 - Trainer-reported speed-up (Trainer's machine, shared load): 1 env +13%, 4-env SubprocVecEnv +11% env steps/s. Not re-measured here.
+
+## STEP2 (a)-(e): heavy DR, DR curriculum, top-k + held-out scoring, goal obs (stageDR)
+Code: `train/dr_goal.py` (DREnv = JEnv subclass), `train/v5_train_dr.py` (v5_train_j main block exec'd unchanged; JEnv -> DREnv for TRAINING envs only; det_eval stays nominal JEnv),
+`scripts/dr_topk_score.py` (path-free: HGS_EVAL_REPO, HGS_PY). The Trainer's watcher `scripts/dr_topk_watch.py` is not in this repo. `train/v5_train_j.py` is NOT modified; DREnv with dr/goal_obs off gives the identical obs/reward trace to JEnv
+(md5 40532803f98fbd04e7a953b9bd03939b both, 3 eps, V10l config, scripts/dr_smoke.py). The Evaluator worker builds JEnv from args.json and ignores the new keys, so scoring is DR-free.
+Flags (default off): `--dr`, `--dr_stage0 N`, `--goal_obs`, `--goal_w W`, `--curr_window N`; all FLAG-GUARDED on the live env (abort on mismatch). Seed guard: env seed must be < 900000 and reset seeds 910000-910023 abort.
+**(a) DR ranges** (disjoint from v5-heldout-1: joint 0.0325-0.045 rad, vel 0.065-0.09 rad/s, mu 0.55-0.62 / 1.08-1.15, ball 13-18 mm, seeds 910000-910023; asserted at import).
+Labels: M measured, E estimate, P provisional engineering choice. Data Agent 5_driver_dr values are PROVISIONAL until 7b9faa3 is on main.
+| param | training DR | source |
+|---|---|---|
+| joint start offset (address starts), per joint, random sign | U(0, 0.03) rad w.p. 0.8; U(0.05, 0.06) w.p. 0.2 | P |
+| joint vel offset, per dof | U(0, 0.06) rad/s w.p. 0.8; U(0.10, 0.12) w.p. 0.2 | P |
+| floor mu | U(0.63, 1.07) w.p. 0.8; U(0.45, 0.54) or U(1.16, 1.25) w.p. 0.2 | turf 0.7-1.05 E; bands P |
+| ball x,y offset per axis | N(0, 11 mm) truncated at +-12 mm | Langdown 2013 SD 11.0 mm, n=20 (M, single study) |
+| slope (gravity tilt) | w.p. 0.5 grade U(0, 7%), random azimuth | fairway cross-slope max ~7% (E) |
+| club-head mass | U(190, 210) g, added at the head geom on the club body (mass, CoM, inertia scaled) | 200 g (190-210), 5_driver_dr PROVISIONAL. SWING DYNAMICS ONLY: golfphys m_head fixed |
+| loft | +-1.5 deg (head geom rotated about club y) | 9-12 deg, +-2 adjustable, 5_driver_dr PROVISIONAL |
+| segment masses (+inertia) | N(1, CV) clipped +-2CV: trunk 4%, thigh 8%, calf 8%, foot 7% | de Leva / Clauser CVs (M, refs @6d610e5); G1 has no head body |
+| torque limit scale | U(0.90, 1.00), never above stock | P |
+| action latency | 1 control step (20 ms) w.p. 0.25 | P |
+Not randomised (documented gaps, no invented values): club length / lie / shaft / grip / swingweight beyond head mass (need a new address solve), ball-turf friction,
+iron CG/Ixx, rough slopes, ball position, kick point. TrackMan tour-average rows NOT used (held pending counsel).
+DR replaces the JEnv draws (fr_rand / init_qn / init_qvn / ball_tol are suspended during a DR reset and restored).
+**(b) Curriculum** address -> contact -> speed -> shaping. Breadth (fraction of each low band used) 0.35 / 0.7 / 1.0 / 1.0; high bands from stage 'speed'.
+Promotion on a 300-episode window of address-start training episodes under the current DR (harness-matched: start = |az|<=3 deg, plant = slip<=3 cm & turn<=12 deg & air<=1 step over the whole episode):
+address->contact contact>=0.80 & fell<=0.05; contact->speed contact>=0.95 & plant>=0.80; speed->shaping contact>=0.95 & start>=0.80 & plant>=0.90 & club mph med>=0.95 T. Rows in `curriculum_dr.jsonl`.
+**(c) Top-k / held-out** (Trainer's local watcher, not in this repo, calling `scripts/dr_topk_score.py`): every checkpoint (h_every 125k) is scored with the Evaluator harness v5 (hgs-scott-lb, contains 1a98372; `--harness v5 --heldout-dr 24 --no-robust-info`, V3_HEAD=v4, V3_TEE=1.5in):
+v4 robustness (seeds 7000-7023) and v5-heldout-1 (910000-910023) contact / start direction / plant in one row (`topk_table.jsonl`). LOCAL, NOT official. 250k windows; 2 consecutive window regressions -> EARLY_STOP.
+Reproduces V10l 100k: v4 0.833/0.75/0.667, held-out 0.50/0.292/0.083 (29 s, load 5.2).
+**(d) Goal obs** (`--goal_obs`, driver only). Appended AFTER the JEnv obs: JEnv obs = 116 (env 112 + 4 ref-phase), goal block = indices 116..123 (obs dim 124):
+116 club_driver (1/0), 117 club_7iron, 118 club_pw (both 0, no model yet), 119 target_carry m / 200, 120 target_dir deg / 10 (+ = left, world frame), 121 shape (+1 draw, 0 straight, -1 fade),
+122 bend deg (spin-axis magnitude) / 10, 123 handedness (+1 RH, -1 LH). No goal set -> driver, 0, 0, 0, 0, -1(LH).
+Hook `DREnv.set_goal({club, target_carry, target_dir, shape, bend, handedness})` applies at the next reset and logs `ep['goal']`. Optional task reward goal_w*(2 - min(|carry err|/target,1) - min(|az - dir|/10,1)) on contact (default 0).
+Shot shape: tan(spin axis) = tan(face-to-path)/tan(spin loft), sign mirrored for LH (`spin_axis_target_deg`); driver start direction ~ 0.85 x face. The reference becomes an optional style prior.
+The first DR run (stageDRa) does NOT use --goal_obs so its checkpoints stay scoreable by the current harness worker (obs 116).
+**(e) stageDRa_s201**: warm from V10l 100k, V10l flags + `--env_v4 --tee_mode 1.5in --fast_env --dr --dr_stage0 0`, 2 workers, 6M steps max, h_every 125k (command file not committed).
+Default-baseline check (Repo Agent recipe, origin/main scripts/default_baseline_check.py run read-only against the Trainer tree, 2026-10-25 02:21 EDT, load 5.6):
+head c92f4d05...ec29eb3a OK; reward fe76b45d3ef9bcaa82a2650097f87218 111 steps total 47.29053746950751 OK; guard OK; K32a strike log byte-identical OK.
+Same reward recipe on DREnv defaults and on DREnv(dr=False, goal_obs=False, goal_w=0, dr_stage=3): fe76b45d..., 111, 47.29053746950751 (identical).
