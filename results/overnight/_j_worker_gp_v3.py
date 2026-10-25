@@ -22,6 +22,13 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from train.v5_train_j import JEnv
 A = json.load(open(os.path.join(os.path.dirname(ck), "args.json")))
+# Harness v5 goal obs (Trainer a2c1c7a / main 3c7119db, train.dr_goal.DREnv): runs trained with --goal_obs (args.json goal_obs true) get obs 116+8 and are
+# rolled out in DREnv with goal_obs=True and DR OFF (dr stays False). Goals per episode from env V5_GOALS (JSON list, cycled; set_goal before each reset).
+# Runs without goal_obs (all stageDR runs so far, every J/K/V run) take the JEnv path below unchanged.
+GOAL_OBS = bool(A.get('goal_obs'))
+GOALS = json.loads(os.environ['V5_GOALS']) if (GOAL_OBS and os.environ.get('V5_GOALS')) else None
+if GOAL_OBS:
+    from train.dr_goal import DREnv as _GEnv
 keys = {tuple(k.split("|")): v for k, v in json.load(open(os.path.join(repo, A["keys"]))).items()} if A.get("keys") and A["keys"] != "none" else None
 CFG = ('xf_hard', 'grf_lo', 'grf_w', 'xf_cap_lo', 'xf_cap_w', 'track_floor', 'ord2_w', 'launch_w', 'desc_w', 'dloft_w', 'spin_lo_w', 'smash_w', 'spin_w', 'spin_hi', 'spin_scale', 'fine_grf',
        'launch_hi', 'dl_lo', 'dl_hi', 'aoa_lo', 'spd_w', 'pel_w', 'pel_t_w', 'pel_dps', 'pel_t_lo', 'pel_t_hi', 'sep_w', 'ctr_w', 'ctrl_dt',
@@ -65,7 +72,9 @@ def tee_geometry(env_):
     return G_
 _CFG_V = _cfg()
 def mk():
-    e = JEnv(dt=0.002, seed=123, keys=keys, res_scale=A["res_scale"], t_down=A["t_down"]); e.configure(res_mult=(json.loads(A['res_mult']) if A.get('res_mult') else None), **{k: _CFG_V[k] for k in CFG}); e.rsi = (1.0, 0.0, 0.0); e.env.arm_dist = ARM; e.env.strike_gate_nx = GATE; e.target_len = L; e.target_tether = 0.0; e.env.friction_rand = False; e.track_w = 0.0; return e
+    e = (_GEnv if GOAL_OBS else JEnv)(dt=0.002, seed=123, keys=keys, res_scale=A["res_scale"], t_down=A["t_down"]); e.configure(res_mult=(json.loads(A['res_mult']) if A.get('res_mult') else None), **{k: _CFG_V[k] for k in CFG})
+    if GOAL_OBS: e.goal_obs = True; e._grow_obs()   # == DREnv.configure(goal_obs=True) (sets the flag, grows obs by 8); kept off the single configure() call the parity tests pin
+    e.rsi = (1.0, 0.0, 0.0); e.env.arm_dist = ARM; e.env.strike_gate_nx = GATE; e.target_len = L; e.target_tether = 0.0; e.env.friction_rand = False; e.track_w = 0.0; return e
 vn = VecNormalize.load(ck + "_vecnorm.pkl", DummyVecEnv([mk])); vn.training = False; vn.norm_reward = False
 model = PPO.load(ck, device="cpu"); te = mk(); e = te.env; e.log_segments = True
 def _head_check():
@@ -182,9 +191,36 @@ def _do_contact_log(cpos):
                               ball_speed_mph=float(c["ball_speed"]) / 0.44704, carry_m_noroll=float(c["shot"].carry_m))
     except Exception as ex_: _HIT["centre"] = dict(error=repr(ex_))
 e._do_contact = _do_contact_log
+def _goal_reset(i):   # DREnv.reset with dr=False == goal swap + JEnv.reset; called via JEnv.reset so evaluation seeds (incl. held-out 910000+) bypass the TRAINING seed guard
+    if GOALS: te.set_goal(GOALS[i % len(GOALS)])
+    if te._next_goal is not None: te.goal = te._next_goal
+    return JEnv.reset(te, seed=seed0 + i)
+_H2B = None; _LAT = 0; _ABUF = []
+def _h2_apply(seed):   # harness v5-heldout-2 (opt-in): one new DR dimension per episode; restores the base model first
+    global _H2B, _LAT, _ABUF
+    import mujoco as _mj2
+    from eval.harness_v5 import sample_heldout2 as _s2
+    m_ = e.m; cb = m_.body("club").id
+    if _H2B is None: _H2B = (m_.opt.gravity.copy(), e.tau.copy(), m_.geom_quat[e.head_geom].copy(), float(m_.body_mass[cb]), m_.body_ipos[cb].copy(), m_.body_inertia[cb].copy())
+    g0, t0, q0, M0, ip0, in0 = _H2B
+    m_.opt.gravity[:] = g0; e.tau[:] = t0; m_.geom_quat[e.head_geom] = q0; m_.body_mass[cb] = M0; m_.body_ipos[cb] = ip0; m_.body_inertia[cb] = in0; _LAT = 0; _ABUF = []
+    d_ = _s2(seed, dict(PERT['heldout2'])); v = d_['value']; k = d_['dim']
+    if k == 'slope_grade':
+        t = np.arctan(v); G = float(np.linalg.norm(g0)); az = d_['slope_az_rad']; m_.opt.gravity[:] = (G * np.sin(t) * np.cos(az), G * np.sin(t) * np.sin(az), -G * np.cos(t))
+    elif k == 'torque_scale': e.tau[:] = t0 * v
+    elif k == 'latency_steps': _LAT = int(v)
+    elif k == 'loft_deg':
+        q = np.zeros(4); _mj2.mju_axisAngle2Quat(q, np.array([0.0, 1.0, 0.0]), np.radians(v)); qo = np.zeros(4); _mj2.mju_mulQuat(qo, q0, q); m_.geom_quat[e.head_geom] = qo
+    elif k == 'head_g':
+        dm = (v - 200.0) / 1000.0; hp = m_.geom_pos[e.head_geom]; m_.body_mass[cb] = M0 + dm; m_.body_ipos[cb] = (M0 * ip0 + dm * hp) / (M0 + dm); m_.body_inertia[cb] = in0 * (M0 + dm) / M0
+    return d_
+def _lat(a):   # delay actions by _LAT control steps (zeros until the buffer fills), as DREnv's latency
+    if not _LAT: return a
+    _ABUF.append(np.asarray(a, np.float32).copy())
+    return _ABUF.pop(0) if len(_ABUF) > _LAT else np.zeros_like(_ABUF[-1])
 eps = []; SEG_DEF = int(e.seg_every)   # default logging cadence (2 substeps = 4 ms at dt 0.002), captured once before any seg1 override
 for i in range(n):
-    grf.clear(); sub.clear(); foot.clear(); grf_h.clear(); e.seg_every = SEG_DEF; o, _ = te.reset(seed=seed0 + i); e.seg_every = SEG_DEF; seg_def = SEG_DEF; done = False; info = {}
+    grf.clear(); sub.clear(); foot.clear(); grf_h.clear(); e.seg_every = SEG_DEF; o, _ = (_goal_reset(i) if GOAL_OBS else te.reset(seed=seed0 + i)); e.seg_every = SEG_DEF; seg_def = SEG_DEF; done = False; info = {}
     if SEG1: e.seg_every = 1
     pinfo = None
     if PERT:   # perturb the address state (actuated joints only), then refresh derived quantities and the observation
@@ -194,23 +230,25 @@ for i in range(n):
         elif os.environ.get('V3_FRICTION_RANGE'):   # ablation only (info): fixed-range floor mu from its own rng, joint-noise rng untouched
             lo_, hi_ = (float(v) for v in os.environ['V3_FRICTION_RANGE'].split(',')); e.m.geom_friction[e.floor, 0] = np.random.default_rng(seed0 + i + 0xF41C).uniform(lo_, hi_)
         rg = np.random.default_rng(seed0 + i + 0x5EED); nq = len(e.qa)
-        if PERT.get('heldout'):   # harness v5 held-out DR (eval/harness_v5.py sample_heldout; ranges disjoint from training). Absent = v3/v4 path below, unchanged.
+        if PERT.get('heldout2'):   # v5-heldout-2: new dims only, state noise nominal
+            dq = np.zeros(nq); dv = np.zeros(nq); _h2 = _h2_apply(seed0 + i)
+        elif PERT.get('heldout'):   # harness v5 held-out DR (eval/harness_v5.py sample_heldout; ranges disjoint from training). Absent = v3/v4 path below, unchanged.
             from eval.harness_v5 import sample_heldout as _sh
             dq, dv, _mu, _bxy = _sh(seed0 + i, nq, PERT['heldout']); e.m.geom_friction[e.floor, 0] = _mu
             e.tee[:2] = np.array(e.addr["ball_pos"], float)[:2] + _bxy; e.d.qpos[e.ball_q:e.ball_q + 2] = e.tee[:2]
         else:
             dq = np.radians(float(PERT.get('joint_deg', 0.0))) * rg.uniform(-1, 1, nq); dv = float(PERT.get('joint_vel', 0.0)) * rg.uniform(-1, 1, nq)
         e.d.qpos[e.qa] += dq; e.d.qvel[e.da] += dv; mujoco.mj_forward(e.m, e.d); o = te._xobs(e._obs())
-        pinfo = dict(joint_deg_max=float(np.degrees(np.abs(dq)).max()), joint_vel_max=float(np.abs(dv).max()), ball_xy_off_m=[float(x) for x in (e.tee[:2] - np.array(e.addr["ball_pos"], float)[:2])], floor_mu=float(e.m.geom_friction[e.floor, 0]))
+        pinfo = dict(heldout2=(_h2 if PERT.get('heldout2') else None), joint_deg_max=float(np.degrees(np.abs(dq)).max()), joint_vel_max=float(np.abs(dv).max()), ball_xy_off_m=[float(x) for x in (e.tee[:2] - np.array(e.addr["ball_pos"], float)[:2])], floor_mu=float(e.m.geom_friction[e.floor, 0]))
     _HIT.clear()
     while not done:
-        a = model.predict(vn.normalize_obs(o[None]), deterministic=True)[0][0]; o, r, term, trunc, info = te.step(a); done = term or trunc
+        a = model.predict(vn.normalize_obs(o[None]), deterministic=True)[0][0]; o, r, term, trunc, info = te.step(_lat(a)); done = term or trunc
     L_ = e.log; tc = e.t_contact; t = np.array(L_["t"])
     imp = int(np.argmax(t >= tc)) if tc is not None and (t >= tc).any() else len(t) - 1
     shx = {}
     if e.contact and getattr(e, "shot", None):
         _s = e.shot; _r = _s["shot"]; shx = dict(azimuth_deg=_s.get("azimuth_deg"), backspin_rpm=_s.get("backspin_rpm"), sidespin_rpm=_s.get("sidespin_rpm"), env_carry_m=_r.carry_m, env_total_m=_r.total_m, env_descent_deg=_r.descent_deg, env_lateral_m=_r.lateral_carry_m)
-    eps.append(dict(shot_extra=shx, foot_length_m=0.20, t=L_["t"], pelvis_dps=L_["pelvis"], thorax_dps=L_["thorax"], arm_dps=L_["lead_arm"], club_dps=L_["club"], xfactor_deg=L_["xfactor_deg"], lead_share=L_["lead_share"],
+    eps.append(dict(goal=((info.get("ep") or {}).get("goal") or (dict(te.goal) if GOAL_OBS and te.goal else None)), goal_obs_block=([float(x) for x in o[-8:]] if GOAL_OBS else None), shot_extra=shx, foot_length_m=0.20, t=L_["t"], pelvis_dps=L_["pelvis"], thorax_dps=L_["thorax"], arm_dps=L_["lead_arm"], club_dps=L_["club"], xfactor_deg=L_["xfactor_deg"], lead_share=L_["lead_share"],
                     grf=[list(map(float, g)) for g in grf], grf_h=[list(map(float, g)) for g in grf_h], lead_foot=[list(f_) for f_ in foot], t_top=getattr(getattr(te, "ref", None), "t_dstart", None), lead=e.lead, impact_idx=imp, contact=bool(e.contact), ep=info.get("ep"), foul=bool(info.get("foul", False)), seed=seed0 + i, t_contact=tc, sub=list(sub), seg_every=int(e.seg_every), seg_every_default=int(seg_def), perturb=pinfo, strike=(dict(dy_m=float(e.ball_hit_info["dy"]), dz_m=float(e.ball_hit_info["dz"]), frame="clubhead site (face centre), dy toward toe, dz along face up; env v5_golf_env._do_contact", centre=_HIT.get("centre")) if (e.contact and getattr(e, "ball_hit_info", None)) else None),
                     shot={k: info.get(k) for k in ("club_speed_mph", "ball_speed_mph", "launch_deg", "spin_rpm", "smash", "carry_m_noroll", "total_m_model", "lateral_carry_m")}))
 json.dump(dict(tee_info=TEE_INFO, perturb_spec=PERT, floor_mu_nominal=FRIC0, floor_mu_note=FLOOR_MU_NOTE, strike_gate_nx=GATE, arm_dist=ARM, env_class="JEnv", bw_N=bw, dt=float(e.dt) * SEG_DEF, dt_note="declared = sim dt x default seg_every (4 ms at dt 0.002); harness measures it from t (dt fix)", club_len=L, foot_length_m=0.20, eps=eps), open(out, "w"), default=float)

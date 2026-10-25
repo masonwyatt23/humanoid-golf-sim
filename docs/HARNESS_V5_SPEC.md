@@ -70,24 +70,25 @@ They are **not wired in yet**. They need face angle, club path and spin loft at 
 Once those are logged, v5 can add a non-gating "expected curvature sign from face-to-path" consistency row. For a left-handed golfer, mirror the lateral axis.
 Until then, draw/fade is graded against the commanded `shape`/`curve_m` as in (a).
 
-## (c) Held-out DR test set
+## (c) Held-out DR test sets
 
-The **training DR** used here was read from the Trainer clone at box HEAD 4c3ad3d (`train/v5_train_j.py`, `results/v5_runs/v11o_cmd.txt` and the V9-V11 `args.json`):
+**Training DR (final).** Reference: main 3c7119db, `train/dr_goal.py` (`DR`, `SEED_MAX`), ported from Trainer a2c1c7a + 3d5f63e. DR is off unless `--dr` is set.
 
 | parameter | training range |
 |---|---|
-| joint angle noise | ±0.03 rad per actuated joint (`init_qn`) |
-| joint velocity noise | ±0.06 rad/s (`init_qvn`) |
-| floor μ | U(0.65, 1.05) (`fr_rand`) |
-| ball xy | ±12 mm per axis (`ball_tol`) |
+| joint angle noise \|dq\| | 0-0.03 rad, or 0.05-0.06 rad (high band from curriculum stage 2, w.p. 0.2) |
+| joint velocity noise \|dv\| | 0-0.06 rad/s, or 0.10-0.12 rad/s |
+| floor μ | 0.63-1.07, or 0.45-0.54 / 1.16-1.25 |
+| ball offset | N(0, 11 mm) per axis, capped at ±12 mm |
+| slope | 0-7% grade on 50% of episodes |
+| head mass | 190-210 g |
+| loft | ±1.5° |
+| segment masses | Clauser CVs (trunk 0.04, thigh 0.08, calf 0.08, foot 0.07), clipped at ±2 CV |
+| torque | 0.90-1.00 × stock |
+| latency | 20 ms (1 control step) on 25% of episodes |
+| training env seeds | < 900000 (DREnv seed guard) |
 
-The env's Stage A `friction_rand` U(0.5, 1.2) is off in J runs. **Cross-check against the Data Agent DR rows (PENDING, 7b9faa3; cited as pending):**
-- Langdown, Bridge & Li (Int J Golf Sci 2(1)) report skilled within-golfer stance-to-ball variability at address with SD 11.0 mm (single study). On that scale, training ball ±12 mm is about 1.1 SD and the held-out 13-18 mm is about 1.2-1.6 SD: plausible, and outside training.
-- Penner 2002 ball-turf friction (0.25-0.4, green) is ball/green friction, not foot/floor, so it does not apply to floor μ.
-- The driver DR rows (head mass 190-210 g from one supplier, lie 56-60, loft ±2) are not randomised in training today. They are candidate new DR dimensions.
-- **No held-out range moved.** The set stays disjoint (asserted).
-
-**This table must be re-checked against the Trainer's new heavy-DR config before any held-out number is quoted.** Update `TRAINING_DR` in `eval/harness_v5.py`; the disjointness test then re-checks it.
+These ranges are in `TRAINING_DR` in `eval/harness_v5.py`. `assert_disjoint()` treats every dimension as a list of intervals and counts touching intervals as overlap.
 
 **Held-out set `v5-heldout-1`.** Every sampled component lies strictly outside its training range:
 
@@ -106,7 +107,66 @@ The seeds are disjoint from the harness's deterministic seeds (4000-4007, 8000-8
 The row `v5/heldout_dr_robustness` uses the same requirements as `mine/robustness` (contact ≥0.95, start direction ≥0.90, plant ≥0.90, shot p10/median/p90) and is NON-GATING.
 The held-out μ band above 1.05 goes beyond the sourced turf range (0.7-1.05). It is a stress value, which is one reason the row does not gate.
 
+**Disjointness re-check vs the final training DR (2026-10-25): PASS.** `v5-heldout-1` is unchanged.
+Be aware that heldout-1 **joint noise (0.0325-0.045), velocity noise (0.065-0.09) and friction (0.55-0.62 / 1.08-1.15) now lie in the gaps BETWEEN training bands**. They are interpolation gaps, not extrapolation. Only the **ball offset (13-18 mm vs the 12 mm cap) is beyond** the training range. `gap_kind()` reports this, and it is tested.
+
+**Held-out set `v5-heldout-2`** (OPT-IN with `--heldout2-dr 25`, NON-GATING; never part of the verdict. Ranges are UNSOURCED ESTIMATES (engineering choice) placed just outside the training DR; no TrackMan or counsel-pending values):
+- Seeds 920000-920024, disjoint from training (< 900000), from heldout-1, and from the harness seeds.
+- Episode i perturbs only `dims[i % 5]`, so each dimension gets 5 episodes. Joint, velocity and ball state noise stay nominal. The rng is `default_rng(seed + 0xD152)`.
+
+| dim | held-out | how the worker applies it |
+|---|---|---|
+| slope_grade | 7.5-10% | gravity tilted at a random azimuth |
+| torque_scale | 0.85-0.89 × stock | `e.tau` × scale |
+| latency_steps | 2 (40 ms) | actions delayed 2 control steps (zeros first), as DREnv |
+| loft_deg | \|1.6-2.5\|°, random sign | head geom rotated about +y, as DREnv |
+| head_g | 185-189 or 211-215 g | club body mass/CoM/inertia at the head geom, as DREnv (swing dynamics only; golfphys head mass fixed) |
+
+- **Not covered by heldout-2:** segment masses. Training already clips at ±2 CV, so any range beyond that would need a Trainer/Data Agent choice.
+- All five dims are extrapolation (tested). Every overlap case and the seed guards are tested.
+
+First heldout-2 run: V10l_s104 100k (RO export 474e6c5, v4 env, 1.5 in, 25 eps). Overall contact 0.80, start direction 0.80, plant 0.80.
+By dimension: torque 5/5, latency 5/5, loft 5/5 and head mass 5/5 made contact; **slope 0/5**, with MuJoCo "QACC unstable" warnings on those episodes.
+It is **not yet established** whether that comes from the policy (which was not trained with slope) or from tilting gravity after reset at address. Do not quote the slope result until this is checked.
+
 First measured value: V10l_s104 100k (RO export 474e6c5, v4 env, 1.5 in tee) gave **contact 0.50, start direction 0.29, plant 0.08** on the held-out set. Robustness on the in-distribution gate for the same run was 0.83/0.75/0.67.
+
+## (e) Goal-obs wiring (Trainer a2c1c7a, reference main 3c7119db)
+
+- **Layout.** With `--goal_obs`, the obs is the 116-dim base plus a goal block at [116:124]:
+
+  | index | content |
+  |---|---|
+  | 116 | driver |
+  | 117 | 7-iron (always 0) |
+  | 118 | PW (always 0) |
+  | 119 | target carry m / 200 |
+  | 120 | target direction deg / 10 (+ = left, world) |
+  | 121 | shape (+1 draw / 0 straight / −1 fade) |
+  | 122 | bend deg / 10 (spin-axis magnitude) |
+  | 123 | handedness (+1 RH / −1 LH) |
+
+  Only the driver is supported. The goal reward is off by default.
+- **Pre-check (`_precheck_layout.py`).** It expects obs 116 + 8 = 124 when `args.json` has `goal_obs: true`, and 116 otherwise.
+- **Worker (`_j_worker_gp_v3.py`).** For goal_obs runs only, it builds `train.dr_goal.DREnv` with `goal_obs=True` and DR off. Before each reset it calls `set_goal(V5_GOALS[i % n])` and logs `ep['goal']` plus the raw 8-float `goal_obs_block`.
+  The reset calls `JEnv.reset` directly. With dr=False this is the same as `DREnv.reset` (a goal swap and then `JEnv.reset`), but it bypasses DREnv's *training* seed guard so evaluation and held-out seeds can run.
+  Runs without goal_obs (every J/K/V run and stageDRa/DRb) take the unchanged JEnv path. Verified: V10l 100k `--harness v5` reproduced v4 13/5/1 and heldout-1 0.50/0.29/0.08 exactly.
+- **Decoding.** v5 reads the goal from `ep['goal']` first (Trainer format, via `from_trainer_goal`), then run args, then `--goal-spec`, then the obs block (`decode_goal_obs`). In the mapping, `pw` becomes `wedge`, and `LH`/`RH` become `left`/`right`.
+- **Fixed goal set `GOAL_SET_V5`.** Driver, LH. It is passed by `realism_check --harness v5` as `V5_GOALS` and cycled over episodes (carry m, dir °, shape, bend °):
+  1. (130, 0, straight, 0)
+  2. (110, 0, straight, 0)
+  3. (150, 0, straight, 0)
+  4. (130, +3, straight, 0)
+  5. (130, −3, straight, 0)
+  6. (130, 0, draw, 5)
+  7. (130, 0, fade, 5)
+  8. (130, +2, draw, 3)
+- **Shape with a Trainer `bend`.** The sign comes from the world curvature mapped to the golfer frame (as in a6d0d91). The magnitude is the golfer-frame spin axis, atan2(sidespin, backspin) × hand_sign, compared with `bend`: within max(2°, 50%). This tolerance is an assumption (ours), provisional and held for counsel.
+  When the goal has a bend but no curve in metres, the lateral error is measured against the start line (target_carry·tan(target_dir)).
+- **Convention check.** The Trainer's `spin_axis_target_deg` mirrors the sign for LH, which matches our mapping: an LH draw has a negative world spin axis and curves to world right (tested for LH and RH draw and fade).
+  D-plane start direction ≈ 0.85 × face. It is not graded, because the worker does not log face angle or path.
+- **Sanity run.** None. No Trainer snapshot trained with `--goal_obs` exists yet (stageDRa_s201 and stageDRb_s202 have `goal_obs: false`).
+  Instead, DREnv in the Trainer clone (whose `dr_goal.py` is identical to main 3c7119db) produced obs 124, and all 8 goals decoded exactly from obs[116:124].
 
 ## (d) Top-k checkpoint grading (`eval/topk_grade.py`)
 

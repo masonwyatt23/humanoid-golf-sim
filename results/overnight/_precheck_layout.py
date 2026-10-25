@@ -16,7 +16,9 @@ vn = pickle.load(open(ck + "_vecnorm.pkl", "rb"))
 o_env, a_env = tuple(e.observation_space.shape), tuple(e.action_space.shape)
 o_m, a_m = tuple(m.observation_space.shape), tuple(m.action_space.shape)
 o_vn = tuple(vn.obs_rms.mean.shape)
-ok = (o_env == o_m == o_vn) and (a_env == a_m) and md5(kp) is not None
-print(("LAYOUT_OK" if ok else "LAYOUT_MISMATCH"), dict(obs_env=o_env, obs_model=o_m, obs_vecnorm=o_vn, act_env=a_env, act_model=a_m,
+GOAL_OBS = bool(A.get("goal_obs"))   # Trainer --goal_obs (main 3c7119db train/dr_goal.py): goal block [116:124] appended -> model obs = JEnv obs + 8
+o_exp = (o_env[0] + 8,) if GOAL_OBS else o_env
+ok = (o_exp == o_m == o_vn) and (a_env == a_m) and md5(kp) is not None
+print(("LAYOUT_OK" if ok else "LAYOUT_MISMATCH"), dict(obs_env=o_env, goal_obs=GOAL_OBS, obs_expected=o_exp, obs_model=o_m, obs_vecnorm=o_vn, act_env=a_env, act_model=a_m,
       keys=A["keys"], n_keys=len(keys), keys_md5_export=md5(kp), keys_md5_trainer_head=md5(kc), keys_match_trainer_head=(md5(kp) == md5(kc))))
 sys.exit(0 if ok else 1)

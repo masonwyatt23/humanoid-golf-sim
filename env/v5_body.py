@@ -15,7 +15,7 @@ import numpy as np
 import mujoco
 from scipy.optimize import least_squares
 
-MENAG = os.environ.get("MENAGERIE_DIR") or str(Path(__file__).resolve().parents[2] / "menagerie")   # default: MuJoCo Menagerie checked out next to this repo
+MENAG = os.environ.get("MENAGERIE_DIR") or next((str(Path(__file__).resolve().parents[i] / "menagerie") for i in (2, 3) if (Path(__file__).resolve().parents[i] / "menagerie").is_dir()), str(Path(__file__).resolve().parents[2] / "menagerie"))   # MuJoCo Menagerie: $MENAGERIE_DIR, else menagerie/ next to this repo, else one level up (path lookup only)
 DT = 0.0005
 CTRL_DT = 0.02
 

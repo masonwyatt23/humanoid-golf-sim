@@ -23,13 +23,39 @@ NA = "n/a (policy not goal-conditioned: no goal command in episode, run args or 
 #   handed: 'right' | 'left' (golfer handedness; decides which world side is a draw)
 GOAL_KEYS = ("club", "target_carry_m", "target_dir_deg", "shape", "curve_m")
 
+# Trainer goal layout (Trainer a2c1c7a, reference main 3c7119db train/dr_goal.py): set_goal({club: driver|7iron|pw, target_carry (m), target_dir (deg, + = left,
+# world), shape: draw|straight|fade, bend (deg SPIN AXIS magnitude), handedness: LH|RH}); obs block [116:124] = (club_driver, club_7iron, club_pw, target_carry/200,
+# target_dir/10, shape +1 draw/0/-1 fade, bend/10, handedness +1 RH/-1 LH). Driver only for now (7-iron/PW always 0).
+GOAL_OBS_SLICE = (116, 124)
+def from_trainer_goal(g):
+    """Trainer set_goal/ep['goal'] dict -> harness goal keys (idempotent for harness-format dicts)."""
+    if "target_carry" not in g and "target_carry_m" in g: return dict(g)
+    club = {"pw": "wedge"}.get(g.get("club", "driver"), g.get("club", "driver"))
+    return dict(club=club, target_carry_m=g["target_carry"], target_dir_deg=g.get("target_dir", 0.0), shape=g.get("shape", "straight"),
+                bend_deg=abs(float(g.get("bend", 0.0) or 0.0)), handed=("right" if str(g.get("handedness", "LH")).upper() == "RH" else "left"))
+
+def decode_goal_obs(block):
+    """8-float goal block (obs[116:124]) -> harness goal dict (inverse of train.dr_goal.encode_goal)."""
+    b = [float(x) for x in block]
+    if len(b) != 8: raise ValueError("goal block must have 8 entries")
+    club = "driver" if b[0] > 0.5 else "7iron" if b[1] > 0.5 else "wedge" if b[2] > 0.5 else "driver"
+    shape = "draw" if b[5] > 0.5 else "fade" if b[5] < -0.5 else "straight"
+    return dict(club=club, target_carry_m=b[3] * 200.0, target_dir_deg=b[4] * 10.0, shape=shape, bend_deg=abs(b[6] * 10.0), handed=("right" if b[7] > 0 else "left"))
+
+# Fixed deterministic v5 goal set (driver, LH model), cycled over episodes by the worker (env V5_GOALS). Trainer set_goal format.
+GOAL_SET_V5 = [dict(club="driver", target_carry=c, target_dir=d, shape=sh, bend=bd, handedness="LH") for c, d, sh, bd in
+               ((130, 0, "straight", 0), (110, 0, "straight", 0), (150, 0, "straight", 0), (130, 3, "straight", 0),
+                (130, -3, "straight", 0), (130, 0, "draw", 5), (130, 0, "fade", 5), (130, 2, "draw", 3))]
+
 def validate_goal(g):
-    """Return a normalised goal dict or raise ValueError."""
+    """Return a normalised goal dict or raise ValueError. Accepts harness keys or the Trainer set_goal format."""
     if not isinstance(g, dict): raise ValueError("goal must be a dict")
+    if "target_carry" in g: g = from_trainer_goal(g)
     miss = [k for k in ("target_carry_m",) if g.get(k) is None]
     if miss: raise ValueError(f"goal missing {miss}")
     out = dict(club=g.get("club", "driver"), target_carry_m=float(g["target_carry_m"]), target_dir_deg=float(g.get("target_dir_deg", 0.0)),
-               shape=g.get("shape", "straight"), curve_m=abs(float(g.get("curve_m", 0.0) or 0.0)), handed=g.get("handed", "left"))
+               shape=g.get("shape", "straight"), curve_m=abs(float(g.get("curve_m", 0.0) or 0.0)), handed=g.get("handed", "left"),
+               bend_deg=(abs(float(g["bend_deg"])) if g.get("bend_deg") is not None else None))
     if out["club"] not in CLUBS: raise ValueError(f"club {out['club']!r} not in {CLUBS}")
     if out["shape"] not in SHAPES: raise ValueError(f"shape {out['shape']!r} not in {SHAPES}")
     if out["handed"] not in ("left", "right"): raise ValueError("handed must be 'left' or 'right'")
@@ -39,6 +65,8 @@ def validate_goal(g):
 def find_goal(ep=None, run_args=None, cli_goal=None):
     for src, g in (("episode", (ep or {}).get("goal")), ("run_args", (run_args or {}).get("goal")), ("cli", cli_goal)):
         if g: return validate_goal(g), src
+    blk = (ep or {}).get("goal_obs_block")
+    if blk: return validate_goal(decode_goal_obs(blk)), "obs_block"
     return None, None
 
 def draw_sign(handed):
@@ -61,13 +89,16 @@ def shot_geometry(shot_extra, handed="left"):
         hs = hand_sign(handed); lat = float(s["ball_lateral"]) * hs; az = float(s["launch_direction"]) * hs; c = s.get("carry", c); src = "golfer->world (x hand_sign)"
     if c is None or az is None or lat is None: return None
     c, az, lat = float(c), float(az), float(lat)
-    return dict(carry_m=c, azimuth_deg=az, lateral_m=lat, curve_y_m=lat - c * math.tan(math.radians(az)), frame_source=src)
+    side, back = s.get("sidespin_rpm"), s.get("backspin_rpm")
+    axis = math.degrees(math.atan2(float(side), float(back))) if side is not None and back else None   # world: + = curves left (golfphys; Trainer-confirmed)
+    return dict(carry_m=c, azimuth_deg=az, lateral_m=lat, curve_y_m=lat - c * math.tan(math.radians(az)), frame_source=src, spin_axis_deg=axis)
 
 # Thresholds (PROVISIONAL, ours, NON-GATING; held for counsel). Direction pass/warn reuse the v4 start-direction band (R22-01, |az| pass<=7 warn<=9).
 TASK_T = dict(carry_err_pct=dict(pass_=5.0, warn=10.0, src="assumption (ours): |carry - target| as % of target"),
               dir_err_deg=dict(pass_=7.0, warn=9.0, src="reuses v4 mine/start_direction band (USGA/R&A R22-01 ~2 SD launch direction)"),
               lateral_err_pct=dict(pass_=7.0, warn=10.0, src="assumption (ours): |final lateral - commanded lateral| as % of target carry"),
               curve_mag_err_m=dict(pass_frac=0.5, src="assumption (ours): |curve - commanded| <= 50% of commanded |curve| (min 2 m)"),
+              bend_err_deg=dict(min=2.0, frac=0.5, src="assumption (ours): | |spin axis| - commanded bend | <= max(2 deg, 50% of bend)"),
               straight_curve_m=dict(pass_=5.0, src="assumption (ours): 'straight' passes if |curve| <= 5 m"),
               rate=dict(pass_=0.80, warn=0.60, src="assumption (ours): fraction of contact episodes passing each per-episode test"))
 
@@ -78,12 +109,17 @@ def task_episode(geo, goal):
     sgn = draw_sign(goal["handed"]); cmd_curve_y = {"straight": 0.0, "draw": sgn * goal["curve_m"], "fade": -sgn * goal["curve_m"]}[goal["shape"]]
     carry_err = geo["carry_m"] - goal["target_carry_m"]; dir_err = geo["azimuth_deg"] - goal["target_dir_deg"]
     lat_err = geo["lateral_m"] - (tgt_lat + cmd_curve_y); curve_draw = sgn * geo["curve_y_m"]   # + = draw, - = fade (golfer frame)
-    if goal["shape"] == "straight": shape_ok = abs(geo["curve_y_m"]) <= TASK_T["straight_curve_m"]["pass_"]; sign_ok = shape_ok
+    bend = goal.get("bend_deg"); ax_g = (sgn * geo["spin_axis_deg"]) if geo.get("spin_axis_deg") is not None else None   # golfer-frame axis, + = draw
+    if goal["shape"] == "straight":
+        shape_ok = abs(geo["curve_y_m"]) <= TASK_T["straight_curve_m"]["pass_"]; sign_ok = shape_ok
     else:
         sign_ok = (curve_draw > 0) if goal["shape"] == "draw" else (curve_draw < 0)
-        shape_ok = sign_ok and abs(abs(geo["curve_y_m"]) - goal["curve_m"]) <= max(2.0, TASK_T["curve_mag_err_m"]["pass_frac"] * goal["curve_m"])
+        if bend is not None:   # Trainer goal: bend = commanded |spin axis| (deg); magnitude graded on the spin axis
+            shape_ok = sign_ok and ax_g is not None and abs(abs(ax_g) - bend) <= max(TASK_T["bend_err_deg"]["min"], TASK_T["bend_err_deg"]["frac"] * bend)
+        else:
+            shape_ok = sign_ok and abs(abs(geo["curve_y_m"]) - goal["curve_m"]) <= max(2.0, TASK_T["curve_mag_err_m"]["pass_frac"] * goal["curve_m"])
     return dict(carry_err_m=carry_err, carry_err_pct=100 * abs(carry_err) / goal["target_carry_m"], dir_err_deg=dir_err, lateral_err_m=lat_err,
-                lateral_err_pct=100 * abs(lat_err) / goal["target_carry_m"], curve_draw_m=curve_draw, shape_sign_ok=bool(sign_ok), shape_ok=bool(shape_ok))
+                lateral_err_pct=100 * abs(lat_err) / goal["target_carry_m"], curve_draw_m=curve_draw, spin_axis_golfer_deg=ax_g, shape_sign_ok=bool(sign_ok), shape_ok=bool(shape_ok))
 
 def task_accuracy(eps, goal=None, run_args=None):
     """eps: worker episodes (dicts with contact, shot_extra, optional goal). Returns one non-gating row per metric under 'v5/task_*'."""
@@ -147,37 +183,65 @@ def club_band_rows(medians, club, bands=None):
     return out
 
 # ---------------------------------------------------------------- (c) held-out DR test set
-# Training DR as found in the Trainer clone (box HEAD 4c3ad3d, train/v5_train_j.py + results/v5_runs/v11o_cmd.txt / args.json; V9-V11 runs):
-#   joint angle noise init_qn U(+-0.03 rad) per actuated joint; joint vel init_qvn U(+-0.06 rad/s); floor mu fr_rand U(0.65, 1.05);
-#   ball xy ball_tol U(+-0.012 m) per axis (square). Env-level friction_rand U(0.5, 1.2) is a Stage A option (off in J runs).
-# MUST be re-checked against the Trainer's new heavy-DR config before any held-out number is quoted (see spec).
-TRAINING_DR = dict(source="Trainer box HEAD 4c3ad3d (V9-V11 J runs); RE-CHECK against the heavy-DR config",
-                   joint_rad=[0.0, 0.03], joint_vel=[0.0, 0.06], floor_mu=[[0.65, 1.05]], ball_m=[0.0, 0.012])
-# Cross-check vs PureGolf Data Agent DR refs (PENDING, Repo Agent 7b9faa3; cite as pending): Langdown, Bridge & Li (Int J Golf Sci 2(1)) skilled
-# within-golfer stance-to-ball SD 11.0 mm (n=1 study) -> training ball +-12 mm ~ 1.1 SD, held-out 13-18 mm ~ 1.2-1.6 SD (plausible, outside training).
-# Penner 2002 ball-TURF friction (0.25-0.4) is ball/green, NOT foot/floor mu -> not applicable to floor_mu. Driver DR rows (head mass 190-210 g,
-# lie 56-60, loft +-2) are not randomised in training today -> candidate new DR dims once the Trainer's heavy-DR config lands. No range moved.
-PENDING_DR_CROSSCHECK = dict(status="pending (Data Agent 7b9faa3)", address_stance_ball_sd_mm=11.0, applies_to="ball_m",
-                             not_applicable=["Penner 2002 ball-turf friction (not foot-floor)"], candidates=["driver head mass", "lie", "loft"])
-# Held-out: every sampled component lies strictly OUTSIDE its training range (magnitude shells / friction bands beyond both edges).
+# TRAINING DR (final; Trainer a2c1c7a, reference main 3c7119db train/dr_goal.py DR + SEED_MAX). Each dimension = list of [lo, hi] intervals
+# (magnitudes for joint/vel/ball; per-joint random sign). Low bands always; high bands from curriculum stage 2 w.p. 0.2.
+#   joint |dq| 0-0.03 or 0.05-0.06 rad; vel |dv| 0-0.06 or 0.10-0.12 rad/s; floor mu 0.63-1.07 or 0.45-0.54 / 1.16-1.25;
+#   ball offset N(0, 11 mm) per axis capped at +-12 mm; training env seeds < 900000.
+#   Extra training dims (heldout-1 does not cover them): slope 0-7% on 50% of episodes, head mass 190-210 g, loft +-1.5 deg,
+#   Clauser segment-mass CVs (trunk .04, thigh .08, calf .08, foot .07; clipped at +-2 CV), torque 0.90-1.00 x stock, 20 ms latency on 25%.
+TRAINING_DR = dict(source="Trainer a2c1c7a (main 3c7119db) train/dr_goal.py DR", seed_max=900000,
+                   joint_rad=[[0.0, 0.03], [0.05, 0.06]], joint_vel=[[0.0, 0.06], [0.10, 0.12]], floor_mu=[[0.63, 1.07], [0.45, 0.54], [1.16, 1.25]], ball_m=[[0.0, 0.012]],
+                   slope_grade=[[0.0, 0.07]], torque_scale=[[0.90, 1.00]], latency_steps=[[0, 1]], loft_deg=[[0.0, 1.5]], head_g=[[190.0, 210.0]])
+# Held-out 1 (UNCHANGED since 1a98372). NOTE (2026-10-25): against the final training DR, heldout-1 joint, velocity and friction now sit in the
+# GAPS BETWEEN training bands (interpolation gaps, not extrapolation); only the ball offset (13-18 mm vs cap 12 mm) is beyond the training range.
 HELDOUT_DR = dict(version="v5-heldout-1", seeds=list(range(910000, 910024)),
                   joint_rad=[0.0325, 0.045], joint_vel=[0.065, 0.09], floor_mu=[[0.55, 0.62], [1.08, 1.15]], ball_m=[0.013, 0.018],
                   note="per-joint |dq| ~ U(shell) with random sign; floor mu uniform over the union of bands; ball dx, dy each |.| ~ U(shell) with random sign. rng: numpy default_rng(seed + 0xD15C).")
-# Seeds used elsewhere by our harness (must stay disjoint from held-out): deterministic rows 4000-4007, 8000-8007, 9000-9007; v3/v4 robustness 7000-7023.
+# Held-out 2 (OPT-IN, NON-GATING, ranges = ESTIMATES just outside training; one dimension per episode, 5 episodes each, everything else nominal).
+HELDOUT2_DR = dict(version="v5-heldout-2", seeds=list(range(920000, 920025)),
+                   dims=("slope_grade", "torque_scale", "latency_steps", "loft_deg", "head_g"),
+                   slope_grade=[0.075, 0.10], torque_scale=[0.85, 0.89], latency_steps=[2, 2], loft_deg=[1.6, 2.5], head_g=[[185.0, 189.0], [211.0, 215.0]],
+                   not_applied=dict(segment_mass="training clips at +-2 CV; a held-out set beyond 2 CV is not physically motivated -> needs Trainer/Data Agent range"),
+                   note="episode i -> dims[i % 5]; slope: gravity tilt at random azimuth; torque: e.tau x scale; latency: actions delayed by k control steps (20 ms each); "
+                        "loft: head geom rotated about +y by +-value; head_g: club body mass += (g-200)/1000 kg at the head geom (as DREnv). rng default_rng(seed + 0xD152).")
 HARNESS_SEEDS = set(range(4000, 4008)) | set(range(8000, 8008)) | set(range(9000, 9008)) | set(range(7000, 7024))
 
-def _overlap(a, b):
-    return max(a[0], b[0]) < min(a[1], b[1]) or (a[0] == b[0] and a[1] == b[1])
+def _ivs(x): return [list(map(float, v)) for v in x] if isinstance(x[0], (list, tuple)) else [list(map(float, x))]
+def _hit(a, b): return not (a[1] < b[0] or a[0] > b[1])   # closed-interval overlap (touching counts as overlap)
 
-def assert_disjoint(train=TRAINING_DR, held=HELDOUT_DR, training_seeds=()):
-    """Raise AssertionError if any held-out range overlaps its training range, or any held-out seed is a training or harness seed."""
-    for k in ("joint_rad", "joint_vel", "ball_m"):
-        assert not _overlap(held[k], train[k]) and held[k][0] > train[k][1], f"held-out {k} {held[k]} overlaps training {train[k]}"
-    for hb in held["floor_mu"]:
-        for tb in train["floor_mu"]: assert not _overlap(hb, tb) and not (tb[0] <= hb[0] <= tb[1] or tb[0] <= hb[1] <= tb[1]), f"held-out floor mu {hb} overlaps training {tb}"
+def assert_disjoint(train=TRAINING_DR, held=HELDOUT_DR, training_seeds=(), other_sets=()):
+    """Raise AssertionError if any held-out interval touches/overlaps any training interval of the same dimension, or a held-out seed is a training
+    seed (< seed_max or listed), a harness seed, or in another held-out set."""
+    dims = [k for k in ("joint_rad", "joint_vel", "floor_mu", "ball_m", "slope_grade", "torque_scale", "latency_steps", "loft_deg", "head_g") if k in held and k in train]
+    for k in dims:
+        for h in _ivs(held[k]):
+            for t in _ivs(train[k]): assert not _hit(h, t), f"held-out {k} {h} overlaps training {t}"
     s = set(held["seeds"]); bad = s & (set(training_seeds) | HARNESS_SEEDS)
-    assert not bad, f"held-out seeds overlap training/harness seeds: {sorted(bad)[:5]}"
+    for o in other_sets: bad |= s & set(o["seeds"])
+    assert not bad, f"held-out seeds overlap training/harness/other held-out seeds: {sorted(bad)[:5]}"
+    assert min(s) >= train.get("seed_max", 0), f"held-out seeds must be >= training seed_max {train.get('seed_max')}"
     return True
+
+def gap_kind(train, held, k):
+    """'interpolation gap' if every held-out interval lies between training intervals, 'extrapolation' if beyond all of them."""
+    T = _ivs(train[k]); lo, hi = min(t[0] for t in T), max(t[1] for t in T)
+    return "extrapolation" if all(h[0] > hi or h[1] < lo for h in _ivs(held[k])) else "interpolation gap"
+
+def sample_heldout2(seed, H=HELDOUT2_DR):
+    import numpy as np
+    i = H["seeds"].index(int(seed)) if int(seed) in H["seeds"] else int(seed); dim = H["dims"][i % len(H["dims"])]
+    rg = np.random.default_rng(int(seed) + 0xD152)
+    if dim == "head_g": b = H["head_g"][int(rg.integers(2))]; val = float(rg.uniform(*b))
+    elif dim == "latency_steps": val = int(H["latency_steps"][0])
+    elif dim == "loft_deg": val = float(rg.uniform(*H["loft_deg"])) * float(rg.choice([-1.0, 1.0]))
+    else: val = float(rg.uniform(*H[dim]))
+    return dict(dim=dim, value=val, slope_az_rad=float(rg.uniform(0, 2 * np.pi)))
+
+def heldout2_perturb(n=None):
+    H = HELDOUT2_DR; n = len(H["seeds"]) if n is None else int(n)
+    return dict(joint_deg=0.0, joint_vel=0.0, ball_tol_m=0.0, friction_rand=False, friction_range=None, seed0=H["seeds"][0], n=n,
+                heldout2={k: H[k] for k in ("version", "dims", "slope_grade", "torque_scale", "latency_steps", "loft_deg", "head_g", "seeds")},
+                friction_source=f"held-out DR {H['version']} (new dims, estimates, NON-GATING)")
 
 def heldout_perturb(n=None):
     """perturb= payload for results/overnight/_j_worker_gp_v3.py (optional 'heldout' key; absent = v3/v4 behaviour unchanged)."""
@@ -197,7 +261,7 @@ def sample_heldout(seed, nq, H=HELDOUT_DR):
     return dq, dv, mu, ball
 
 # ---------------------------------------------------------------- assembly
-def apply_v5(r_v4, eps=None, goal=None, run_args=None, club=None, heldout_row=None):
+def apply_v5(r_v4, eps=None, goal=None, run_args=None, club=None, heldout_row=None, heldout2_row=None):
     """r_v4: output of eval.harness_v4.apply_v4 (verdict untouched). Adds r['v5'] (all rows non-gating)."""
     out = dict(r_v4); v5 = dict(harness="v5", gate="v4 (unchanged; v5 rows are NON-GATING)", rows={})
     t_rows, per = task_accuracy(eps or [], goal, run_args); v5["rows"].update(t_rows); v5["task_episodes"] = per
@@ -206,5 +270,7 @@ def apply_v5(r_v4, eps=None, goal=None, run_args=None, club=None, heldout_row=No
     med = (r_v4.get("v5_shot_medians") or {})
     v5["rows"].update(club_band_rows(med, club)); v5["club"] = club
     v5["rows"]["v5/heldout_dr_robustness"] = heldout_row or dict(status="skip", passed=False, gating=False, values=None, why=["held-out DR not run (--heldout-dr 0)"], tag="info_only")
+    if heldout2_row is not None: v5["rows"]["v5/heldout2_dr_robustness"] = heldout2_row
+    v5["goal_obs"] = bool((run_args or {}).get("goal_obs")); v5["frame"] = FRAME
     v5["v4_verdict"] = r_v4.get("verdict"); out["v5"] = v5
     return out

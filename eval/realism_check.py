@@ -131,7 +131,7 @@ def run_robustness(a, repo, ck, arm, env, P=None):
     x = worker_args(a, repo, ck, arm, s0)
     if "_v3" not in os.path.basename(x[1]):
         return dict(status="skip", passed=False, values=None, why=[f"worker {os.path.basename(x[1])} has no perturb support (needs _j_worker_gp_v3.py)"], ref=None, tag="derived"), []
-    x[6] = str(n); x = [y for y in x if y != "seg1"] + ["seg1", "perturb=" + json.dumps({k: P[k] for k in ("joint_deg", "joint_vel", "ball_tol_m", "friction_rand", "friction_range", "heldout") if k in P})]   # "heldout" only in v5 held-out DR payloads
+    x[6] = str(n); x = [y for y in x if y != "seg1"] + ["seg1", "perturb=" + json.dumps({k: P[k] for k in ("joint_deg", "joint_vel", "ball_tol_m", "friction_rand", "friction_range", "heldout", "heldout2") if k in P})]   # "heldout" only in v5 held-out DR payloads
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
     subprocess.run([outp if y == "{OUT}" else y for y in x], check=True, cwd=str(repo), env=env)
     J = json.load(open(outp)); os.unlink(outp)
@@ -193,7 +193,7 @@ def run_v5(a):
         J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]; TEE = J.get("tee_info") or TEE
         for r_ in J["eps"]: r_["_declared_dt"] = J.get("dt")
         eps += J["eps"]
-    V5EPS = [dict(seed=e_.get("seed"), contact=bool(e_.get("contact")), shot_extra=e_.get("shot_extra"), goal=e_.get("goal")) for e_ in eps] if getattr(a, "v5", False) else None
+    V5EPS = [dict(seed=e_.get("seed"), contact=bool(e_.get("contact")), shot_extra=e_.get("shot_extra"), goal=e_.get("goal"), goal_obs_block=e_.get("goal_obs_block")) for e_ in eps] if getattr(a, "v5", False) else None
     out = []; gp_rows = []; tres = getattr(a, "timing_res_ms", None)
     for r_raw in eps:
         r = legacy_view(r_raw) if (tres or _fine_grf(a)) else r_raw
@@ -331,7 +331,15 @@ def _apply_v5(a, r):
         finally: a.robust_seed0 = s0; a.robustness = n0
         hrow = dict(hrow, gating=False, verdict_if_gating=hrow.get("status"), heldout=H5.HELDOUT_DR, training_dr_assumed=H5.TRAINING_DR,
                     why=["NON-GATING: held-out DR (ranges and seeds disjoint from training; requirements as mine/robustness)"] + list(hrow.get("why") or []))
-    return H5.apply_v5(r, eps, goal, run_args, a.club, hrow)
+    h2 = None; n2 = int(getattr(a, "heldout2_dr", 0) or 0)
+    if n2 > 0 and getattr(a, "_v5_ctx", None):
+        H5.assert_disjoint(H5.TRAINING_DR, H5.HELDOUT2_DR, other_sets=[H5.HELDOUT_DR]); repo, ck, arm, env = a._v5_ctx; P = H5.heldout2_perturb(n2)
+        s0 = a.robust_seed0; a.robust_seed0 = P["seed0"]; n0 = a.robustness; a.robustness = n2
+        try: h2, E2 = run_robustness(a, repo, ck, arm, env, P)
+        finally: a.robust_seed0 = s0; a.robustness = n0
+        h2 = dict(h2, gating=False, verdict_if_gating=h2.get("status"), heldout=H5.HELDOUT2_DR, training_dr_assumed=H5.TRAINING_DR,
+                  why=["NON-GATING, OPT-IN: held-out DR v5-heldout-2 (new dims, ESTIMATE ranges just outside training; one dim per episode)"] + list(h2.get("why") or []))
+    return H5.apply_v5(r, eps, goal, run_args, a.club, hrow, h2)
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter); ap.add_argument("target"); ap.add_argument("--env", default="v1", choices=["v1", "v5"])
@@ -344,9 +352,12 @@ def main():
     ap.add_argument("--goal-spec", default=None, help="v5 only: goal command JSON (string or file path), see eval/harness_v5.py GOAL_KEYS; used when the episode/run args carry no goal")
     ap.add_argument("--club", default=None, choices=["driver", "7iron", "wedge"], help="v5 only: club for the per-club band rows (default: goal club, else driver)")
     ap.add_argument("--heldout-dr", type=int, default=None, help="v5 only: held-out DR episodes (default 24 = all held-out seeds; 0 = off)")
+    ap.add_argument("--heldout2-dr", type=int, default=0, help="v5 only, OPT-IN: v5-heldout-2 episodes (new DR dims; 25 = all seeds; default 0 = off)")
     ap.add_argument("--no-robust-info", action="store_true", help="opt-in, top-k PRE-SCREEN only: skip the wide/stress friction INFO robustness rows (not for official grades)")
     a = ap.parse_args(); v5 = a.harness == "v5"; a.v5 = v5
-    if v5: a.harness = "v4"
+    if v5:
+        a.harness = "v4"
+        from eval.harness_v5 import GOAL_SET_V5; os.environ.setdefault("V5_GOALS", json.dumps(GOAL_SET_V5))   # used by the worker only for --goal_obs runs
     v4 = a.harness == "v4"; v3d = a.harness == "v3d"
     if v4: os.environ.setdefault("V3_HEAD", "v4"); os.environ.setdefault("V3_TEE", "1.5in")   # worker reads these; crown info = rerun with V3_TEE=crown
     if v3d or v4: a.harness = "v3c"   # v3d/v4 = same v3c episodes, re-graded

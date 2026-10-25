@@ -37,7 +37,8 @@ MENAG_REASON = "MuJoCo Menagerie not found next to repo or via MENAGERIE_DIR; se
 
 def _menagerie_present():
     import os
-    root = os.environ.get("MENAGERIE_DIR") or str(Path(__file__).resolve().parents[2] / "menagerie")
+    from env.v5_body import MENAG   # same lookup as the env ($MENAGERIE_DIR, sibling, one level up)
+    root = MENAG
     return (Path(root) / "unitree_g1" / "assets").is_dir() and (Path(root) / "unitree_g1" / "scene.xml").is_file()
 
 
