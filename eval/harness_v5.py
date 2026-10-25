@@ -191,18 +191,23 @@ def club_band_rows(medians, club, bands=None):
 #   Clauser segment-mass CVs (trunk .04, thigh .08, calf .08, foot .07; clipped at +-2 CV), torque 0.90-1.00 x stock, 20 ms latency on 25%.
 TRAINING_DR = dict(source="Trainer a2c1c7a (main 3c7119db) train/dr_goal.py DR", seed_max=900000,
                    joint_rad=[[0.0, 0.03], [0.05, 0.06]], joint_vel=[[0.0, 0.06], [0.10, 0.12]], floor_mu=[[0.63, 1.07], [0.45, 0.54], [1.16, 1.25]], ball_m=[[0.0, 0.012]],
-                   slope_grade=[[0.0, 0.07]], torque_scale=[[0.90, 1.00]], latency_steps=[[0, 1]], loft_deg=[[0.0, 1.5]], head_g=[[190.0, 210.0]])
+                   slope_grade=[[0.0, 0.07]], torque_scale=[[0.90, 1.00]], latency_steps=[[0, 1]], loft_deg=[[0.0, 1.5]], head_g=[[190.0, 210.0]],
+                   # segment mass/inertia factor f = clip(1 + N(0, CV x breadth), 1 +- 2 CV) (Trainer f253d5d answer): trunk CV .04, thigh/calf .08, foot .07
+                   seg_trunk=[[0.92, 1.08]], seg_thighcalf=[[0.84, 1.16]], seg_foot=[[0.86, 1.14]])
 # Held-out 1 (UNCHANGED since 1a98372). NOTE (2026-10-25): against the final training DR, heldout-1 joint, velocity and friction now sit in the
 # GAPS BETWEEN training bands (interpolation gaps, not extrapolation); only the ball offset (13-18 mm vs cap 12 mm) is beyond the training range.
 HELDOUT_DR = dict(version="v5-heldout-1", seeds=list(range(910000, 910024)),
                   joint_rad=[0.0325, 0.045], joint_vel=[0.065, 0.09], floor_mu=[[0.55, 0.62], [1.08, 1.15]], ball_m=[0.013, 0.018],
                   note="per-joint |dq| ~ U(shell) with random sign; floor mu uniform over the union of bands; ball dx, dy each |.| ~ U(shell) with random sign. rng: numpy default_rng(seed + 0xD15C).")
-# Held-out 2 (OPT-IN, NON-GATING, ranges = ESTIMATES just outside training; one dimension per episode, 5 episodes each, everything else nominal).
-HELDOUT2_DR = dict(version="v5-heldout-2", seeds=list(range(920000, 920025)),
-                   dims=("slope_grade", "torque_scale", "latency_steps", "loft_deg", "head_g"),
+# Held-out 2 (OPT-IN, NON-GATING, ranges = ESTIMATES just outside training; one dimension per episode, 4 episodes each, everything else nominal).
+HELDOUT2_DR = dict(version="v5-heldout-2", seeds=list(range(920000, 920032)),
+                   dims=("slope_grade", "torque_scale", "latency_steps", "loft_deg", "head_g", "seg_trunk", "seg_thighcalf", "seg_foot"),
                    slope_grade=[0.075, 0.10], torque_scale=[0.85, 0.89], latency_steps=[2, 2], loft_deg=[1.6, 2.5], head_g=[[185.0, 189.0], [211.0, 215.0]],
-                   not_applied=dict(segment_mass="training clips at +-2 CV; a held-out set beyond 2 CV is not physically motivated -> needs Trainer/Data Agent range"),
-                   note="episode i -> dims[i % 5]; slope: gravity tilt at random azimuth; torque: e.tau x scale; latency: actions delayed by k control steps (20 ms each); "
+                   # segment mass: training CVs from the Data Agent rows committed in 75a97112 (goalcond_club_shot_shape_dr_refs, single cadaver study); held-out band placement (~2.5-3 SD, just beyond the +-2 CV training clip) is an UNSOURCED engineering estimate; mass and inertia scaled by the same f
+                   seg_trunk=[[0.88, 0.90], [1.10, 1.12]], seg_thighcalf=[[0.76, 0.80], [1.20, 1.24]], seg_foot=[[0.79, 0.825], [1.175, 1.21]],
+                   info_only_dims=("slope_grade",),
+                   info_only_why="slope = modelling gap; partial plumb-address option exists on main (ea0b69da, configure(plumb_addr=True), effective only up to about 1% slope per the Trainer) (Trainer f253d5d: gravity tilt with a floor-perpendicular address pose leans the golfer ~4.6-5.7 deg; no reset bug). Excluded from the heldout-2 aggregate.",
+                   note="episode i -> dims[i % 8]; seg_*: body mass and inertia x f on train.dr_goal.SEG bodies (thighcalf = thigh and calf together); slope: gravity tilt at random azimuth; torque: e.tau x scale; latency: actions delayed by k control steps (20 ms each); "
                         "loft: head geom rotated about +y by +-value; head_g: club body mass += (g-200)/1000 kg at the head geom (as DREnv). rng default_rng(seed + 0xD152).")
 HARNESS_SEEDS = set(range(4000, 4008)) | set(range(8000, 8008)) | set(range(9000, 9008)) | set(range(7000, 7024))
 
@@ -212,7 +217,7 @@ def _hit(a, b): return not (a[1] < b[0] or a[0] > b[1])   # closed-interval over
 def assert_disjoint(train=TRAINING_DR, held=HELDOUT_DR, training_seeds=(), other_sets=()):
     """Raise AssertionError if any held-out interval touches/overlaps any training interval of the same dimension, or a held-out seed is a training
     seed (< seed_max or listed), a harness seed, or in another held-out set."""
-    dims = [k for k in ("joint_rad", "joint_vel", "floor_mu", "ball_m", "slope_grade", "torque_scale", "latency_steps", "loft_deg", "head_g") if k in held and k in train]
+    dims = [k for k in ("joint_rad", "joint_vel", "floor_mu", "ball_m", "slope_grade", "torque_scale", "latency_steps", "loft_deg", "head_g", "seg_trunk", "seg_thighcalf", "seg_foot") if k in held and k in train]
     for k in dims:
         for h in _ivs(held[k]):
             for t in _ivs(train[k]): assert not _hit(h, t), f"held-out {k} {h} overlaps training {t}"
@@ -231,7 +236,7 @@ def sample_heldout2(seed, H=HELDOUT2_DR):
     import numpy as np
     i = H["seeds"].index(int(seed)) if int(seed) in H["seeds"] else int(seed); dim = H["dims"][i % len(H["dims"])]
     rg = np.random.default_rng(int(seed) + 0xD152)
-    if dim == "head_g": b = H["head_g"][int(rg.integers(2))]; val = float(rg.uniform(*b))
+    if dim == "head_g" or dim.startswith("seg_"): b = H[dim][int(rg.integers(2))]; val = float(rg.uniform(*b))
     elif dim == "latency_steps": val = int(H["latency_steps"][0])
     elif dim == "loft_deg": val = float(rg.uniform(*H["loft_deg"])) * float(rg.choice([-1.0, 1.0]))
     else: val = float(rg.uniform(*H[dim]))
@@ -240,7 +245,7 @@ def sample_heldout2(seed, H=HELDOUT2_DR):
 def heldout2_perturb(n=None):
     H = HELDOUT2_DR; n = len(H["seeds"]) if n is None else int(n)
     return dict(joint_deg=0.0, joint_vel=0.0, ball_tol_m=0.0, friction_rand=False, friction_range=None, seed0=H["seeds"][0], n=n,
-                heldout2={k: H[k] for k in ("version", "dims", "slope_grade", "torque_scale", "latency_steps", "loft_deg", "head_g", "seeds")},
+                heldout2={k: H[k] for k in ("version", "dims", "slope_grade", "torque_scale", "latency_steps", "loft_deg", "head_g", "seg_trunk", "seg_thighcalf", "seg_foot", "seeds")},
                 friction_source=f"held-out DR {H['version']} (new dims, estimates, NON-GATING)")
 
 def heldout_perturb(n=None):
@@ -260,6 +265,34 @@ def sample_heldout(seed, nq, H=HELDOUT_DR):
     ball = sh(H["ball_m"], 2)
     return dq, dv, mu, ball
 
+# ---------------------------------------------------------------- D-plane (impact logging; NON-GATING)
+# Uses ONLY the Trainer's WORLD-frame impact keys (f253d5d --impact_log, + = left). NEVER the env's face_yaw_deg / club_path_deg / ep face_path (GOLFER frame).
+# Sign convention (Trainer-confirmed): + sidespin / + spin axis curves toward +y (left) in the world frame for either hand (LH draw -> -y, LH fade -> +y).
+DPLANE_T = dict(face_frac=0.85, start_err_deg=2.0, axis_min_deg=0.5, curve_min_m=0.5,
+                src="assumption (ours): start direction ~ 0.85 x face (D-plane rule of thumb, Trainer brief); |start - 0.85 face| <= 2 deg; curvature sign = spin-axis sign when |axis| >= 0.5 deg and |curve| >= 0.5 m")
+
+def dplane_row(eps):
+    E = [e for e in (eps or []) if e.get("contact") and e.get("impact")]
+    if not E: return dict(status="n/a", passed=False, gating=False, values=None, tag="info_only", why=["impact logging not available (export lacks DREnv impact_log, or no contact episodes)"])
+    per = []
+    for e in E:
+        im = e["impact"]; g = shot_geometry(e.get("shot_extra")); fw = im["impact_face_world_deg"]; pred = DPLANE_T["face_frac"] * fw
+        d = dict(seed=e.get("seed"), face_world_deg=fw, path_world_deg=im.get("impact_path_world_deg"), face_to_path_world_deg=im.get("impact_face_to_path_world_deg"),
+                 spin_loft_deg=im.get("impact_spin_loft_deg"), spin_axis_deg=im.get("impact_spin_axis_deg"), start_pred_deg=pred, start_deg=None, start_ok=None, curve_y_m=None, curve_sign_ok=None)
+        if g:
+            d.update(start_deg=g["azimuth_deg"], start_err_deg=g["azimuth_deg"] - pred, start_ok=abs(g["azimuth_deg"] - pred) <= DPLANE_T["start_err_deg"], curve_y_m=g["curve_y_m"])
+            ax = im.get("impact_spin_axis_deg")
+            if ax is not None and abs(ax) >= DPLANE_T["axis_min_deg"] and abs(g["curve_y_m"]) >= DPLANE_T["curve_min_m"]: d["curve_sign_ok"] = (ax > 0) == (g["curve_y_m"] > 0)
+        per.append(d)
+    S = [d for d in per if d["start_ok"] is not None]; C = [d for d in per if d["curve_sign_ok"] is not None]
+    fs = sum(d["start_ok"] for d in S) / len(S) if S else None; fc = sum(d["curve_sign_ok"] for d in C) / len(C) if C else None
+    med = lambda k: (sorted(d[k] for d in per if d.get(k) is not None)[len([d for d in per if d.get(k) is not None]) // 2] if any(d.get(k) is not None for d in per) else None)
+    st = "n/a" if fs is None else ("pass" if fs >= TASK_T["rate"]["pass_"] and (fc is None or fc >= TASK_T["rate"]["pass_"]) else "warn" if fs >= TASK_T["rate"]["warn"] else "fail")
+    return dict(status=st, passed=st == "pass", gating=False, tag="info_only", frame="world, + = left (+y)", thresholds=DPLANE_T,
+                values=dict(n=len(per), start_vs_085face_pass_frac=fs, n_start=len(S), curve_sign_vs_axis_pass_frac=fc, n_curve_sign=len(C),
+                            face_world_med_deg=med("face_world_deg"), path_world_med_deg=med("path_world_deg"), start_med_deg=med("start_deg"), start_err_med_deg=med("start_err_deg"), spin_loft_med_deg=med("spin_loft_deg"), spin_axis_med_deg=med("spin_axis_deg")),
+                episodes=per, why=["NON-GATING: D-plane check from WORLD-frame impact keys only (Trainer --impact_log); golfer-frame face_yaw_deg/club_path_deg not used"])
+
 # ---------------------------------------------------------------- assembly
 def apply_v5(r_v4, eps=None, goal=None, run_args=None, club=None, heldout_row=None, heldout2_row=None):
     """r_v4: output of eval.harness_v4.apply_v4 (verdict untouched). Adds r['v5'] (all rows non-gating)."""
@@ -270,7 +303,10 @@ def apply_v5(r_v4, eps=None, goal=None, run_args=None, club=None, heldout_row=No
     med = (r_v4.get("v5_shot_medians") or {})
     v5["rows"].update(club_band_rows(med, club)); v5["club"] = club
     v5["rows"]["v5/heldout_dr_robustness"] = heldout_row or dict(status="skip", passed=False, gating=False, values=None, why=["held-out DR not run (--heldout-dr 0)"], tag="info_only")
-    if heldout2_row is not None: v5["rows"]["v5/heldout2_dr_robustness"] = heldout2_row
+    if heldout2_row is not None:
+        if isinstance(heldout2_row, dict) and "slope_info" in heldout2_row: v5["rows"]["v5/heldout2_slope_info"] = heldout2_row.pop("slope_info")
+        v5["rows"]["v5/heldout2_dr_robustness"] = heldout2_row
+    v5["rows"]["v5/dplane"] = dplane_row(eps)
     v5["goal_obs"] = bool((run_args or {}).get("goal_obs")); v5["frame"] = FRAME
     v5["v4_verdict"] = r_v4.get("verdict"); out["v5"] = v5
     return out

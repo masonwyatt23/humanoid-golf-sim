@@ -193,7 +193,7 @@ def run_v5(a):
         J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]; TEE = J.get("tee_info") or TEE
         for r_ in J["eps"]: r_["_declared_dt"] = J.get("dt")
         eps += J["eps"]
-    V5EPS = [dict(seed=e_.get("seed"), contact=bool(e_.get("contact")), shot_extra=e_.get("shot_extra"), goal=e_.get("goal"), goal_obs_block=e_.get("goal_obs_block")) for e_ in eps] if getattr(a, "v5", False) else None
+    V5EPS = [dict(seed=e_.get("seed"), contact=bool(e_.get("contact")), shot_extra=e_.get("shot_extra"), goal=e_.get("goal"), goal_obs_block=e_.get("goal_obs_block"), impact=e_.get("impact")) for e_ in eps] if getattr(a, "v5", False) else None
     out = []; gp_rows = []; tres = getattr(a, "timing_res_ms", None)
     for r_raw in eps:
         r = legacy_view(r_raw) if (tres or _fine_grf(a)) else r_raw
@@ -337,6 +337,15 @@ def _apply_v5(a, r):
         s0 = a.robust_seed0; a.robust_seed0 = P["seed0"]; n0 = a.robustness; a.robustness = n2
         try: h2, E2 = run_robustness(a, repo, ck, arm, env, P)
         finally: a.robust_seed0 = s0; a.robustness = n0
+        # slope = modelling gap (info only): aggregate re-computed over the non-slope episodes; slope episodes reported in their own info row
+        from eval import robust_grf as RG
+        sd = [P["seed0"] + i for i in range(n2)]; dim = [H5.sample_heldout2(x)["dim"] for x in sd]; io = set(H5.HELDOUT2_DR["info_only_dims"])
+        if E2:
+            keep = [i for i in range(len(E2)) if dim[i] not in io]; sl = [i for i in range(len(E2)) if dim[i] in io]
+            h2_all = h2; h2 = RG.robustness_row([E2[i] for i in keep], P, [sd[i] for i in keep])
+            srow = RG.robustness_row([E2[i] for i in sl], P, [sd[i] for i in sl]) if sl else None
+            h2["by_dim"] = {d_: [sd[i] for i in range(len(E2)) if dim[i] == d_] for d_ in H5.HELDOUT2_DR["dims"]}; h2["by_dim_contact"] = {d_: "%d/%d" % (sum(bool(E2[i].get("contact")) for i in range(len(E2)) if dim[i] == d_), sum(1 for i in range(len(E2)) if dim[i] == d_)) for d_ in H5.HELDOUT2_DR["dims"]}; h2["all_dims_incl_slope_values"] = h2_all.get("values")
+            if srow is not None: h2["slope_info"] = dict(srow, status="info", gating=False, tag="info_only", label="modelling gap; partial plumb-address option exists on main (ea0b69da, configure(plumb_addr=True), effective only up to about 1% slope per the Trainer)", why=[H5.HELDOUT2_DR["info_only_why"]])
         h2 = dict(h2, gating=False, verdict_if_gating=h2.get("status"), heldout=H5.HELDOUT2_DR, training_dr_assumed=H5.TRAINING_DR,
                   why=["NON-GATING, OPT-IN: held-out DR v5-heldout-2 (new dims, ESTIMATE ranges just outside training; one dim per episode)"] + list(h2.get("why") or []))
     return H5.apply_v5(r, eps, goal, run_args, a.club, hrow, h2)
@@ -352,12 +361,12 @@ def main():
     ap.add_argument("--goal-spec", default=None, help="v5 only: goal command JSON (string or file path), see eval/harness_v5.py GOAL_KEYS; used when the episode/run args carry no goal")
     ap.add_argument("--club", default=None, choices=["driver", "7iron", "wedge"], help="v5 only: club for the per-club band rows (default: goal club, else driver)")
     ap.add_argument("--heldout-dr", type=int, default=None, help="v5 only: held-out DR episodes (default 24 = all held-out seeds; 0 = off)")
-    ap.add_argument("--heldout2-dr", type=int, default=0, help="v5 only, OPT-IN: v5-heldout-2 episodes (new DR dims; 25 = all seeds; default 0 = off)")
+    ap.add_argument("--heldout2-dr", type=int, default=0, help="v5 only, OPT-IN: v5-heldout-2 episodes (new DR dims; 32 = all seeds, 4 per dim; slope episodes info-only; default 0 = off)")
     ap.add_argument("--no-robust-info", action="store_true", help="opt-in, top-k PRE-SCREEN only: skip the wide/stress friction INFO robustness rows (not for official grades)")
     a = ap.parse_args(); v5 = a.harness == "v5"; a.v5 = v5
     if v5:
         a.harness = "v4"
-        from eval.harness_v5 import GOAL_SET_V5; os.environ.setdefault("V5_GOALS", json.dumps(GOAL_SET_V5))   # used by the worker only for --goal_obs runs
+        from eval.harness_v5 import GOAL_SET_V5; os.environ.setdefault("V5_GOALS", json.dumps(GOAL_SET_V5)); os.environ.setdefault("V5_IMPACT_LOG", "1")   # used by the worker only for --goal_obs runs
     v4 = a.harness == "v4"; v3d = a.harness == "v3d"
     if v4: os.environ.setdefault("V3_HEAD", "v4"); os.environ.setdefault("V3_TEE", "1.5in")   # worker reads these; crown info = rerun with V3_TEE=crown
     if v3d or v4: a.harness = "v3c"   # v3d/v4 = same v3c episodes, re-graded

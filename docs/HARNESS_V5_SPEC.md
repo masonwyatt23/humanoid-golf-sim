@@ -122,7 +122,7 @@ Be aware that heldout-1 **joint noise (0.0325-0.045), velocity noise (0.065-0.09
 | loft_deg | \|1.6-2.5\|°, random sign | head geom rotated about +y, as DREnv |
 | head_g | 185-189 or 211-215 g | club body mass/CoM/inertia at the head geom, as DREnv (swing dynamics only; golfphys head mass fixed) |
 
-- **Not covered by heldout-2:** segment masses. Training already clips at ±2 CV, so any range beyond that would need a Trainer/Data Agent choice.
+- Segment masses were added to heldout-2 later (see the segment-mass item below).
 - All five dims are extrapolation (tested). Every overlap case and the seed guards are tested.
 
 First heldout-2 run: V10l_s104 100k (RO export 474e6c5, v4 env, 1.5 in, 25 eps). Overall contact 0.80, start direction 0.80, plant 0.80.
@@ -208,3 +208,28 @@ Not done yet: one persistent process that loads the env once and swaps checkpoin
 - `--harness v5` runs the v4 path, then calls `_apply_v5`.
 - `--no-robust-info` is opt-in and used only by the pre-screen.
 - The worker's `heldout` key is optional. Without it, the worker follows the v3/v4 code path byte-for-byte.
+
+## (f) Trainer f253d5d answers (2026-10-25 ET; RO export of the Trainer box HEAD f253d5d)
+
+- **Sidespin sign (Trainer-confirmed).** In the WORLD frame, positive sidespin / spin axis curves the ball toward +y (left), for either hand.
+  A LH draw curves to −y and a LH fade to +y. `shot_geometry` and the bend/shape tests follow this (`test_sidespin_sign_world_left_regardless_of_hand`).
+- **Impact logging and the D-plane row (`v5/dplane`, NON-GATING, info only).** With `--harness v5`, realism_check sets `V5_IMPACT_LOG=1`.
+  The worker then rolls out in DREnv with `impact_log=True`, and only if the export's DREnv supports it; otherwise the row shows n/a.
+  It records the WORLD-frame keys (+ = left) `impact_face_world_deg`, `impact_path_world_deg`, `impact_face_to_path_world_deg`, `impact_spin_loft_deg`, `impact_dloft_deg`, `impact_aoa_deg`, `impact_spin_axis_deg`, `impact_sidespin_rpm` on the contact step.
+  - Grading (assumptions, ours): start direction (world azimuth) within 2° of 0.85 × face (world); curvature sign equals the spin-axis sign when |axis| ≥ 0.5° and |curve| ≥ 0.5 m.
+  - The env's `face_yaw_deg`, `club_path_deg` and ep `face_path` are GOLFER frame (× hand_sign) and are never used here.
+- **Segment mass (heldout-2).** Training: f = clip(1 + N(0, CV × breadth), 1 ± 2 CV), with inertia scaled by the same f, giving trunk 0.92–1.08, thigh/calf 0.84–1.16, foot 0.86–1.14.
+  - Training CVs come from the Data Agent segment-mass rows committed in 75a97112 (`data/references/goalcond_club_shot_shape_dr_refs.csv`, single cadaver study). The held-out band placement is an UNSOURCED engineering estimate (≈2.5–3 SD, NON-GATING): trunk 0.88–0.90 or 1.10–1.12; thigh+calf (one factor) 0.76–0.80 or 1.20–1.24; foot 0.79–0.825 or 1.175–1.21.
+  - Applied by the worker as mass and inertia × f on the Trainer's `train.dr_goal.SEG` bodies.
+  - Heldout-2 is now 8 dims × 4 episodes, seeds 920000–920031. All dims are extrapolation, and the disjointness tests cover them.
+- **Slope = modelling gap, info only.** Slope is applied as a gravity tilt while the address pose stays floor-perpendicular, so the golfer starts leaning about 4.6–5.7°.
+  The Trainer found no reset bug; the QACC warnings come later, from the high DR bands.
+  The slope episodes go to their own row, `v5/heldout2_slope_info`, labelled "modelling gap; partial plumb-address option exists on main (ea0b69da, configure(plumb_addr=True), effective only up to about 1% slope per the Trainer)", and are excluded from the heldout-2 aggregate.
+  The Trainer reported plans to turn slope DR off in the next run.
+- **Pipeline test.** `V10l_goal0_s104_100000` is V10l 100k with zero-padded goal inputs, so it IGNORES the goal (no goal training). This is a pipeline test on a goal-ignoring snapshot, not a grade.
+  - Layout pre-check: LAYOUT_OK, obs 124.
+  - Goals: `ep['goal']` was logged on all 24 episodes, covering all 8 goals.
+  - v4: 13/5/1 FAIL with robustness 0.83/0.75/0.67, the same as V10l 100k.
+  - Task pass rates: carry 0.125, direction 1.0, lateral 0.625, draw/fade 0.625 (expected for a goal-ignoring policy).
+  - D-plane (n = 24): start within 2° of 0.85 × face 24/24; curvature sign matches the axis 24/24. Medians: face −4.6°, path −3.5°, start −2.7°, spin loft 17.2°, axis −8.0° (world).
+  - Heldout-2 without slope (n = 28): contact, start direction and plant 0.71 each. Contact by dim: torque 4/4, latency 4/4, loft 4/4, head mass 3/4, trunk 2/4, thigh+calf 0/4, foot 3/4. Slope (info only) 0/4.

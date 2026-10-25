@@ -198,7 +198,9 @@ def test_heldout2_disjoint_and_extrapolation():
     assert all(H.gap_kind(H.TRAINING_DR, H.HELDOUT2_DR, k) == "extrapolation" for k in H.HELDOUT2_DR["dims"])
 
 @pytest.mark.parametrize("k,val", [("torque_scale", [0.88, 0.92]), ("slope_grade", [0.06, 0.09]), ("loft_deg", [1.4, 2.0]),
-                                   ("head_g", [[205.0, 212.0]]), ("latency_steps", [1, 2])])
+                                   ("head_g", [[205.0, 212.0]]), ("latency_steps", [1, 2]),
+                                   ("seg_trunk", [[0.88, 0.92]]), ("seg_trunk", [[1.08, 1.12]]), ("seg_thighcalf", [[0.80, 0.85]]),
+                                   ("seg_thighcalf", [[1.16, 1.24]]), ("seg_foot", [[0.825, 0.86]]), ("seg_foot", [[1.14, 1.21]])])
 def test_heldout2_overlap_detected(k, val):
     with pytest.raises(AssertionError): H.assert_disjoint(H.TRAINING_DR, dict(H.HELDOUT2_DR, **{k: val}))
 
@@ -210,9 +212,50 @@ def test_sample_heldout2_cycles_dims_within_ranges():
     H2 = H.HELDOUT2_DR; seen = {}
     for s in H2["seeds"]:
         d = H.sample_heldout2(s); seen.setdefault(d["dim"], []).append(d["value"])
-    assert {k: len(v) for k, v in seen.items()} == {k: 5 for k in H2["dims"]}
+    assert {k: len(v) for k, v in seen.items()} == {k: 4 for k in H2["dims"]}
     assert all(0.075 <= v <= 0.10 for v in seen["slope_grade"]) and all(0.85 <= v <= 0.89 for v in seen["torque_scale"])
     assert all(v == 2 for v in seen["latency_steps"]) and all(1.6 <= abs(v) <= 2.5 for v in seen["loft_deg"])
     assert all(185 <= v <= 189 or 211 <= v <= 215 for v in seen["head_g"])
+    for k in ("seg_trunk", "seg_thighcalf", "seg_foot"): assert all(any(lo <= v <= hi for lo, hi in H2[k]) for v in seen[k])
     assert H.sample_heldout2(920003) == H.sample_heldout2(920003)
-    p = H.heldout2_perturb(); assert p["seed0"] == 920000 and p["n"] == 25 and "heldout2" in p
+    p = H.heldout2_perturb(); assert p["seed0"] == 920000 and p["n"] == 32 and "heldout2" in p
+
+
+# ---------------- segment mass (Trainer f253d5d), slope info-only, sidespin sign, D-plane
+def test_segment_mass_training_and_heldout2_bands():
+    T, H2 = H.TRAINING_DR, H.HELDOUT2_DR
+    assert T["seg_trunk"] == [[0.92, 1.08]] and T["seg_thighcalf"] == [[0.84, 1.16]] and T["seg_foot"] == [[0.86, 1.14]]
+    assert H2["seg_trunk"] == [[0.88, 0.90], [1.10, 1.12]] and H2["seg_thighcalf"] == [[0.76, 0.80], [1.20, 1.24]] and H2["seg_foot"] == [[0.79, 0.825], [1.175, 1.21]]
+    assert "not_applied" not in H2
+    for k, cv in (("seg_trunk", 0.04), ("seg_thighcalf", 0.08), ("seg_foot", 0.07)):   # training = 1 +- 2 CV; held-out ~2.5-3 SD
+        assert T[k] == [[round(1 - 2 * cv, 2), round(1 + 2 * cv, 2)]]
+        for lo, hi in H2[k]: assert 2.4 <= min(abs(lo - 1), abs(hi - 1)) / cv and max(abs(lo - 1), abs(hi - 1)) / cv <= 3.0 + 1e-9
+
+def test_slope_is_info_only():
+    assert H.HELDOUT2_DR["info_only_dims"] == ("slope_grade",) and "modelling gap; partial plumb-address option" in H.HELDOUT2_DR["info_only_why"]
+
+@pytest.mark.parametrize("handed", ["LH", "RH"])
+def test_sidespin_sign_world_left_regardless_of_hand(handed):
+    """Trainer-confirmed: + sidespin / + spin axis curves toward +y (left, world) for either hand; LH draw -> -y, LH fade -> +y."""
+    hs = 1.0 if handed == "RH" else -1.0
+    for side in (400.0, -400.0):
+        geo = H.shot_geometry(dict(env_carry_m=150, azimuth_deg=0.0, env_lateral_m=math.copysign(6.0, side), sidespin_rpm=side, backspin_rpm=4000.0))
+        assert (geo["spin_axis_deg"] > 0) == (geo["curve_y_m"] > 0) == (side > 0)
+    for shape, world_sign in (("draw", hs), ("fade", -hs)):
+        g = H.validate_goal(dict(target_carry=150, target_dir=0, shape=shape, bend=5, handedness=handed))
+        geo = H.shot_geometry(dict(env_carry_m=150, azimuth_deg=0.0, env_lateral_m=world_sign * 9.0, sidespin_rpm=world_sign * 400.0, backspin_rpm=4000.0))
+        assert H.task_episode(geo, g)["shape_ok"]
+
+def _imp(face, path, axis):
+    return dict(impact_face_world_deg=face, impact_path_world_deg=path, impact_face_to_path_world_deg=face - path, impact_spin_loft_deg=14.0, impact_dloft_deg=12.0, impact_aoa_deg=-2.0, impact_spin_axis_deg=axis, impact_sidespin_rpm=axis * 50)
+
+def test_dplane_row_world_keys_only():
+    ep = lambda face, az, curve, axis, **kw: dict(contact=True, seed=1, impact=_imp(face, 0.0, axis), shot_extra=dict(env_carry_m=150, azimuth_deg=az, env_lateral_m=150 * math.tan(math.radians(az)) + curve, sidespin_rpm=axis * 50, backspin_rpm=3000.0), **kw)
+    r = H.dplane_row([ep(4.0, 3.4, 5.0, 3.0), ep(-4.0, -3.4, -5.0, -3.0)])
+    assert r["gating"] is False and r["status"] == "pass" and r["values"]["start_vs_085face_pass_frac"] == 1.0 and r["values"]["curve_sign_vs_axis_pass_frac"] == 1.0
+    r = H.dplane_row([ep(4.0, -3.4, 5.0, -3.0)])
+    assert r["values"]["start_vs_085face_pass_frac"] == 0.0 and r["values"]["curve_sign_vs_axis_pass_frac"] == 0.0
+    # golfer-frame keys alone are never used
+    assert H.dplane_row([dict(contact=True, face_yaw_deg=4.0, club_path_deg=1.0, shot_extra=dict(env_carry_m=150, azimuth_deg=3.4, env_lateral_m=5))])["status"] == "n/a"
+    assert H.dplane_row([])["status"] == "n/a"
+    import inspect; src = inspect.getsource(H.dplane_row); assert "face_yaw_deg\"]" not in src and "club_path_deg\"]" not in src and "face_path\"]" not in src

@@ -27,8 +27,14 @@ A = json.load(open(os.path.join(os.path.dirname(ck), "args.json")))
 # Runs without goal_obs (all stageDR runs so far, every J/K/V run) take the JEnv path below unchanged.
 GOAL_OBS = bool(A.get('goal_obs'))
 GOALS = json.loads(os.environ['V5_GOALS']) if (GOAL_OBS and os.environ.get('V5_GOALS')) else None
-if GOAL_OBS:
+# Impact logging (harness v5, env V5_IMPACT_LOG=1; Trainer f253d5d DREnv --impact_log): WORLD-frame impact keys (+ = left) on the contact step.
+# Used only if the export's DREnv has impact_log; else IMPACT_OK False and the harness shows n/a. Reward untouched (Trainer: reward md5 identical on/off).
+IMPACT_REQ = os.environ.get('V5_IMPACT_LOG', '0') == '1'
+try:
     from train.dr_goal import DREnv as _GEnv
+except Exception: _GEnv = None
+IMPACT_OK = bool(IMPACT_REQ and _GEnv is not None and hasattr(_GEnv, 'impact_log'))
+USE_DR = GOAL_OBS or IMPACT_OK
 keys = {tuple(k.split("|")): v for k, v in json.load(open(os.path.join(repo, A["keys"]))).items()} if A.get("keys") and A["keys"] != "none" else None
 CFG = ('xf_hard', 'grf_lo', 'grf_w', 'xf_cap_lo', 'xf_cap_w', 'track_floor', 'ord2_w', 'launch_w', 'desc_w', 'dloft_w', 'spin_lo_w', 'smash_w', 'spin_w', 'spin_hi', 'spin_scale', 'fine_grf',
        'launch_hi', 'dl_lo', 'dl_hi', 'aoa_lo', 'spd_w', 'pel_w', 'pel_t_w', 'pel_dps', 'pel_t_lo', 'pel_t_hi', 'sep_w', 'ctr_w', 'ctrl_dt',
@@ -72,7 +78,8 @@ def tee_geometry(env_):
     return G_
 _CFG_V = _cfg()
 def mk():
-    e = (_GEnv if GOAL_OBS else JEnv)(dt=0.002, seed=123, keys=keys, res_scale=A["res_scale"], t_down=A["t_down"]); e.configure(res_mult=(json.loads(A['res_mult']) if A.get('res_mult') else None), **{k: _CFG_V[k] for k in CFG})
+    e = (_GEnv if USE_DR else JEnv)(dt=0.002, seed=123, keys=keys, res_scale=A["res_scale"], t_down=A["t_down"]); e.configure(res_mult=(json.loads(A['res_mult']) if A.get('res_mult') else None), **{k: _CFG_V[k] for k in CFG})
+    if IMPACT_OK: e.impact_log = True
     if GOAL_OBS: e.goal_obs = True; e._grow_obs()   # == DREnv.configure(goal_obs=True) (sets the flag, grows obs by 8); kept off the single configure() call the parity tests pin
     e.rsi = (1.0, 0.0, 0.0); e.env.arm_dist = ARM; e.env.strike_gate_nx = GATE; e.target_len = L; e.target_tether = 0.0; e.env.friction_rand = False; e.track_w = 0.0; return e
 vn = VecNormalize.load(ck + "_vecnorm.pkl", DummyVecEnv([mk])); vn.training = False; vn.norm_reward = False
@@ -192,8 +199,8 @@ def _do_contact_log(cpos):
     except Exception as ex_: _HIT["centre"] = dict(error=repr(ex_))
 e._do_contact = _do_contact_log
 def _goal_reset(i):   # DREnv.reset with dr=False == goal swap + JEnv.reset; called via JEnv.reset so evaluation seeds (incl. held-out 910000+) bypass the TRAINING seed guard
-    if GOALS: te.set_goal(GOALS[i % len(GOALS)])
-    if te._next_goal is not None: te.goal = te._next_goal
+    if GOAL_OBS and GOALS: te.set_goal(GOALS[i % len(GOALS)])
+    if GOAL_OBS and te._next_goal is not None: te.goal = te._next_goal
     return JEnv.reset(te, seed=seed0 + i)
 _H2B = None; _LAT = 0; _ABUF = []
 def _h2_apply(seed):   # harness v5-heldout-2 (opt-in): one new DR dimension per episode; restores the base model first
@@ -201,8 +208,9 @@ def _h2_apply(seed):   # harness v5-heldout-2 (opt-in): one new DR dimension per
     import mujoco as _mj2
     from eval.harness_v5 import sample_heldout2 as _s2
     m_ = e.m; cb = m_.body("club").id
-    if _H2B is None: _H2B = (m_.opt.gravity.copy(), e.tau.copy(), m_.geom_quat[e.head_geom].copy(), float(m_.body_mass[cb]), m_.body_ipos[cb].copy(), m_.body_inertia[cb].copy())
-    g0, t0, q0, M0, ip0, in0 = _H2B
+    if _H2B is None: _H2B = (m_.opt.gravity.copy(), e.tau.copy(), m_.geom_quat[e.head_geom].copy(), float(m_.body_mass[cb]), m_.body_ipos[cb].copy(), m_.body_inertia[cb].copy(), m_.body_mass.copy(), m_.body_inertia.copy())
+    g0, t0, q0, M0, ip0, in0, bm0, bi0 = _H2B
+    m_.body_mass[:] = bm0; m_.body_inertia[:] = bi0
     m_.opt.gravity[:] = g0; e.tau[:] = t0; m_.geom_quat[e.head_geom] = q0; m_.body_mass[cb] = M0; m_.body_ipos[cb] = ip0; m_.body_inertia[cb] = in0; _LAT = 0; _ABUF = []
     d_ = _s2(seed, dict(PERT['heldout2'])); v = d_['value']; k = d_['dim']
     if k == 'slope_grade':
@@ -211,6 +219,13 @@ def _h2_apply(seed):   # harness v5-heldout-2 (opt-in): one new DR dimension per
     elif k == 'latency_steps': _LAT = int(v)
     elif k == 'loft_deg':
         q = np.zeros(4); _mj2.mju_axisAngle2Quat(q, np.array([0.0, 1.0, 0.0]), np.radians(v)); qo = np.zeros(4); _mj2.mju_mulQuat(qo, q0, q); m_.geom_quat[e.head_geom] = qo
+    elif k.startswith('seg_'):   # segment mass + inertia x f on the Trainer's SEG bodies (train.dr_goal.SEG, same name match as DREnv)
+        from train.dr_goal import SEG as _SEG
+        names = sum((tuple(_SEG[g]) for g in {'seg_trunk': ('trunk',), 'seg_thighcalf': ('thigh', 'calf'), 'seg_foot': ('foot',)}[k]), ()); hit = []
+        for b in range(m_.nbody):
+            nm = m_.body(b).name
+            if any(nm == s_ or nm.endswith(s_) and nm.startswith(("left_", "right_")) for s_ in names): m_.body_mass[b] = bm0[b] * v; m_.body_inertia[b] = bi0[b] * v; hit.append(nm)
+        d_ = dict(d_, bodies=hit)
     elif k == 'head_g':
         dm = (v - 200.0) / 1000.0; hp = m_.geom_pos[e.head_geom]; m_.body_mass[cb] = M0 + dm; m_.body_ipos[cb] = (M0 * ip0 + dm * hp) / (M0 + dm); m_.body_inertia[cb] = in0 * (M0 + dm) / M0
     return d_
@@ -220,7 +235,7 @@ def _lat(a):   # delay actions by _LAT control steps (zeros until the buffer fil
     return _ABUF.pop(0) if len(_ABUF) > _LAT else np.zeros_like(_ABUF[-1])
 eps = []; SEG_DEF = int(e.seg_every)   # default logging cadence (2 substeps = 4 ms at dt 0.002), captured once before any seg1 override
 for i in range(n):
-    grf.clear(); sub.clear(); foot.clear(); grf_h.clear(); e.seg_every = SEG_DEF; o, _ = (_goal_reset(i) if GOAL_OBS else te.reset(seed=seed0 + i)); e.seg_every = SEG_DEF; seg_def = SEG_DEF; done = False; info = {}
+    grf.clear(); sub.clear(); foot.clear(); grf_h.clear(); e.seg_every = SEG_DEF; o, _ = (_goal_reset(i) if USE_DR else te.reset(seed=seed0 + i)); e.seg_every = SEG_DEF; seg_def = SEG_DEF; done = False; info = {}
     if SEG1: e.seg_every = 1
     pinfo = None
     if PERT:   # perturb the address state (actuated joints only), then refresh derived quantities and the observation
@@ -240,15 +255,16 @@ for i in range(n):
             dq = np.radians(float(PERT.get('joint_deg', 0.0))) * rg.uniform(-1, 1, nq); dv = float(PERT.get('joint_vel', 0.0)) * rg.uniform(-1, 1, nq)
         e.d.qpos[e.qa] += dq; e.d.qvel[e.da] += dv; mujoco.mj_forward(e.m, e.d); o = te._xobs(e._obs())
         pinfo = dict(heldout2=(_h2 if PERT.get('heldout2') else None), joint_deg_max=float(np.degrees(np.abs(dq)).max()), joint_vel_max=float(np.abs(dv).max()), ball_xy_off_m=[float(x) for x in (e.tee[:2] - np.array(e.addr["ball_pos"], float)[:2])], floor_mu=float(e.m.geom_friction[e.floor, 0]))
-    _HIT.clear()
+    _HIT.clear(); _IMP = None
     while not done:
         a = model.predict(vn.normalize_obs(o[None]), deterministic=True)[0][0]; o, r, term, trunc, info = te.step(_lat(a)); done = term or trunc
+        if IMPACT_OK and _IMP is None and 'impact_face_world_deg' in info: _IMP = {k_: float(v_) for k_, v_ in info.items() if k_.startswith('impact_')}
     L_ = e.log; tc = e.t_contact; t = np.array(L_["t"])
     imp = int(np.argmax(t >= tc)) if tc is not None and (t >= tc).any() else len(t) - 1
     shx = {}
     if e.contact and getattr(e, "shot", None):
         _s = e.shot; _r = _s["shot"]; shx = dict(azimuth_deg=_s.get("azimuth_deg"), backspin_rpm=_s.get("backspin_rpm"), sidespin_rpm=_s.get("sidespin_rpm"), env_carry_m=_r.carry_m, env_total_m=_r.total_m, env_descent_deg=_r.descent_deg, env_lateral_m=_r.lateral_carry_m)
-    eps.append(dict(goal=((info.get("ep") or {}).get("goal") or (dict(te.goal) if GOAL_OBS and te.goal else None)), goal_obs_block=([float(x) for x in o[-8:]] if GOAL_OBS else None), shot_extra=shx, foot_length_m=0.20, t=L_["t"], pelvis_dps=L_["pelvis"], thorax_dps=L_["thorax"], arm_dps=L_["lead_arm"], club_dps=L_["club"], xfactor_deg=L_["xfactor_deg"], lead_share=L_["lead_share"],
+    eps.append(dict(impact=_IMP, goal=((info.get("ep") or {}).get("goal") or (dict(te.goal) if GOAL_OBS and te.goal else None)), goal_obs_block=([float(x) for x in o[-8:]] if GOAL_OBS else None), shot_extra=shx, foot_length_m=0.20, t=L_["t"], pelvis_dps=L_["pelvis"], thorax_dps=L_["thorax"], arm_dps=L_["lead_arm"], club_dps=L_["club"], xfactor_deg=L_["xfactor_deg"], lead_share=L_["lead_share"],
                     grf=[list(map(float, g)) for g in grf], grf_h=[list(map(float, g)) for g in grf_h], lead_foot=[list(f_) for f_ in foot], t_top=getattr(getattr(te, "ref", None), "t_dstart", None), lead=e.lead, impact_idx=imp, contact=bool(e.contact), ep=info.get("ep"), foul=bool(info.get("foul", False)), seed=seed0 + i, t_contact=tc, sub=list(sub), seg_every=int(e.seg_every), seg_every_default=int(seg_def), perturb=pinfo, strike=(dict(dy_m=float(e.ball_hit_info["dy"]), dz_m=float(e.ball_hit_info["dz"]), frame="clubhead site (face centre), dy toward toe, dz along face up; env v5_golf_env._do_contact", centre=_HIT.get("centre")) if (e.contact and getattr(e, "ball_hit_info", None)) else None),
                     shot={k: info.get(k) for k in ("club_speed_mph", "ball_speed_mph", "launch_deg", "spin_rpm", "smash", "carry_m_noroll", "total_m_model", "lateral_carry_m")}))
-json.dump(dict(tee_info=TEE_INFO, perturb_spec=PERT, floor_mu_nominal=FRIC0, floor_mu_note=FLOOR_MU_NOTE, strike_gate_nx=GATE, arm_dist=ARM, env_class="JEnv", bw_N=bw, dt=float(e.dt) * SEG_DEF, dt_note="declared = sim dt x default seg_every (4 ms at dt 0.002); harness measures it from t (dt fix)", club_len=L, foot_length_m=0.20, eps=eps), open(out, "w"), default=float)
+json.dump(dict(tee_info=TEE_INFO, perturb_spec=PERT, floor_mu_nominal=FRIC0, floor_mu_note=FLOOR_MU_NOTE, strike_gate_nx=GATE, arm_dist=ARM, env_class=("DREnv" if USE_DR else "JEnv"), impact_log=dict(requested=IMPACT_REQ, supported=IMPACT_OK, frame="world, + = left (+y); Trainer f253d5d"), bw_N=bw, dt=float(e.dt) * SEG_DEF, dt_note="declared = sim dt x default seg_every (4 ms at dt 0.002); harness measures it from t (dt fix)", club_len=L, foot_length_m=0.20, eps=eps), open(out, "w"), default=float)
