@@ -1,0 +1,15 @@
+{
+ "label": "LOCAL probe on official Evaluator code @cb2d3683, seeds 9200..9247 (NON-gating)",
+ "ckpt": "<local-path>",
+ "verdict": "FAIL",
+ "passed": 13,
+ "n_fail": 1,
+ "triple": [
+  0.875,
+  0.875,
+  0.8333333333333334
+ ],
+ "fails": [
+  "mine/robustness"
+ ]
+}
