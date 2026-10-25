@@ -45,5 +45,6 @@ def test_reference_resolves_and_wedge_cg_band():
     for r in D["rows"]:
         for p in re.findall(r"see goalcond_club_shot_shape_dr_refs: (.+)", r["nominal"]):
             assert p in names
-    cg = [r for r in D["rows"] if r["quantity"].startswith("CG height above ground, conventional")][0]
-    assert 19 <= float(cg["nominal"]) <= 21 and cg["n"] == 2
+    cg = [float(r["nominal"]) for r in D["rows"] if r["quantity"].startswith("CG height") and r["label"] == "patent claim" and re.fullmatch(r"[\d.]+", r["nominal"])]
+    assert cg and all(15 <= x <= 24 for x in cg)
+    assert len(D["rows"]) == 131 and not any("playcutter" in r["source_url"] for r in D["rows"])   # clubmaker rows held pending counsel

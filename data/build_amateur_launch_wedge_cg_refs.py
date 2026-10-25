@@ -1,7 +1,7 @@
 """Build data/references/amateur_launch_wedge_cg_refs.{json,csv} (sibling of goalcond refs; same row schema).
 
 Committed: rules-body report aggregates (R&A/USGA R22-01, amateur CONGU categories 1-4 only; group means/SD published as text tables) and
-patent / manufacturer text claims (aggregated, no model names). Vendor tables (TrackMan amateur averages,
+patent text claims (no model names; clubmaker-page claims held). Vendor tables (TrackMan amateur averages,
 component-supplier head-weight charts) are HELD at <local-path>/held_research_bands/goalcond/.
 Sources opened 2026-10-25 (America/New_York). Nothing digitized from charts.
 HELD at port (Repo Agent): R22-01 professional-group rows (tour radar data) and the single patent test example.
@@ -15,11 +15,10 @@ R2201_AD = "R&A Rules Ltd / USGA, R22-01 'Launch conditions of male and female g
 U = dict(
     acu="https://patents.google.com/patent/US9211450B2/en",
     endo="https://www.freepatentsonline.com/y2009/0176596.html",
-    cutter="https://www.playcutter.com/pages/moment-of-inertia-moi-and-center-of-gravity-cg",
     drv="https://github.com/masonwyatt23/humanoid-golf-sim/blob/main/data/references/goalcond_club_shot_shape_dr_refs.json",
 )
 AD = dict(acu="US 9,211,450 B2 (Acushnet), granted 15 Dec 2015", endo="US 2009/0176596 A1 (K.K. Endo Seisakusho), 9 Jul 2009",
-          cutter="Cutter Golf technical page (manufacturer's own measurements)", drv="this repo, goalcond_club_shot_shape_dr_refs.json (reference)")
+          drv="this repo, goalcond_club_shot_shape_dr_refs.json (reference)")
 rows = []
 
 
@@ -74,21 +73,18 @@ for club in ("PW", "GW", "SW", "LW"):
 R(S, "7-iron", "amateur launch/spin by handicap", "not sourced", "", "", "gap", 1, R2201, R2201_AD, "-", "R22-01 excluded its 7-iron shots (cat 1 females only)", "GAP -- use 6-iron rows as nearest", "low")
 
 W = "B_wedge_cg_mass_moi"
-R(W, "wedge", "CG height above ground, conventional wedges", 19.8, "19.3-20.4 (3 statements: 19.8, 20.4, 19.34 avg of 'several')", "mm", "manufacturer/patent claim (aggregate)", 2,
-  U["endo"] + " ; " + U["cutter"], AD["endo"] + " ; " + AD["cutter"], "Endo detailed description; Cutter CG findings",
-  "conventional ones ... in the order of 19.8 mm or 20.4 mm; traditional wedges measured averaged 19.34 mm (from leading edge)", "reference planes differ (sole plane vs leading edge)", "medium")
+# HELD (vendor-specific, pending counsel): conventional-wedge CG aggregate citing a clubmaker page
 R(W, "wedge", "CG height, prior-art statement (patent)", ">20", "patent text (n=1): prior art >20, e.g. 21-23", "mm", "patent claim", 1, U["acu"], AD["acu"], "Background/FIG 1", "d1 ... may generally be greater than 20 mm")
 R(W, "wedge", "CG height, claimed low-CG designs", 18, "16-20 (claim 1); preferred about 18; one patent (n=1)", "mm", "patent claim", 1, U["acu"], AD["acu"], "claim 1; d15", "between about 16 mm and about 20 mm away from said ground")
 R(W, "wedge", "CG height, claimed high-CG design", 23, ">=21.335 (claim 1); example 23; one patent (n=1)", "mm", "patent claim", 1, U["endo"], AD["endo"], "claim 1; description", "at least 21.335 mm ... may be set at 23 mm")
 R(W, "wedge", "typical impact height above ground", 15, "10-20 (patent text, n=1)", "mm", "patent claim", 1, U["acu"], AD["acu"], "FIG 2 description", "impact point ... 10 mm to 20 mm from ground ... most preferably 15 mm")
 R(W, "wedge", "CG depth behind face", "not sourced", "", "mm", "gap", 1, U["endo"], AD["endo"], "-", "only qualitative ('anterior to the face surface' in claim)", "GAP", "low")
-R(W, "SW", "MOI vertical axis (Izz), conventional sand wedges", 2603, "average of several heads (count not given); one source (n=1)", "g*cm^2", "manufacturer claim (own measurement)", 1,
-  U["cutter"], AD["cutter"], "IZZ MOI findings", "several traditional sand wedges with an average IZZ MOI of 2603", "", "medium")
+# HELD (vendor-specific, pending counsel): clubmaker sand-wedge Izz claim
 R(W, "wedge", "MOI about heel-toe x-axis, claimed", 1200, ">1200 (claim: >120 kg*mm^2; >1290 preferred); one patent (n=1)", "g*cm^2", "patent claim", 1, U["acu"], AD["acu"], "claims 1-3",
   "moment of inertia about an x-axis greater than about 120 kg*mm2", "x-axis = heel-to-toe (face up/down rotation)")
-R(W, "wedge", "toe height, traditional wedges", 61.2, "one source (n=1)", "mm", "manufacturer claim", 1, U["cutter"], AD["cutter"], "CG findings", "toe height on traditionally shaped wedges peaks around 61.2mm")
+# HELD (vendor-specific, pending counsel): clubmaker toe-height claim
 for club in ("PW", "GW", "SW", "LW"):
-    R(W, club, "head mass (committed source)", "not sourced", "", "g", "gap", 1, U["cutter"], AD["cutter"], "-", "only clubmaker/supplier tables (held) give wedge head mass", "GAP in git; held value exists", "low")
+    R(W, club, "head mass (committed source)", "not sourced", "", "g", "gap", 1, U["endo"], AD["endo"], "-", "no committed source gives wedge head mass (clubmaker/supplier tables held)", "GAP in git; held value exists", "low")
 for club in ("PW", "GW", "LW"):
     R(W, club, "MOI (Izz/Ixx) per club", "not sourced", "", "g*cm^2", "gap", 1, U["acu"], AD["acu"], "-", "no per-loft wedge MOI opened", "GAP", "low")
 
