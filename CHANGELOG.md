@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-24 (late)
+- **Trainer leftovers**: V5a_s82 700k/800k harness JSONs (slim), V5 strike CSVs (V5a 700k-1000k, V5c 50k-300k), `label` field on the V4/V5 box-head v2 JSONs (9efd0a0), harness V8a_s90 450k-600k JSONs and CSVs (slim). All Trainer-only, all FAIL. 35f321b note was already on main. Skipped: V5c cmd, watcher and script label edits.
+
 ## 2026-10-24 (later)
 - **Evaluator** `scott-e` `0d4df23`, `2efbad3`: `results/overnight/K33K34_HEADS_SUMMARY.md` and `results/overnight/V8_GRADE.md` (official V8 grades, harness v4 1.5 in: V8a 100k 12/6/1 FAIL, V8b 250k 11/6/2 FAIL; no full pass). Raw results, batch scripts and md5 records stay local. `7445e3f`: nothing to port (HARNESS_V4_NOTES and pytest.ini already match main).
 - **Trainer V8** (`98c346a`, `e34f054`, `35f321b`, harness V8 commits): `scripts/v8_ref_fit.py`, `scripts/v8_ref_eval.py`, `--res_l2_w`/`--launch_lo_w`/`--launch_lo`/`--sd_w` (default off), V8 keys (`results/v5_runs/stageV8_ref_s1/`), 24-seed ref evals, notes (dz source), 96 slim V8 harness JSONs + 16 strike CSVs (Trainer-only, all FAIL). Default env, reward (3-seed rollout identical) and box/v5 realistic hashes unchanged. Skipped: V8 ref cmd, `f82b79f` and V8a cmds.

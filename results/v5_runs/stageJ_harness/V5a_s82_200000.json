@@ -541,5 +541,6 @@
   "declared_ms": 4.0,
   "n_declared_mismatch": 0,
   "method": "measured median spacing of the worker's logged sim time per episode (dt fix 2026-10-19; pre-fix assumed 5 ms)"
- }
+ },
+ "label": "box-head v2 script (scripts/hz.sh -> v5_realism_j.py, box head, NOT the v4 env; club mph ~73 box vs ~70 v4) - not a v4 score"
 }
