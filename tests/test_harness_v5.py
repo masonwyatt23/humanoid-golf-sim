@@ -259,3 +259,14 @@ def test_dplane_row_world_keys_only():
     assert H.dplane_row([dict(contact=True, face_yaw_deg=4.0, club_path_deg=1.0, shot_extra=dict(env_carry_m=150, azimuth_deg=3.4, env_lateral_m=5))])["status"] == "n/a"
     assert H.dplane_row([])["status"] == "n/a"
     import inspect; src = inspect.getsource(H.dplane_row); assert "face_yaw_deg\"]" not in src and "club_path_deg\"]" not in src and "face_path\"]" not in src
+
+
+def test_goal_set_is_discriminative():
+    """A constant (goal-ignoring) shot must not pass > 50% of the direction or carry goals of GOAL_SET_V5."""
+    G = [H.validate_goal(g) for g in H.GOAL_SET_V5]; dpass = H.TASK_T["dir_err_deg"]["pass_"]; cpass = H.TASK_T["carry_err_pct"]["pass_"]
+    dirs = [g["target_dir_deg"] for g in G]
+    assert min(dirs) <= -11 and max(dirs) >= 11 and sum(abs(d) > dpass for d in dirs) >= len(G) / 2
+    for i in range(-300, 301):   # constant start direction -30..+30 deg in 0.1 deg steps
+        a = i / 10; assert sum(abs(a - d) <= dpass for d in dirs) <= len(G) / 2, a
+    for c in range(600, 2201):   # constant carry 60-220 m in 0.1 m steps
+        c = c / 10; assert sum(100 * abs(c - g["target_carry_m"]) / g["target_carry_m"] <= cpass for g in G) <= len(G) / 2, c

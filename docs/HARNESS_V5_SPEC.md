@@ -152,15 +152,19 @@ First measured value: V10l_s104 100k (RO export 474e6c5, v4 env, 1.5 in tee) gav
   The reset calls `JEnv.reset` directly. With dr=False this is the same as `DREnv.reset` (a goal swap and then `JEnv.reset`), but it bypasses DREnv's *training* seed guard so evaluation and held-out seeds can run.
   Runs without goal_obs (every J/K/V run and stageDRa/DRb) take the unchanged JEnv path. Verified: V10l 100k `--harness v5` reproduced v4 13/5/1 and heldout-1 0.50/0.29/0.08 exactly.
 - **Decoding.** v5 reads the goal from `ep['goal']` first (Trainer format, via `from_trainer_goal`), then run args, then `--goal-spec`, then the obs block (`decode_goal_obs`). In the mapping, `pw` becomes `wedge`, and `LH`/`RH` become `left`/`right`.
-- **Fixed goal set `GOAL_SET_V5`.** Driver, LH. It is passed by `realism_check --harness v5` as `V5_GOALS` and cycled over episodes (carry m, dir °, shape, bend °):
-  1. (130, 0, straight, 0)
-  2. (110, 0, straight, 0)
-  3. (150, 0, straight, 0)
-  4. (130, +3, straight, 0)
-  5. (130, −3, straight, 0)
-  6. (130, 0, draw, 5)
-  7. (130, 0, fade, 5)
-  8. (130, +2, draw, 3)
+- **Fixed goal set `GOAL_SET_V5`** (revised 2026-10-25 ET to be discriminative). Driver, LH. It is passed by `realism_check --harness v5` as `V5_GOALS` and cycled over episodes in this order (carry m, dir °, shape, bend °):
+  1. (130, −12, straight, 0)
+  2. (155, +10, draw, 4)
+  3. (110, −3, fade, 4)
+  4. (170, +8, straight, 0)
+  5. (120, −10, draw, 5)
+  6. (145, +3, straight, 0)
+  7. (135, +12, fade, 5)
+  8. (160, −8, straight, 0)
+  - Why: the first set kept every direction within 3° of 0, so the goal-ignoring V10l_goal0 snapshot passed the direction row at 1.0. The row could not tell a goal-following policy from a goal-ignoring one.
+  - Now directions span −12° to +12°, with 6 of 8 beyond the 7° pass band, and carries span 110–170 m.
+  - Test (`test_goal_set_is_discriminative`): no constant shot passes more than 50% of the direction goals or more than 50% of the carry goals. The actual maximum is 4/8 for direction and 3/8 for carry (for example a constant 152 m passes the 145, 155 and 160 m goals).
+  - Training coverage: main's `train/dr_goal.py` has no goal sampler or training goal range (goals enter only via `set_goal`), and no goal-trained run is committed, so these eval goals are not covered by any training goal distribution.
 - **Shape with a Trainer `bend`.** The sign comes from the world curvature mapped to the golfer frame (as in a6d0d91). The magnitude is the golfer-frame spin axis, atan2(sidespin, backspin) × hand_sign, compared with `bend`: within max(2°, 50%). This tolerance is an assumption (ours), provisional and held for counsel.
   When the goal has a bend but no curve in metres, the lateral error is measured against the start line (target_carry·tan(target_dir)).
 - **Convention check.** The Trainer's `spin_axis_target_deg` mirrors the sign for LH, which matches our mapping: an LH draw has a negative world spin axis and curves to world right (tested for LH and RH draw and fade).
@@ -230,6 +234,9 @@ Not done yet: one persistent process that loads the env once and swaps checkpoin
   - Layout pre-check: LAYOUT_OK, obs 124.
   - Goals: `ep['goal']` was logged on all 24 episodes, covering all 8 goals.
   - v4: 13/5/1 FAIL with robustness 0.83/0.75/0.67, the same as V10l 100k.
-  - Task pass rates: carry 0.125, direction 1.0, lateral 0.625, draw/fade 0.625 (expected for a goal-ignoring policy).
+  - Task pass rates with the FIRST goal set: carry 0.125, direction 1.0, lateral 0.625, draw/fade 0.625. Direction passing at 1.0 showed that set could not discriminate.
+  - Re-run with the REVISED goal set (same export and snapshot): all four task rows fail, as expected for a goal-ignoring policy.
+    - Carry 0.125 (median error 22.6 m); direction 0.375 (median error 9.3°); lateral 0.125; draw/fade 0.5 (sign correct 0.75).
+    - Unchanged: v4 13/5/1 FAIL, 0.83/0.75/0.67; D-plane 24/24 and 24/24; all 8 goals logged.
   - D-plane (n = 24): start within 2° of 0.85 × face 24/24; curvature sign matches the axis 24/24. Medians: face −4.6°, path −3.5°, start −2.7°, spin loft 17.2°, axis −8.0° (world).
   - Heldout-2 without slope (n = 28): contact, start direction and plant 0.71 each. Contact by dim: torque 4/4, latency 4/4, loft 4/4, head mass 3/4, trunk 2/4, thigh+calf 0/4, foot 3/4. Slope (info only) 0/4.

@@ -43,9 +43,12 @@ def decode_goal_obs(block):
     return dict(club=club, target_carry_m=b[3] * 200.0, target_dir_deg=b[4] * 10.0, shape=shape, bend_deg=abs(b[6] * 10.0), handed=("right" if b[7] > 0 else "left"))
 
 # Fixed deterministic v5 goal set (driver, LH model), cycled over episodes by the worker (env V5_GOALS). Trainer set_goal format.
+# Fixed, deterministic goal set (revised 2026-10-25 ET to be DISCRIMINATIVE): directions span -12..+12 deg (6 of 8 beyond the 7 deg direction pass band),
+# carries 110-170 m (driver at the sim's ~70 mph club speed; >= ~10% apart so one carry passes at most 3 goals at the 5% band), straight/draw/fade covered.
+# A constant shot (any single carry/direction) passes at most 50% (4/8) of the direction goals and at most 3/8 of the carry goals (tests/test_harness_v5.py).
 GOAL_SET_V5 = [dict(club="driver", target_carry=c, target_dir=d, shape=sh, bend=bd, handedness="LH") for c, d, sh, bd in
-               ((130, 0, "straight", 0), (110, 0, "straight", 0), (150, 0, "straight", 0), (130, 3, "straight", 0),
-                (130, -3, "straight", 0), (130, 0, "draw", 5), (130, 0, "fade", 5), (130, 2, "draw", 3))]
+               ((130, -12, "straight", 0), (155, 10, "draw", 4), (110, -3, "fade", 4), (170, 8, "straight", 0),
+                (120, -10, "draw", 5), (145, 3, "straight", 0), (135, 12, "fade", 5), (160, -8, "straight", 0))]
 
 def validate_goal(g):
     """Return a normalised goal dict or raise ValueError. Accepts harness keys or the Trainer set_goal format."""
