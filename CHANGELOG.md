@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-10-24 (V9 grade)
+- **Evaluator** `scott-e` `5058281`: `results/overnight/V9_GRADE.md` (official, harness v4 1.5 in, export f7cbc55: V9a_s91 150k 11/7/1 FAIL, V9a_s91 100k 12/5/2 FAIL, V8a_s90 300k 12/6/1 FAIL; no full pass). Skipped `_batch_V9.sh`, the md5 file and raw results/logs.
+
 ## 2026-10-24 (V9)
 - **Trainer V9** (`ac13405`, `c83bda5`, `5a30c23`, harness V9 commits): fixes `train/v5_train_j.py` so the V5-V8 flags actually reach the training env (they were parsed and saved to args.json but dropped). Adds a guard assert, `--plant_h_w` (harness-matched lead-foot plant penalty, default off), `scripts/diag_v9_plant_sd.py` (eval repo via `EVAL_REPO`), `scripts/v9_rank.py`, `results/v9_diag/plant_sd_V8a300k.json` (summary only; per-episode rows not tracked), the TRAINING_NOTES erratum and the 5.673 g swingweight erratum. Also V9a/V9b/V9c slim harness JSONs and strike CSVs (Trainer-only, all FAIL; best V9b 100k 13/4/2). Defaults unchanged: box/realistic head hashes, K32a strike log and 3-seed default rewards identical, and with default CLI args every new `extra` key is None. Skipped: V9a-V9d cmds, watchers (`79b70fd`, `9c499e1`, `c46db64`, watcher part of `c83bda5`), V9_DEBUG print, V10 refit.
 
