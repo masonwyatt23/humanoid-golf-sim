@@ -11,7 +11,9 @@ Checks (expected values are for the current default harness/env; update them onl
   3. guard  train/v5_train_j.py parsed with `--keys none` (no training): every flag in `extra` that defaults off is None,
             and make() builds an env without the FLAG GUARD tripping.
   4. strike (optional; the checkpoint is not in git) scripts/strike_log.py on the K32a 200k checkpoint must be
-            byte-identical to a reference CSV. Pass --strike-ckpt / --strike-ref, or set HGS_K32A_CKPT / HGS_K32A_STRIKE_REF.
+            byte-identical to a reference CSV. The reference CSV is a LOCAL file (never committed): the strike_log output of the
+            K32a 200k checkpoint recorded on the default path. Pass --strike-ckpt / --strike-ref, or set HGS_K32A_CKPT /
+            HGS_K32A_STRIKE_REF (e.g. HGS_K32A_STRIKE_REF=<local-path>/K32a_strike_ref.csv; check its md5 against your notes).
 Exit code 0 only if every check that ran matched.
 """
 import argparse, hashlib, json, os, subprocess, sys, tempfile, filecmp
