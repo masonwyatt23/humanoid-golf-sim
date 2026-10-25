@@ -61,7 +61,7 @@ Companion files (not committed):
 5. **PING study (Shephard & Henrikson) in Scott Lynn's slides.** Offline mean ± SD by ground-force style: −2.61 ± 22.99, −5.57 ± 28.08 and 0.20 ± 18.25 yd. There is no carry figure, so no ratio. These are slides, not peer reviewed.
 
 6. **On-course outcome data, no yards.**
-   - Shot Scope, driver only, via MyGolfSpy: 0 hcp is 25% left / 48% fairway / 25% right. Only 25 hcp shows a right bias (19/47/28).
+   - Shot Scope driver-only miss-pattern rows (via MyGolfSpy): held locally pending counsel (vendor data), removed from the tip of driver_dispersion_bands.csv on 2026-10-25; not in git at the tip.
    - Arccos 2024 season, via the FOGOLF/Golfweek summary: men at 0–4.9 hcp drive 250.0 yd, hit 49.3% of fairways, and 12.0% of drives end in a penalty or recovery.
    - Lou Stagner, from Arccos data: 7.0% of drives by 0–5 index players finish more than 40 yd from the fairway centre.
      - If that were a zero-mean normal, it would imply σ ≈ 22 yd, about 8.8 yd per 100 yd of *total* (COMPUTED, low confidence because real tails are heavier).
