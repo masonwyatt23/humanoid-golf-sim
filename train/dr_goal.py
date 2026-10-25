@@ -47,7 +47,7 @@ def spin_axis_target_deg(face_to_path_deg, spin_loft_deg, handed="LH"):
     return -a if handed == "LH" else a
 
 class DREnv(JEnv):
-    dr = False; dr_stage = 0; goal_obs = False; goal_w = 0.0
+    dr = False; dr_stage = 0; goal_obs = False; goal_w = 0.0; impact_log = False
     def __init__(self, dt=0.002, seed=0, keys=None, res_scale=1.0, t_down=0.27):
         if seed >= SEED_MAX: raise SystemExit(f"DR SEED GUARD: training env seed {seed} >= {SEED_MAX} (held-out seeds 910000-910023)")
         super().__init__(dt=dt, seed=seed, keys=keys, res_scale=res_scale, t_down=t_down); self.goal = None; self._next_goal = None; self.dr_log = None; self._abuf = None; self._lat = 0
@@ -124,4 +124,11 @@ class DREnv(JEnv):
                     ec = abs(float(info["ep"].get("carry", 0.0)) - float(g["target_carry"])) / max(float(g["target_carry"]), 1.0); ed = abs(float(info["ep"].get("az", 0.0)) - float(g["target_dir"])) / 10.0
                     r += self.goal_w * (2.0 - min(ec, 1.0) - min(ed, 1.0))
             if self.dr: info["ep"]["dr"] = self.dr_log
+        if self.impact_log and info.get("contact") and "face_yaw_deg" in info:   # --impact_log (default off): WORLD-frame impact geometry, + = LEFT (+y, target +x). Info/ep only; reward untouched
+            hs = 1.0 if self.env.handed.upper().startswith("R") else -1.0          # env face_yaw_deg/club_path_deg are golfer-frame (world x hs); undo it
+            fw = float(info["face_yaw_deg"]) * hs; pw = float(info["club_path_deg"]) * hs; sl = float(info["dynamic_loft_deg"]) - float(info["aoa_deg"])
+            imp = dict(impact_face_world_deg=fw, impact_path_world_deg=pw, impact_face_to_path_world_deg=fw - pw, impact_spin_loft_deg=sl,
+                       impact_dloft_deg=float(info["dynamic_loft_deg"]), impact_aoa_deg=float(info["aoa_deg"]), impact_spin_axis_deg=float(info.get("spin_axis_deg", 0.0)), impact_sidespin_rpm=float(info.get("sidespin_rpm", 0.0)))
+            info.update(imp)
+            if "ep" in info: info["ep"].update(imp)
         return o, r, te, tr, info
