@@ -1,6 +1,7 @@
 # Changelog
 
 ## 2026-10-25
+- **Evaluator** `scott-e` `8739f2f`: `results/overnight/V12_GRADE.md` (official, harness v4 1.5 in, export 474e6c5: V10l_s104 100k and 150k each 13/5/1 FAIL, robustness only; no full pass) plus 8 slim result JSONs (episodes, robustness_episodes and strike_episodes stripped). md5/batch line made path-free. `_batch_V12.sh` and the md5 list are held locally: the script hard-codes machine paths and depends on untracked helpers and checkpoint snapshots. Also skipped the txt/err logs.
 - **Trainer V10 (cont.)** (`8597c2f`, `b37cabe`, `a56db0c`, harness V10f-V10n commits): V10h refit keys, slim harness JSONs (strike_episodes stripped) and strike CSVs for V10f 200k, V10g 200k, V10i 100k-200k, V10j, V10k, V10l, V10m and V10n. Trainer-only, all FAIL; V10l 100k 13/5/1 (plant 0.67). TRAINING_NOTES and README note on the V10i dz_lin_w finding (Trainer, single seed). Defaults unchanged. Skipped: `474e6c5` (cmds only), the V10j-V10q cmds, `3fadfaa` (miss0_w flag, not requested), watcher fix `d1aa967`, and V10o/V10p harness rows.
 
 ## 2026-10-24 (V11 grade)
