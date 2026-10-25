@@ -1,0 +1,50 @@
+
+REALISM not v4 (main row must be the 1.5 in tee)  V16y_s402_50k/ckpt_50000  [v5 (G1, club_len 1.15, tether 0, strike gate OFF, arm_dist 0.6 [BEnv, as B2-B4/C train])]  episodes 24 (true contact 24)  pass 13 warn 4 fail 2 skip 8 info 20 (not gating)
+  WARN  swing/kinematic_sequence_order  - v3d: pelvis first, club last, thorax/arm tie or inversion <= 30 ms allowed (DERIVED)
+  WARN  swing/kinematic_sequence_timing_ms_before_club_peak  - arm peaks 0 ms before club (< 20 ms required, DERIVED Cheetham amateur 64-2x23); pelvis -28 ms before club (< 15); pelvis is not first (pelvis -28, thorax 8, arm 0 ms)
+  WARN  swing/peak_speed_pelvis_deg_s  - 234.9 deg/s vs floor 250
+  PASS  swing/peak_speed_thorax_deg_s
+  PASS  swing/peak_speed_arm_deg_s
+  PASS  swing/peak_speed_club_deg_s
+  PASS  swing/x_factor_top_deg
+  SKIP  swing/actuator_torque_speed_limits
+  SKIP  swing/pelvis_yaw_avg_torque_Nm
+  WARN  swing/grf_lead_vertical_bw  - peak lead-foot vertical force in body weights, WINDOWED top of backswing -> impact (+20 ms jitter allowance when method=butter), de-spiked (butter); bands unchanged (pass [0.8, 1.7], warn [0.5, 2.4], 
+  PASS  shot/smash
+  PASS  shot/club_speed_mph
+  PASS  shot/spin_rpm
+  PASS  shot/launch_deg
+  SKIP  shot/descent_deg
+  FAIL  shot/total_over_carry  - total/carry (normal turf 1.07-1.13, firm to ~1.2; env without roll gives 1.0)
+  PASS  shot/carry_vs_golfphys_yd
+  PASS  mine/segments_rotate
+  SKIP  mine/ground_contact_weight_shift
+  SKIP  mine/joint_limits
+  SKIP  mine/torque_saturation_smoothness
+  SKIP  mine/tempo
+  SKIP  mine/carry_vs_trackman_band
+  PASS  mine/start_direction
+  PASS  mine/lead_foot_plant
+  INFO  mine/total_over_carry_speed_matched (golfphys model, info only, not gating)  - actual total/carry 1.407 vs golfphys speed-matched minimum 1.264 at 96.1 mph ball speed (launch 16 deg, backspin 3000 rpm); golfphys MODEL number, not a measurement and not a reference band: golfphys roll (bounce_roll, normal turf) is validated only on normal turf at tour speeds (roll_aoa_validation total/carry 1.07-1.13; TrackMan rows, tests/test_golfphys_total.py) and is UNCALIBRATED at low (~60 mph club) speed; info only, does not affect the verdict
+  INFO  mine/grf_lead_vertical_raw_info  - OLD rule, INFO only: whole-episode raw lead-GRF peak (includes follow-through and single-sample contact spikes); not gating; sensitivity (INFO, not gating): same window + guard with 4th-order zero-lag Butterworth at 12Hz -> 1.834 BW, 14Hz -> 1.843 BW (lower cutoffs lower the peak)
+  INFO  mine/lead_foot_shear_ratio_info  - lead-foot shear/vertical top->impact: peak median 0.647 (max 0.647), p95 median 0.582; reference <= 0.65-0.75
+  FAIL  mine/robustness  - start_direction pass 0.83 < 0.90; total_over_carry median/p10/p90 outside WARN band; smash leaves PASS band; spin_rpm leaves PASS band
+  INFO  mine/robustness_wide_friction_info  - INFO only (not gating): robustness under the env's wide friction U(0.5, 1.2); contact 88% < 95%; start_direction PASS 75% < 90%; lead_foot_plant PASS 79% < 90%; spin_rpm p90 outside WARN band (median 3.09e+03, p10 1.21e+03, p90 4.23e+03); total_over_carry median/p10/p90 outside WARN band (median 1.51, p10 1.38, p90 2.23); club_speed_mph leaves PASS band (p10; median 69.3, p10 58.3, p90 70.1); smash leaves PASS band (p10; median 1.36, p10 1.29, p90 1.42); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/robustness_stress_friction_info  - INFO only (not gating): robustness at a fixed floor mu 1.1 (stress value; turf_friction_NOTES.md); contact 83% < 95%; start_direction PASS 75% < 90%; lead_foot_plant PASS 79% < 90%; spin_rpm p90 outside WARN band (median 2.54e+03, p10 1.36e+03, p90 4.05e+03); total_over_carry median/p10/p90 outside WARN band (median 1.52, p10 1.37, p90 2.19); smash leaves PASS band (p10; median 1.34, p10 1.27, p90 1.41); 24 perturbed eps, seeds 7000..7023; PROVISIONAL
+  INFO  mine/strike_dy_info  - INFO only (not gating): strike dy at impact, mm from the face centre (env info['dy'])
+  INFO  mine/strike_dz_info  - INFO only (not gating): strike dz at impact, mm from the face centre (env info['dz'])
+  INFO  mine/tee_dz_info  - INFO only: tee offset used (V3_TEE=crown; 'crown' = derived from the active head geometry, crown-level per GOLF.com / Golf Digest / Golf Monthly advice); v4 head, 1.6 in crown tee (equator at sourced crown) [INFO only; harness v4 main row = 1.5 in tee; a crown-tee-only pass is not a pass]
+  INFO  mine/face_h_info  - INFO only: env face_h used (None = 64 mm head box; non-None = off-face contacts beyond face_h/2 become misses, which changes what is scored)
+  INFO  mine/head_info  - INFO only: club head used = v4 head (sourced 460 cc, lie 58.5, Izz 5600 (n=1 manufacturer claim), CFZ 39, face centre 29 mm; cross-checked vs V4_SPEC)
+  INFO  mine/tee_height_info  - INFO only: address geometry above ground (env, after reset): ball centre / bottom (tee peg), head-box crown at the face, face centre
+  PASS  mine/strike_height
+  INFO  mine/strike_within_sim_box_info  - INFO: median |dz| 0.4 mm within the sim head-box half-height 32 mm (sim geometry)
+  INFO  mine/strike_outside_measured_info  - INFO: median |dz| 0.4 mm <= 21 mm (R22-07 measured range for ball speed/smash, spin and launch; only 2 of 3 tee series reach +/-18/21 mm)
+  INFO  mine/strike_beyond_r2207_info  - INFO: median |dz| 0.4 mm <= 21 mm: within R22-07 data
+  INFO  mine/spin_face_edge_capped_info  - INFO: side-by-side face-edge model (capped, +/-12.7 mm saturation as written) on a golfphys centre strike; 148 mph is a MODEL value (TrajectoWare); R22-07 = R&A/USGA equipment research report 'The effect of impact position on driving distance' (~2022; PDF header says Nov 2006 but it cites the 2019 ODS; PDF author metadata Andrew Johnson); spin rises to a peak near -15 mm then falls; smash: LOW confidence; leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read; 51.3 rpm/mm and 0.201 deg/mm DERIVED from measured Hotstix data (secondary source); side-by-side model only, never the default ball model
+  INFO  mine/spin_face_edge_linear_info  - INFO: side-by-side face-edge model (linear, extrapolated linearly beyond 12.7 mm) on a golfphys centre strike; 148 mph is a MODEL value (TrajectoWare); R22-07 = R&A/USGA equipment research report 'The effect of impact position on driving distance' (~2022; PDF header says Nov 2006 but it cites the 2019 ODS; PDF author metadata Andrew Johnson); spin rises to a peak near -15 mm then falls; smash: LOW confidence; leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read; 51.3 rpm/mm and 0.201 deg/mm DERIVED from measured Hotstix data (secondary source); side-by-side model only, never the default ball model
+  INFO  mine/spin_face_edge_r2207_info  - INFO: side-by-side face-edge model (r2207: digitized R22-07 Fig 1-2, under Evaluator review; NOT in any verdict) on a golfphys centre strike; 148 mph is a MODEL value (TrajectoWare); R22-07 = R&A/USGA equipment research report 'The effect of impact position on driving distance' (~2022; PDF header says Nov 2006 but it cites the 2019 ODS; PDF author metadata Andrew Johnson); spin rises to a peak near -15 mm then falls; smash: LOW confidence; leveling off beyond 12.7 mm UNVERIFIED until R22-07 Fig 1 is read; 51.3 rpm/mm and 0.201 deg/mm DERIVED from measured Hotstix data (secondary source); side-by-side model only, never the default ball model
+  INFO  mine/launch_face_edge_r2207_info  - INFO: launch under R22-07 Fig 3 averaged table (MEDIUM, derived; None beyond +/-21 mm; only 2 of 3 tee series reach +/-18/21 mm) next to Hotstix 0.20 deg/mm
+  INFO  mine/smash_legacy_quadratic_info  - INFO: legacy quadratic smash (MyGolfSpy-derived, LOW confidence), superseded by the R22-07 ratio
+  INFO  mine/smash_r2207_info  - INFO: smash under digitized R22-07 Fig 1-2 (ball-speed ratio vs dz): MEDIUM, derived for |dz| <= 21 mm (one robot driver ~115 mph, ratio assumed speed-independent); LOW beyond
+  -- sample interval: 4.0 ms measured from the logged sim time (worker declared 4.0 ms; 0 episodes disagree); tie tolerance 20 ms and thresholds unchanged
