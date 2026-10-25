@@ -33,3 +33,22 @@ iron data; measured curvature (yd per deg face-to-path) for irons/wedges; ball-t
 is image-only); rough lie-slope statistics; elite ball-position (address) variance -- only impact-time stance-to-ball VE found.
 
 Lateral sign convention follows TrackMan (positive = right). For a left-handed golfer, mirror path, face and axis.
+
+## Driver domain-randomization rows (section 5_driver_dr, added 2026-10-25)
+Driver adjustable-loft, hosel-step and shaft spec rows (n=1, single product) and the Shot Scope amateur-by-handicap distances are held locally pending counsel (not tracked). Head geometry/mass/MOI/CG are **referenced** from `driver_head_460cc_refs.json` (not duplicated).
+| Quantity | Nominal | Range | Label | n |
+|---|---|---|---|---|
+| Head mass | ref (200) | 190-210 (supplier text) | reference / estimate | 1 |
+| Total club mass | 310 g | n=1 | estimate (fitting text) | 1 |
+| Stock length | 45.75 in | 45.75-45.75 | manufacturer spec (aggregate) | 3 |
+| Length limit | 48 in (Rules of Equipment 2.1c); 46 in +0.20 tol only under MLR G-10 | | rule | 1 |
+| Swingweight | D3 | D3-D3 (1 point ~ 1.6 g head at 45 in) | manufacturer spec (aggregate) / estimate | 3 / 1 |
+| Lofts | 9-12 | 9-12 | manufacturer spec (aggregate) | 3 |
+| Lie | 58.5 (midpoint) | 56-60 | manufacturer spec (aggregate) | 2 |
+| Grip mass | 50 g (median) | 47-52 | manufacturer spec (aggregate) | 3 |
+
+Gaps closed: ball-turf friction (green mu > 0.29 derived from one measured bounce; 0.40 Daish estimate; ~0.25 firm greens estimate;
+rolling 0.131) -- Penner 2002; address ball-position variability (stance-to-ball VE 11.0 +/- 3.0 mm, skilled) -- Langdown 2013;
+7-iron CG height 17.4-18.9 mm / depth 3.8-7.8 mm (n=4 heads, aggregate).
+Still open: amateur launch/spin by handicap; wedge CG; modern fitted turf mu (Biber Table 3 image-only); mm kick-point locations.
+Correction: the 46 in limit is Model Local Rule G-10 (elite competitions), not Rule 1b; the general limit is 48 in.

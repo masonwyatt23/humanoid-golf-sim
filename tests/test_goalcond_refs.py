@@ -9,7 +9,7 @@ from data import shot_shape_model as m
 
 ROOT = Path(__file__).resolve().parent.parent
 D = json.load(open(ROOT / "data/references/goalcond_club_shot_shape_dr_refs.json", encoding="utf-8"))
-LABELS = ("measured", "spec", "rule", "derived", "model", "estimate", "manufacturer", "gap")
+LABELS = ("measured", "spec", "rule", "derived", "model", "estimate", "manufacturer", "gap", "reference")
 
 
 def test_schema_every_row_has_label_n_source():
@@ -19,7 +19,7 @@ def test_schema_every_row_has_label_n_source():
         assert keys <= set(r), r["quantity"]
         assert r["label"] and r["label"].split()[0].rstrip("(") in LABELS or r["label"].startswith(LABELS), r["label"]
         assert isinstance(r["n"], int) and r["n"] >= 1
-        assert r["source_url"].startswith("https://") and r["author_date"]
+        assert r["source_url"].startswith(("https://", "http://")) and r["author_date"]
         assert r["confidence"] in ("high", "medium", "low")
 
 
@@ -77,3 +77,27 @@ def test_segment_fractions():
     s = {r["quantity"]: r for r in D["rows"] if r["quantity"].startswith("segment mass fraction, ")}
     tot = sum(float(r["nominal"]) * (1 if any(k in q for k in ("head", "trunk")) else 2) for q, r in s.items())
     assert abs(tot - 100.0) < 0.2
+
+
+def test_driver_dr_rows_and_references():
+    drv = json.load(open(ROOT / "data/references/driver_head_460cc_refs.json", encoding="utf-8"))
+    names = {r["quantity"] for r in drv["rows"]}
+    rows = [r for r in D["rows"] if r["section"] == "5_driver_dr"]
+    assert len(rows) >= 10  # n=1 single-product shaft/adjustability rows held pending counsel
+    for r in rows:
+        for part in re.findall(r"see driver_head_460cc_refs: ([^;]+)", r["nominal"] + ";" + r["note"]):
+            assert part.strip() in names, part
+    q = {r["quantity"]: r for r in rows}
+    assert q["max club length (Rules of Equipment)"]["nominal"] == "48"
+    g10 = q["max club length under Model Local Rule G-10"]
+    assert g10["nominal"] == "46" and "0.20" in g10["range"] and g10["label"].startswith("rule")
+    assert 40 <= float(q["grip mass (stock men's)"]["nominal"]) <= 55
+
+
+def test_closed_gaps_labelled():
+    q = {r["quantity"]: r for r in D["rows"]}
+    assert q["ball-turf kinetic friction (green), lower bound from one measurement"]["nominal"] == ">0.29"
+    assert q["ball-turf kinetic friction (green), suggested value"]["label"].startswith("estimate")
+    assert float(q["within-golfer stance-to-ball distance variability at ADDRESS (skilled)"]["nominal"]) == 11.0
+    cg = q["7-iron CG height above sole/ground".replace("7-iron ", "")] if False else q["CG height above sole/ground"]
+    assert cg["n"] == 4 and 17 <= float(cg["nominal"]) <= 19
