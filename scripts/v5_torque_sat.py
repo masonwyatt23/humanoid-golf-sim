@@ -6,7 +6,7 @@ from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from train.v5_train_j import JEnv
 A = json.load(open(os.path.join(os.path.dirname(ck), "args.json")))
 keys = {tuple(k.split("|")): v for k, v in json.load(open(A["keys"])).items()}
-W = ('xf_hard','grf_lo','grf_w','xf_cap_lo','xf_cap_w','track_floor','ord2_w','launch_w','desc_w','dloft_w','spin_lo_w','smash_w','spin_w','spin_hi','spin_scale','fine_grf','launch_hi','dl_lo','dl_hi','aoa_lo','spd_w')
+W = ('xf_hard','grf_lo','grf_w','xf_cap_lo','xf_cap_w','track_floor','ord2_w','launch_w','desc_w','dloft_w','spin_lo_w','smash_w','spin_w','spin_hi','spin_scale','fine_grf','launch_hi','dl_lo','dl_hi','aoa_lo','spd_w','stance_obs','env_v4','fast_env','tee_mode')
 def mk():
     e = JEnv(dt=0.002, seed=123, keys=keys, res_scale=A["res_scale"], t_down=A["t_down"]); e.configure(**{k: A.get(k) for k in W}); return e
 vn = VecNormalize.load(ck + "_vecnorm.pkl", DummyVecEnv([mk])); vn.training = False

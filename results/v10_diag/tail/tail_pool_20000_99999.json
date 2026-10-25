@@ -1,0 +1,14 @@
+{
+ "thresholds": {
+  "lead_sole_xy_mm": 22.3,
+  "trail_sole_xy_mm": 22.3,
+  "lead_yaw_deg": 1.03,
+  "trail_yaw_deg": 1.08
+ },
+ "quantiles": "p90/p90/p95/p95 of seeds 8000-8047 + 10000-19999 (non-gating)",
+ "measure": "sole shift vs unperturbed address after mj_forward + 5 control steps of zero residual (PD to reference), V12X keys, env_v4, 1.5in",
+ "scanned": "20000-99999",
+ "n_scanned": 80000,
+ "n_tail": 19183,
+ "tail_rate": 0.2397875
+}

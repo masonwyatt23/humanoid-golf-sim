@@ -1,0 +1,11 @@
+# Gating-seed failure diagnosis: 7012 / 7021 / 7002 (LOCAL; gating seeds used for DIAGNOSIS ONLY, never for training or thresholds)
+Tool: scripts/pert_tail_scan.py. It reproduces the v4 noise recipe read-only: joint dq = radians(1.5)*U(-1,1) and vel 0.05*U(-1,1) from rng(seed+0x5EED), floor mu from rng(seed+0xF41C), ball offset via env reset(seed) with ball_tol .01. It measures lead/trail sole shift vs the unperturbed address right after mj_forward (sh0) and after 5 control steps of zero residual (sh5, PD to the reference). Env: V12X keys, env_v4, 1.5in, lead = right.
+Reference distribution: seeds 8000-8047 + 10000-19999 (n=10048). Top tail components (percentile, z):
+- 7012 (turn WARN 13.5 deg): settled lead-sole yaw +1.50 deg (99.6th, z +2.7); trail yaw +1.34 (98.8th); trail sole y -22.5 mm (0.7th); lead sole xy +25.7 mm (94.6th); leg dq norm 3.7 deg (97.4th).
+- 7021 (airborne WARN 2.0): settled trail yaw +2.15 deg (99.9th, z +3.7); settled lead-sole xy shift 35.0 mm (99.3rd, z +3.1); lead y +34.9 mm (99.6th); lead sole dropped 4 mm (1.1st).
+- 7002 (no contact): trail sole y -19.3 mm (3.4th); right knee +1.47 deg (99.1st); waist pitch -1.45 (1.5th). Less extreme overall.
+Individual joint offsets are bounded (+-1.5 deg uniform), so no single joint is far out. The tail is the RESULTING STANCE: a large settled sole shift (> about 22 mm) and/or sole yaw (> about 1 deg) after the posture noise.
+Tail definition (thresholds from NON-gating seeds only): settled lead or trail sole xy shift >= p90 (22.3 mm), OR |lead yaw| >= p95 (1.03 deg), OR |trail yaw| >= p95 (1.08 deg). Base rate 23.7%.
+For the diagnosis only: this flags 7002, 7010, 7012, 7015, 7017, 7020, 7021 among the gating seeds, so all three failing seeds are tail seeds, but the tail is broader than the failures.
+Sole yaw after settling is poorly predicted by the instant shift (R2 about .2), so tail seeds are PRECOMPUTED: scanned 20000-99999 (80k seeds), 19183 tail seeds -> tail_pool_20000_99999.npy (asserted disjoint from 7000-7023, 8000-8047, 9200-9247).
+Flags: --tail_frac F --tail_pool file (default off). A fraction F of harness-style starts draws its seed from the pool, and tail-pool starts are never re-grounded. F = .21 gives about 40% tail starts in total (.21 + .79 x .237).

@@ -84,6 +84,16 @@ if TN > 0:
         if d.get('err'): return s, d
         pen, dt = tail_eval(x); d.update(dt); d['tail_pen'] = pen
         return s - float(os.environ.get('V12Z_TAIL_W', '0')) * pen, d
+SW = float(os.environ.get('V12S_MPH_W', '0'))   # V12S (default off): speed refit term; t_down via V7_TDOWN (v7)
+if SW > 0 or os.environ.get('V12S_PEL_TGT'):
+    _s12s = score
+    def score(x):
+        s, d = _s12s(x)
+        if d.get('err'): return s, d
+        s -= SW * min(max(float(os.environ.get('V12S_MPH_TGT', '80')) - (d.get('mph_med_all') or 0), 0), 30)   # per mph of noisy-median club speed below target
+        pt = float(os.environ.get('V12S_PEL_TGT', '0'))
+        if pt: s -= float(os.environ.get('V12S_PEL_W', '20')) * min(max(pt - (d.get('pel_med') or 0), 0) / 25.0, 6)
+        return s, d
 F.score = score; V.score = score
 if __name__ == '__main__':
     if '--holdout' in sys.argv:
