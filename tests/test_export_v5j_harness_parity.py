@@ -17,7 +17,7 @@ WORKER = ROOT / "results" / "overnight" / "_j_worker_gp_v3.py"
 WORKER_KEYS_EXPLICIT = {"res_mult", "xf_hard", "grf_lo", "grf_w", "xf_cap_lo", "xf_cap_w", "track_floor", "ord2_w", "launch_w", "desc_w",
                         "dloft_w", "spin_lo_w", "smash_w", "spin_w", "spin_hi", "spin_scale", "fine_grf", "launch_hi", "dl_lo", "dl_hi", "aoa_lo",
                         "spd_w", "pel_w", "pel_t_w", "pel_dps", "pel_t_lo", "pel_t_hi", "sep_w", "ctr_w", "ctrl_dt",
-                        "tee_dz", "ball_dx", "face_h", "tee_mode"}   # + K31/K32 geometry keys (2026-10-24)
+                        "tee_dz", "ball_dx", "face_h", "tee_mode", "stance_obs"}   # + K31/K32 geometry keys (2026-10-24) + stance_obs (Trainer 92703d2e, 2026-10-25)
 
 
 def configure_keys(path):

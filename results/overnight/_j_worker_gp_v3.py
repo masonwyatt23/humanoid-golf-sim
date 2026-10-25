@@ -38,7 +38,7 @@ USE_DR = GOAL_OBS or IMPACT_OK
 keys = {tuple(k.split("|")): v for k, v in json.load(open(os.path.join(repo, A["keys"]))).items()} if A.get("keys") and A["keys"] != "none" else None
 CFG = ('xf_hard', 'grf_lo', 'grf_w', 'xf_cap_lo', 'xf_cap_w', 'track_floor', 'ord2_w', 'launch_w', 'desc_w', 'dloft_w', 'spin_lo_w', 'smash_w', 'spin_w', 'spin_hi', 'spin_scale', 'fine_grf',
        'launch_hi', 'dl_lo', 'dl_hi', 'aoa_lo', 'spd_w', 'pel_w', 'pel_t_w', 'pel_dps', 'pel_t_lo', 'pel_t_hi', 'sep_w', 'ctr_w', 'ctrl_dt',
-       'tee_dz', 'ball_dx', 'face_h', 'tee_mode')   # as scripts/v5_eval_j_worker.py (a17ae69) + K31/K32 geometry keys (Evaluator 2026-10-24). configure() skips None, so runs whose args.json lacks a key (or has null) are unchanged
+       'tee_dz', 'ball_dx', 'face_h', 'tee_mode', 'stance_obs')   # stance_obs: Trainer 92703d2e --stance_obs (+4 obs dims), forwarded only when args.json sets it (None/absent -> skipped, old snapshots unchanged); as scripts/v5_eval_j_worker.py (a17ae69) + K31/K32 geometry keys (Evaluator 2026-10-24). configure() skips None, so runs whose args.json lacks a key (or has null) are unchanged
 # Tee override (harness-controlled, env V3_TEE): unset/'args' = args.json value; '0' (or any float) = that tee_dz in m; 'crown' = ball centre at the head-box
 # crown height at address (derived from sim head geometry; crown-level per GOLF.com / Golf Digest / Golf Monthly advice). HOOK: if the Trainer's env
 # exposes crown_tee_dz() / tee_mode='crown', it is used and cross-checked against tee_geometry() below (see _tee_crown()).

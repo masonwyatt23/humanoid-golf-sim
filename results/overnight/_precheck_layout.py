@@ -10,6 +10,7 @@ kp = os.path.join(repo, A["keys"]); kc = os.path.join(clone, A["keys"])
 md5 = lambda p: hashlib.md5(open(p, "rb").read()).hexdigest() if os.path.exists(p) else None
 keys = {tuple(k.split("|")): v for k, v in json.load(open(kp)).items()}
 e = JEnv(dt=0.002, seed=123, keys=keys, res_scale=A["res_scale"], t_down=A["t_down"])
+if A.get("stance_obs"): e.configure(stance_obs=True)   # Trainer 92703d2e --stance_obs: +4 obs dims (as the worker forwards it)
 if A.get("env_v4") and hasattr(e.env, "set_env_v4"): pass
 m = PPO.load(ck, device="cpu")
 vn = pickle.load(open(ck + "_vecnorm.pkl", "rb"))
