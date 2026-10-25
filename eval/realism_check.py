@@ -121,7 +121,7 @@ def resolve_harness(a):
     v2 = getattr(a, "harness", "v3c") == "v2"
     if getattr(a, "grf_method", None) is None: a.grf_method = "legacy" if v2 else "butter"
     if getattr(a, "robustness", None) is None: a.robustness = 0 if v2 else 24
-    a.robust_wide_info = (not v2) and a.robustness > 0
+    a.robust_wide_info = (not v2) and a.robustness > 0 and not getattr(a, "no_robust_info", False)   # --no-robust-info: top-k pre-screen only
     return a
 
 def run_robustness(a, repo, ck, arm, env, P=None):
@@ -131,7 +131,7 @@ def run_robustness(a, repo, ck, arm, env, P=None):
     x = worker_args(a, repo, ck, arm, s0)
     if "_v3" not in os.path.basename(x[1]):
         return dict(status="skip", passed=False, values=None, why=[f"worker {os.path.basename(x[1])} has no perturb support (needs _j_worker_gp_v3.py)"], ref=None, tag="derived"), []
-    x[6] = str(n); x = [y for y in x if y != "seg1"] + ["seg1", "perturb=" + json.dumps({k: P[k] for k in ("joint_deg", "joint_vel", "ball_tol_m", "friction_rand", "friction_range")})]
+    x[6] = str(n); x = [y for y in x if y != "seg1"] + ["seg1", "perturb=" + json.dumps({k: P[k] for k in ("joint_deg", "joint_vel", "ball_tol_m", "friction_rand", "friction_range", "heldout") if k in P})]   # "heldout" only in v5 held-out DR payloads
     with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as f: outp = f.name
     subprocess.run([outp if y == "{OUT}" else y for y in x], check=True, cwd=str(repo), env=env)
     J = json.load(open(outp)); os.unlink(outp)
@@ -192,6 +192,7 @@ def run_v5(a):
         J = json.load(open(outp)); os.unlink(outp); bw = J["bw_N"]; TEE = J.get("tee_info") or TEE
         for r_ in J["eps"]: r_["_declared_dt"] = J.get("dt")
         eps += J["eps"]
+    V5EPS = [dict(seed=e_.get("seed"), contact=bool(e_.get("contact")), shot_extra=e_.get("shot_extra"), goal=e_.get("goal")) for e_ in eps] if getattr(a, "v5", False) else None
     out = []; gp_rows = []; tres = getattr(a, "timing_res_ms", None)
     for r_raw in eps:
         r = legacy_view(r_raw) if (tres or _fine_grf(a)) else r_raw
@@ -291,6 +292,7 @@ def run_v5(a):
                   checks={k.replace("swing/", f"swing@{tres:g}ms/"): v for k, v in F.items()}, verdict_if_these_rows_gate=S2["verdict"], n_warn_if_gate=S2["n_warn"], n_fail_if_gate=S2["n_fail"],
                   gating=False, note="verdict above is the DEFAULT (20 ms) verdict; these rows are reported alongside and do not change it")
     STK = [{k: e.get(k) for k in ("strike_dy_mm", "strike_dz_mm", "strike_centre")} for e in ok if e["true_contact"] and e.get("strike_dz_mm") is not None]
+    if V5EPS is not None: a._v5_ctx = (repo, ck, arm, env); a._v5_eps = V5EPS
     return dict(tee_info=TEE, strike_episodes=STK, harness_v3=dict(harness=getattr(a, "harness", None), robust_wide_info=getattr(a, "robust_wide_info", False), grf_method=getattr(a, "grf_method", "legacy"), grf_source=getattr(a, "grf_source", None), robustness_n=getattr(a, "robustness", 0), robust_seed0=getattr(a, "robust_seed0", None)), robustness_episodes=ROB, timing_resolution=TR, key=Path(ck).parent.name + "/" + Path(ck).name, arm_dist=arm, strike_gate_nx=getattr(a, "strike_gate_nx", None), n_foul=sum(1 for r in eps if r.get("foul")), env=f"v5 (G1, club_len {a.club_len}, tether 0, {gate_label(getattr(a, 'strike_gate_nx', None))}, arm_dist {arm}{' [BEnv, as B2-B4/C train]' if arm > 0 else ' [TrainEnv; tap-at-address possible]'})", n_episodes=len(out), true_contact=sum(e["true_contact"] for e in out), checks=C, checks_passed=S["n_pass"], n_checks=S["n_checks"], n_warn=S["n_warn"], n_fail=S["n_fail"], n_skip=S["n_skip"], n_info=S["n_info"], verdict=S["verdict"],
                 club_mph_median=SR.med([e["club_mph"] for e in ok]), golfphys_total=_gp_summary(gp_rows),
                 sample_interval=dict(used_ms=1000 * SR.med([e["dt_used"] for e in out]), declared_ms=(1000 * float(out[0]["dt_declared"]) if out and out[0]["dt_declared"] is not None else None),
@@ -308,6 +310,28 @@ def _gp_summary(rows):
                 total_over_carry_max=max(x["total_over_carry"] for x in R), total_over_carry_min=min(x["total_over_carry"] for x in R),
                 max_abs_total_diff_vs_env_yd=max(abs(x["total_yd"] - x["env_total_yd"]) for x in R if x.get("env_total_yd") is not None), episodes=R)
 
+def _apply_v5(a, r):
+    """v5 (opt-in): attach NON-GATING rows; r['verdict'] (v4) is not modified."""
+    from eval import harness_v5 as H5
+    eps = getattr(a, "_v5_eps", None) or []
+    goal = None
+    if a.goal_spec: goal = json.loads(Path(a.goal_spec).read_text() if os.path.exists(a.goal_spec) else a.goal_spec)
+    run_args = None
+    try:
+        ap_ = Path(a.target).resolve().parent / "args.json"; run_args = json.loads(ap_.read_text()) if ap_.exists() else None
+    except Exception: run_args = None
+    C = r.get("checks", {}); gt = r.get("golfphys_total") or {}
+    med = lambda k: (C.get(k) or {}).get("values") if isinstance((C.get(k) or {}).get("values"), (int, float)) else None
+    r["v5_shot_medians"] = dict(smash=med("shot/smash"), spin_rpm=med("shot/spin_rpm"), launch_deg=med("shot/launch_deg"), land_angle_deg=gt.get("descent_deg_median"))
+    hrow = None; n = 24 if a.heldout_dr is None else int(a.heldout_dr)
+    if n > 0 and getattr(a, "_v5_ctx", None):
+        H5.assert_disjoint(); repo, ck, arm, env = a._v5_ctx; P = H5.heldout_perturb(n); s0 = a.robust_seed0; a.robust_seed0 = P["seed0"]; n0 = a.robustness; a.robustness = n
+        try: hrow, _ = run_robustness(a, repo, ck, arm, env, P)
+        finally: a.robust_seed0 = s0; a.robustness = n0
+        hrow = dict(hrow, gating=False, verdict_if_gating=hrow.get("status"), heldout=H5.HELDOUT_DR, training_dr_assumed=H5.TRAINING_DR,
+                    why=["NON-GATING: held-out DR (ranges and seeds disjoint from training; requirements as mine/robustness)"] + list(hrow.get("why") or []))
+    return H5.apply_v5(r, eps, goal, run_args, a.club, hrow)
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter); ap.add_argument("target"); ap.add_argument("--env", default="v1", choices=["v1", "v5"])
     ap.add_argument("--eps-per-seed", type=int, default=8); ap.add_argument("--seeds", default="4000,8000,9000"); ap.add_argument("--workers", type=int, default=2); ap.add_argument("--club-len", type=float, default=1.05)
@@ -315,8 +339,14 @@ def main():
     ap.add_argument("--timing-res-ms", type=float, default=None, help="v5 only, opt-in (default OFF = 20 ms tie tolerance, verdict unchanged): ALSO report kinematic-sequence order/timing from per-physics-substep traces with this tie tolerance (e.g. 5), alongside the default rows; not gating")
     ap.add_argument("--grf-method", default=None, choices=["legacy", "sustain3", "butter", "raw"], help="v5 only. legacy (default) = v2 whole-episode raw peak; others = v3 PROVISIONAL rule: window top->impact on per-substep traces, de-spiked (butter = PRIMARY: 4th-order zero-lag Butterworth 50 Hz, window top->impact+20 ms, >=3-sample guard, 12/14 Hz sensitivity info; sustain3 = fallback >=3 consecutive 2 ms samples, top->impact); old value kept as INFO")
     ap.add_argument("--grf-cutoff-hz", type=float, default=None); ap.add_argument("--grf-order", type=int, default=None); ap.add_argument("--grf-source", default=None)
-    ap.add_argument("--harness", default="v3c", choices=["v3c", "v3d", "v4", "v3b", "v2"], help="v4: v3d bands on the v4 env (V3_HEAD=v4, cross-checked), main row at the 1.5 in tee (V3_TEE=1.5in default), crown 1.6 in = separate info run; eval/harness_v4.py, docs/HARNESS_V4_NOTES.md. v3d (opt-in, under review): the v3c run re-graded by eval/harness_v3d.py (spin 2000-3700 at 70-85 mph, pelvis floor 250, arm->club >=20 ms, club p10 >=0.93x median; docs/HARNESS_V3D_NOTES.md). v3c (default): Butterworth lead-GRF window + mine/robustness gate (friction 0.7-1.05, turf_friction_NOTES.md) + wide (0.5-1.2) and stress (1.1) friction info rows + lead-foot shear ratio info. v3b: gate friction 0.9-1.1 + wide info row. v2: reproduce the v2 rules (whole-episode raw GRF, no robustness rows)"); ap.add_argument("--robustness", type=int, default=None, help="v5 only, PROVISIONAL GATING row mine/robustness: N perturbed episodes (0 = off; v3 runs use 24)"); ap.add_argument("--robust-seed0", type=int, default=7000)
-    a = ap.parse_args(); v4 = a.harness == "v4"; v3d = a.harness == "v3d"
+    ap.add_argument("--harness", default="v3c", choices=["v3c", "v3d", "v4", "v3b", "v2", "v5"], metavar="{v3c,v3d,v4,v3b,v2}|v5", help="v5 (opt-in): the v4 grade unchanged + NON-GATING task-accuracy, per-club band and held-out DR rows (eval/harness_v5.py, docs/HARNESS_V5_SPEC.md). v4: v3d bands on the v4 env (V3_HEAD=v4, cross-checked), main row at the 1.5 in tee (V3_TEE=1.5in default), crown 1.6 in = separate info run; eval/harness_v4.py, docs/HARNESS_V4_NOTES.md. v3d (opt-in, under review): the v3c run re-graded by eval/harness_v3d.py (spin 2000-3700 at 70-85 mph, pelvis floor 250, arm->club >=20 ms, club p10 >=0.93x median; docs/HARNESS_V3D_NOTES.md). v3c (default): Butterworth lead-GRF window + mine/robustness gate (friction 0.7-1.05, turf_friction_NOTES.md) + wide (0.5-1.2) and stress (1.1) friction info rows + lead-foot shear ratio info. v3b: gate friction 0.9-1.1 + wide info row. v2: reproduce the v2 rules (whole-episode raw GRF, no robustness rows)"); ap.add_argument("--robustness", type=int, default=None, help="v5 only, PROVISIONAL GATING row mine/robustness: N perturbed episodes (0 = off; v3 runs use 24)"); ap.add_argument("--robust-seed0", type=int, default=7000)
+    ap.add_argument("--goal-spec", default=None, help="v5 only: goal command JSON (string or file path), see eval/harness_v5.py GOAL_KEYS; used when the episode/run args carry no goal")
+    ap.add_argument("--club", default=None, choices=["driver", "7iron", "wedge"], help="v5 only: club for the per-club band rows (default: goal club, else driver)")
+    ap.add_argument("--heldout-dr", type=int, default=None, help="v5 only: held-out DR episodes (default 24 = all held-out seeds; 0 = off)")
+    ap.add_argument("--no-robust-info", action="store_true", help="opt-in, top-k PRE-SCREEN only: skip the wide/stress friction INFO robustness rows (not for official grades)")
+    a = ap.parse_args(); v5 = a.harness == "v5"; a.v5 = v5
+    if v5: a.harness = "v4"
+    v4 = a.harness == "v4"; v3d = a.harness == "v3d"
     if v4: os.environ.setdefault("V3_HEAD", "v4"); os.environ.setdefault("V3_TEE", "1.5in")   # worker reads these; crown info = rerun with V3_TEE=crown
     if v3d or v4: a.harness = "v3c"   # v3d/v4 = same v3c episodes, re-graded
     resolve_harness(a); r = run_v5(a) if a.env == "v5" else run_v1(a)
@@ -324,9 +354,13 @@ def main():
         from eval.harness_v3d import apply_v3d_flagged; a.harness = "v3d"; r = apply_v3d_flagged(r)
     if v4:
         from eval.harness_v4 import apply_v4; a.harness = "v4"; r = apply_v4(r)
+    if v5: r = _apply_v5(a, r)
     print(f"\nREALISM {r['verdict']}  {r['key']}  [{r['env'] if 'env' in r else ''}]  episodes {r['n_episodes']} (true contact {r['true_contact']})  pass {r['checks_passed']} warn {r['n_warn']} fail {r['n_fail']} skip {r['n_skip']}" + (f" info {r['n_info']} (not gating)" if r.get('n_info') else ""))
     for n, c in r["checks"].items():
         print(f"  {c['status'].upper():5s} {n}" + (f"  - {'; '.join(x for x in c['why'] if x)[:200]}" if c["status"] in ("fail", "warn") else "") + (f"  - {'; '.join(x for x in c['why'] if x)}" if c["status"] == "info" else ""))
+    if r.get("v5"):
+        print(f"  -- harness v5 rows (NON-GATING; verdict above = v4 {r['v5']['v4_verdict']}; club {r['v5']['club']}):")
+        for n, c in r["v5"]["rows"].items(): print(f"  {c['status'].upper():5s} {n}  - {'; '.join(x for x in (c.get('why') or []) if x)[:220]}")
     SI = r.get("sample_interval")
     if SI: print(f"  -- sample interval: {SI['used_ms']:.1f} ms measured from the logged sim time (worker declared {SI['declared_ms'] if SI['declared_ms'] is not None else 'n/a'} ms; {SI['n_declared_mismatch']} episodes disagree); tie tolerance 20 ms and thresholds unchanged")
     TR = r.get("timing_resolution")

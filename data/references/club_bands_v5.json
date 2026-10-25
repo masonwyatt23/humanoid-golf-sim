@@ -1,0 +1,71 @@
+{
+ "label": "Harness v5 per-club bands (opt-in, NON-GATING). driver = existing v3d/v4 driver bands (unchanged). 7-iron and wedge = PENDING COUNSEL: no numbers committed; harness reports n/a.",
+ "generated": "2026-10-25 America/New_York (revised: iron/wedge numbers withdrawn pending counsel)",
+ "clubs": {
+  "driver": {
+   "status": "sourced (reuses the v3d/v4 driver bands: data/references/realism_thresholds.json shot.*_driver and eval/harness_v3d.py spin 2000-3700 at 70-85 mph)",
+   "gating_in_v5": false,
+   "bands": {
+    "smash": {
+     "warn_above": 1.49,
+     "fail_above": 1.5,
+     "warn_below": 1.3,
+     "tag": "published",
+     "why": "realism_thresholds.json shot.smash_driver (unchanged)"
+    },
+    "launch_deg": {
+     "pass": [
+      7.0,
+      16.0
+     ],
+     "warn": [
+      4.0,
+      20.0
+     ],
+     "tag": "derived",
+     "why": "realism_thresholds.json shot.launch_deg_driver (unchanged)"
+    },
+    "spin_rpm": {
+     "pass": [
+      2000,
+      3700
+     ],
+     "warn": [
+      1200,
+      4000
+     ],
+     "tag": "derived",
+     "why": "harness_v3d spin pass 2000-3700 at 70-85 mph; warn edges from realism_thresholds.json shot.spin_rpm_driver"
+    },
+    "land_angle_deg": {
+     "pass": [
+      30,
+      48
+     ],
+     "warn": [
+      25,
+      55
+     ],
+     "tag": "derived",
+     "why": "realism_thresholds.json shot.descent_deg_driver (unchanged)"
+    }
+   }
+  },
+  "7iron": {
+   "status": "pending counsel",
+   "gating_in_v5": false,
+   "club": "7-iron",
+   "bands": null,
+   "source_pointer": "PureGolf Data Agent goal-conditioned refs (main 75a97112): TrackMan PGA/LPGA tour-average rows are HELD PENDING COUNSEL; no numeric centres or widths are committed until counsel clears them."
+  },
+  "wedge": {
+   "status": "pending counsel",
+   "gating_in_v5": false,
+   "club": "pitching wedge",
+   "bands": null,
+   "source_pointer": "PureGolf Data Agent goal-conditioned refs (main 75a97112): TrackMan PGA/LPGA tour-average rows are HELD PENDING COUNSEL; no numeric centres or widths are committed until counsel clears them."
+  }
+ },
+ "source_status": "PureGolf Data Agent goal-conditioned refs (main 75a97112): TrackMan PGA/LPGA tour-average rows are HELD PENDING COUNSEL; no numeric centres or widths are committed until counsel clears them.",
+ "speed_gap_note": "Data Agent: no amateur-by-handicap iron/wedge data and nothing below ~70 mph (GAP); any future band for speed targets < 70 mph is extrapolation."
+}
