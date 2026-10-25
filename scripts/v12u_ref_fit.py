@@ -37,6 +37,9 @@ def score(x):
     d['nom_dz_mm'] = (_R[0].get('dz') or -0.05) / 0.001; wz = float(os.environ.get('V12U_DZ_W', '0'))   # V12X: nominal strike-height term (target 0..+3 mm)
     s -= wz * min(max(-d['nom_dz_mm'], d['nom_dz_mm'] - 3.0, 0.0) / 2.0, 6)
     n0 = _R[0]; d['dplane_nom'] = abs(n0['az'] - 0.85 * n0['fy']) if n0.get('fy') is not None and n0.get('az') is not None else None   # Evaluator v5/dplane = nominal shot only (official episodes seeds 4000-4023 are identical, std 0): |start - .85*face_world| <= 2
+    d['heel8'] = float(np.mean([bool(r.get('on_face')) and (r.get('dy') or 0) / 0.001 < -8.0 for r in R]))   # V12Y: heel tail (D-plane pulls are heel strikes, dy <= -15 mm; passes >= -8.4)
+    wh8 = float(os.environ.get('V12U_HEEL8_W', '0')); wdr = float(os.environ.get('V12U_DPLR_W', '0'))
+    s -= wh8 * d['heel8'] / 0.05 + wdr * max(0.85 - d['dplane'], 0) / 0.05   # V12Y: noisy-start D-plane pass rate (world face, |az - .85 fw| <= 2)
     w4 = float(os.environ.get('V12U_DY2_W', '0')); w5 = float(os.environ.get('V12U_DPL_W', '0'))
     s -= w4 * (max(0.85 - d['dy2'], 0) / 0.05 + min(max(d['nom_dy_abs'] - 8.0, 0) / 2.0, 6)) + w5 * min(max((d['dplane_nom'] if d['dplane_nom'] is not None else 9.0) - 1.5, 0) / 0.5, 6)
     w1 = float(os.environ.get('V12U_SD2_W', '0')); w2 = float(os.environ.get('V12U_HEEL_W', '0')); w3 = float(os.environ.get('V12U_LAT_W', '0'))
