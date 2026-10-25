@@ -6,7 +6,7 @@ In the hgs-v4 worktree I score with (eval/swing_realism.py), the warn thresholds
 | V10l 100k (reference point) | V10l_s104_100000 | .83/.75/.67 | 10.0 | 2.2 |
 | (a) turn_m_w 3, tgt 6.5, warm V10l 100k, V10h keys | V12q 100k | .83/.67/.67 | 10.2 | 2.2 |
 | (a) same, seed 193 | V12s 100k | .83/.79/.67 | 10.8 | 2.5 |
-| (b) V12T keys (refit with harness-style plant, contact, start-dir terms; ref turn 6.5 nominal / 6.7 holdout median), from zero residual, + turn_m_w | V12p 100k | .96/.75/.92 | 7.2 | 1.4 |
+| (b) V12T keys (refit with harness-style plant, contact, start-dir terms; ref turn 6.5 nominal / 6.7 noisy-start median (in-sample refit proxy on the 48 fit draws, PID0=2000; not held-out)), from zero residual, + turn_m_w | V12p 100k | .96/.75/.92 | 7.2 | 1.4 |
 | (b) same, seed 192 | V12r 100k | .96/.75/.92 | 6.8 | 1.3 |
 | (b) + dz_tgt -4 mm | V12y / V12z 100k | .92/.67-.71/.88 | 7.3 / 7.7 | 1.4 |
 - The turn-margin penalty alone, warm from V10l, does not move nominal turn (~10 deg); the residual keeps the V10h-key foot pattern.
