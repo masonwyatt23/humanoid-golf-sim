@@ -1,0 +1,58 @@
+{
+ "checkpoint": "V8a_s90 300k",
+ "n_starts": 24,
+ "contact": 17,
+ "foot_status": {
+  "pass": 1,
+  "warn": 10,
+  "fail": 13
+ },
+ "slip_m": {
+  "median": 0.05175218101841462,
+  "p90": 0.0780576055694723,
+  "n": 24
+ },
+ "turn_deg": {
+  "median": 10.23386177017069,
+  "p90": 14.11927628410954,
+  "n": 24
+ },
+ "airborne_max_ctrl_steps": {
+  "median": 0.40000000000000036,
+  "p90": 0.8000000000000007,
+  "n": 24
+ },
+ "slip_at_top_cm": {
+  "median": 0.38007048698266815,
+  "p90": 0.6746729713248004,
+  "n": 24
+ },
+ "slip_cross_frac_median": 0.7055103884372177,
+ "sd_pass": 17,
+ "az": {
+  "median": 0.20413842453527434,
+  "p90": 2.1823599186865605,
+  "n": 17
+ },
+ "face": {
+  "median": 1.8627090044751256,
+  "p90": 3.229216826245913,
+  "n": 17
+ },
+ "path": {
+  "median": 0.5818179938516862,
+  "p90": 2.1737851246916446,
+  "n": 17
+ },
+ "dz_mm": {
+  "median": -5.342723644242628,
+  "p90": 4.589278314335342,
+  "n": 17
+ },
+ "dy_mm": {
+  "median": 6.038859569987378,
+  "p90": 21.445145420509824,
+  "n": 17
+ },
+ "note": "Summary of scripts/diag_v9_plant_sd.py output (own RNG, 24 noisy address starts; not the Evaluator episodes). Per-episode rows held locally, not tracked."
+}
