@@ -119,6 +119,7 @@ All K24-K26 harness files (`results/v5_runs/stageJ_harness/K2[4-6]*_v3.json`, sc
 
 ## Research bands
 
+- **Trainer-only V6 rows** (`--env_v4`, Trainer-local runs of the Evaluator v4 worker, NOT official, single seed, model-only; all FAIL): best V6a 500k harness v4 grade 14/3/2 FAIL at the 1.5 in tee (`results/v5_runs/stageJ_harness/V6a_s85_500000_v3_tee15in_v4h_v4.json`); V6b rows have fewer scored checks (8/2/1 FAIL). Diag: `results/v6_diag/`.
 - **Harness v4 re-baseline (Evaluator-scored, PROVISIONAL, single seed, model-only)**: V4a_s80 50k-200k, V4b_s81 50k-300k, K34a 200k ref. Every gating v4 row (1.5 in tee) FAILs (robustness, total/carry); best 14/3/2 FAIL (`results/v5_runs/stageJK_harness_summary/realism_v5_V4b_s81_300k_15in_v4_gateoff_gp_arm06.json`). The 1.6 in crown tee rows are info only (best 14/3/2, not a pass). No row passes every check. Do not compare with v3c/v3d counts. Details: `docs/V4_REBASELINE.md`.
 - **Trainer-only K33/K34/V4/V5 rows** (`results/v5_runs/stageJ_harness/`, slim; Trainer-local runs of the Evaluator worker, NOT official, single seed, model-only; every row FAILs, no row passes every check; do not compare counts across harness versions):
   - K33a-d (box head, default tee): best v3d 14/2/2 FAIL (`K33b_s75_50000_v3d_teedefault.json`).

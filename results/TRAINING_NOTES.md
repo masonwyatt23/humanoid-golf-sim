@@ -889,3 +889,24 @@ Orchestrator-confirmed v4 bundle (for Mason, standing approval t108u); the Evalu
 ### V5 erratum and harness fix (2026-10-24)
 - The V5 "harness ..." commits made before the watcher fix (e.g. 3a029cc, 8f28991, b837bcb) carry an incorrect head/tee label. They are local runs of the Evaluator v4 worker @8c3513e (env_v4 head), with tee 1.5in as the main row and the 62 mm crown as the default-tee info row. The watcher message is now fixed.
 - hz3_tee.sh fix (1604533): before it, `default` sent V3_TEE=0 (tee_dz 0). That does not match the v4 default tee. When the worker has eval/harness_v4.py, `default` now sends V3_TEE=crown and `15in` sends V3_TEE=1.5in. Verified in tee_info: ball centre z 0.062 m (default) and 0.059435 m (1.5in). apply_v4 is written to *_v4.json. The V5 rows were all scored after this fix.
+- Erratum (V4/V5 v2 rows): the `results/v5_runs/stageJ_harness/V4*_<N>.json` and `V5*_<N>.json` files (no tee suffix) come from the box-head v2 script (scripts/hz.sh → v5_realism_j.py). They are not on the v4 env (club speed 73.4 mph on the box head vs 70.3 on v4), so they are not v4 scores. A `label` field now says so, and the watcher labels new files the same way. The v4 rows are the `*_tee15in_v4h*.json` (main) and `*_teedefault_v4h*.json` (info) files. From now on the watcher scores against the Evaluator harness 915348c (it has the mine/strike_height row) in the hgs-v4 worktree. Earlier V5 v4h rows used 8c3513e.
+
+### V6 diagnosis (2026-10-24)
+- **Strike-height drift (1a)** (scripts/diag_dz_terms.py, results/v6_diag/dz_terms_V5a_100k_400k.txt). For V5a 100k and 400k on seeds 7000-7023 (v4 env, tee 1.5in), each real contact's golfphys call is re-run with the same club velocity, face normal and dy, but with dz forced to +5..-25 mm. The terms are then recomputed with the run's weights.
+  - At a fixed swing, no outcome term rewards low strikes. The summed contact reward is highest at dz 0 to -5 mm and falls steeply below -10 (400k: -8.8 at 0, -18 at -10, -49 at -20).
+  - spin_cap is the main penalty. smash, smash2, desc and ctr fall slightly with lower dz.
+  - Only launch (window 10-14.5 deg, launch about 14 deg at dz 0, peak at -10 mm) and tc (minimum at -5 to -10) mildly favour striking about 5-10 mm low. aim_az is flat.
+  - loc (run with all args) is about -36 at dz 0, mostly from dy being about -20 mm against a +5 target, and it saturates at its clip of 4. With dy that far off, loc is nearly flat below dz -15 (-72 to -77), so it is effectively swamped/saturated in the low-strike region.
+  - Conclusion: the drift is not driven by an outcome term. Strike height is a weakly controlled side effect of the swing (corr dz~club mph -0.16, n=343). The penalties that should hold it saturate (loc clip, ctr2 cap at 3).
+- **Side finding:** training uses rsi (0.4, 0.3, 0.3). Only 40% of episodes start at address and receive the init_qn/qvn start noise; 60% start at the top or mid-downswing with no noise. The harness scores 100% address starts with noise.
+- **v4 robustness (1b)** (scripts/diag_rob_env.py, results/v6_diag/rob_*.json). Same seeds and perturbations, rsi (1,0,0). Variants: box, box + 54 mm face gate, v5 realistic, v4.
+  - Open-loop K32 keys, contact / start direction: box 0.96/0.79, box_face54 0.62/0.58, v5 realistic 0.75/0.54, v4 0.83/0.50.
+  - K31a 200k, contact / start direction: box 0.96/0.96, box_face54 0.62/0.62, v5 realistic 0.71/0.58, v4 0.83/0.58.
+  - Most of the drop comes from adding a finite face. The box head counts every strike as contact, and its strikes are at dz -21 to -24 mm. The address, lie and head changes in v4 do not make it worse than v5 realistic.
+  - The foot proxy (whole-episode slip/turn/air) is not reliable: it fails K31a box, which the harness passes at 1.00. Plant is therefore unresolved by this diag.
+  - init noise is applied relative to the current address (qpos at reset = the v4 address). The reference is rebuilt on the v4 q_addr (JEnv.reset sets ref=None after set_env_v4). Foot terms are measured relative to the address at reset, so there is no stance mismatch in the shaping.
+- **V6a / V6b:**
+  - New flags, default off: --dz_gate/--dz_zero (ctr, spd, smash, launch, desc, dloft, smash2 and aim terms are multiplied by exp(-(dz/gate)^2), and are 0 when |dz| > dz_zero) and --rsi_full (fraction of training episodes started at address).
+  - V6a: dz_gate 10 mm / zero at 15 mm, launch_hi 14.5 -> 16 (removes the launch pull toward -10 mm).
+  - V6b: rsi_full 0.8, miss_w 15.
+  - Both warm-start from V5a 200k, lr 3e-5, 500k, scored every 50k.

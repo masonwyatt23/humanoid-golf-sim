@@ -1,0 +1,53 @@
+{
+ "ck": "results/v5_runs/_snap/K31a_s68_200000/ckpt_200000",
+ "openloop": true,
+ "keys": "results/v5_runs/stageK32_ref_s1/tuned_keys_flat.json",
+ "thresholds": {
+  "slip_m": 0.03,
+  "turn_deg": 12.0,
+  "air_steps": 1.7999999999999998
+ },
+ "variants": {
+  "box": {
+   "contact": 0.9583333333333334,
+   "sd": 0.7916666666666666,
+   "foot": 0.16666666666666666,
+   "foot_any": 0.16666666666666666,
+   "slip_cm_med": 6.167591804201631,
+   "turn_med": 10.3218967942164,
+   "air_med": 2.0,
+   "dz_med_mm": -24.028696529481945
+  },
+  "box_face54": {
+   "contact": 0.625,
+   "sd": 0.5833333333333334,
+   "foot": 0.08333333333333333,
+   "foot_any": 0.20833333333333334,
+   "slip_cm_med": 6.167591804201631,
+   "turn_med": 9.392932852684439,
+   "air_med": 2.0,
+   "dz_med_mm": -16.47710239658519
+  },
+  "v5_realistic": {
+   "contact": 0.75,
+   "sd": 0.5416666666666666,
+   "foot": 0.0,
+   "foot_any": 0.041666666666666664,
+   "slip_cm_med": 5.882013309605766,
+   "turn_med": 9.49654557078496,
+   "air_med": 2.0,
+   "dz_med_mm": -10.429203905653075
+  },
+  "v4": {
+   "contact": 0.8333333333333334,
+   "sd": 0.5,
+   "foot": 0.041666666666666664,
+   "foot_any": 0.08333333333333333,
+   "slip_cm_med": 3.9742847936200114,
+   "turn_med": 10.053623601100725,
+   "air_med": 2.0,
+   "dz_med_mm": -1.9949418069926894
+  }
+ },
+ "note": "per-episode rows stripped (slim)"
+}
